@@ -10,6 +10,8 @@ export const useStore = create((set) => ({
   videoUrl: null,
   vlmDetections: null,      // JSON from VLM
   assignment: null,         // assignment/progress JSON
+  storyConfig: null,        // config.json contents
+  storyAnalysis: null,      // story_01.json contents
   prolificCompletionUrl: null,
   setState: (next) => set(next),
 }));

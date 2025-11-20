@@ -10,6 +10,15 @@ const INFO_TYPES = [
 ];
 
 const STAKEHOLDERS = ['wearer', 'bystander', 'third_party'];
+const { storyAnalysis, currentClipIndex } = useStore();
+
+const clipData = storyAnalysis?.clips.find(
+  (c) => c.clip_index === currentClipIndex
+);
+
+// for markers:
+const detections = clipData?.detections || [];
+const duration = clipData?.duration_sec || null;
 
 export default function AnnotationForm({ onAdd }) {
   const [form, setForm] = useState({
