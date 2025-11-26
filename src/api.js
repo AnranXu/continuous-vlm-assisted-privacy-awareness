@@ -1,42 +1,68 @@
 // src/api.js
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
-// Assign participant and get story info for first clip
-export async function assignParticipant(participantId, storyId) {
-  const res = await fetch(`${API_BASE}/api/assign`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ participantId, storyId }),
+const ASSIGN_URL = import.meta.env.VITE_ASSIGN_URL;
+const PRESIGN_URL = import.meta.env.VITE_PRESIGN_URL;
+const MARK_FINISHED_URL = import.meta.env.VITE_MARK_FINISHED_URL;
+
+if (!ASSIGN_URL || !PRESIGN_URL || !MARK_FINISHED_URL) {
+  console.warn("One or more API URLs are missing in env (.env.local).");
+}
+
+export async function assignParticipant(participantId) {
+  const res = await fetch(ASSIGN_URL, {
+    method: "POST",
+    body: JSON.stringify({ participantId })
   });
-  if (!res.ok) throw new Error('Failed to assign participant');
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Assign failed: ${res.status} ${text}`);
+  }
+
   return res.json();
 }
 
-// Load current assignment for resume flow
-export async function readAssignment(participantId) {
-  const res = await fetch(`${API_BASE}/api/assignment/${participantId}`);
-  if (!res.ok) throw new Error('Failed to read assignment');
-  return res.json();
+
+export async function presignGet(key) {
+  const res = await fetch(PRESIGN_URL, {
+    method: "POST",
+    body: JSON.stringify({ operation: "get", key })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Presign GET failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  return data.url;
 }
 
-// Presign a PUT or GET URL for S3
-export async function presign(key, method, contentType) {
-  const res = await fetch(`${API_BASE}/api/presign`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, method, contentType }),
+export async function presignPut(key, contentType = "application/json") {
+  const res = await fetch(PRESIGN_URL, {
+    method: "POST",
+    body: JSON.stringify({ operation: "put", key, contentType })
   });
-  if (!res.ok) throw new Error('Failed to presign');
-  return res.json();
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Presign PUT failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  return data.url;
 }
 
-// Save assignment/progress back to S3
-export async function saveProgress(participantId, assignment) {
-  const res = await fetch(`${API_BASE}/api/progress`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ participantId, assignment }),
+export async function markFinished(participantId) {
+  const res = await fetch(MARK_FINISHED_URL, {
+    method: "POST",
+    body: JSON.stringify({ participantId })
   });
-  if (!res.ok) throw new Error('Failed to save progress');
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`markFinished failed: ${res.status} ${text}`);
+  }
+
   return res.json();
 }

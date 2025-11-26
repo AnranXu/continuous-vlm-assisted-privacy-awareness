@@ -13,6 +13,19 @@ export default function AnnotatePage() {
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState({});
   const [manualDetections, setManualDetections] = useState([]);
+  const [urlMode] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get('mode');
+    return modeParam ? modeParam.toLowerCase() : null;
+  });
+  const normalizedMode = (
+    urlMode ||
+    st.assignment?.mode ||
+    st.assignment?.assigned_mode ||
+    'normal'
+  ).toLowerCase();
+  const isTestMode = normalizedMode === 'test';
 
   // If VLM-assisted, fetch VLM detection JSON when necessary
   const [vlmJson, setVlmJson] = useState(null);
@@ -152,7 +165,12 @@ export default function AnnotatePage() {
         </details>
       </div>
 
-      <VideoPlayerWithMarkers videoUrl={st.videoUrl} markers={markers} />
+      <VideoPlayerWithMarkers
+        videoUrl={st.videoUrl}
+        markers={markers}
+        allowForwardSeek={isTestMode}
+        pauseWhenInactive={!isTestMode}
+      />
 
       {st.assignedMode === 'vlm' && vlmJson && (
         <ThreatList
