@@ -71,6 +71,20 @@ export default function TaskView({
     return vis;
   }, [currentClipMeta, currentTime, maxSeenTimeByClip, currentClipIndex]);
 
+  const groupedDetections = useMemo(() => {
+    const groups = {};
+    visibleDetections.forEach((d) => {
+      const types = Array.isArray(d.information_types) && d.information_types.length
+        ? d.information_types
+        : ["Other"];
+      types.forEach((t) => {
+        if (!groups[t]) groups[t] = [];
+        groups[t].push(d);
+      });
+    });
+    return Object.entries(groups).map(([infoType, list]) => ({ infoType, list }));
+  }, [visibleDetections]);
+
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
     const m = Math.floor(sec / 60);
@@ -376,33 +390,49 @@ export default function TaskView({
                 Keep watching to see AI detections appear.
               </p>
             ) : (
-              <ul style={{ listStyle: "none", paddingLeft: 0, marginTop: "8px", marginBottom: 0 }}>
-                {visibleDetections.map((d) => (
-                  <li
-                    key={d.det_id}
-                    style={{
-                      padding: "8px 10px",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "8px",
-                      marginBottom: "8px",
-                      background: "#fff",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <strong style={{ color: "#0f172a" }}>{d.detected_visual}</strong>
-                      <span style={{ fontSize: "0.85rem", color: "#475569" }}>
-                        {formatTime(d.time_sec || 0)}
-                      </span>
+              <div style={{ marginTop: "8px" }}>
+                {groupedDetections.map((group) => (
+                  <div key={group.infoType} style={{ marginBottom: "10px" }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: "1.1rem",
+                        color: "#1d4ed8",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {group.infoType}
                     </div>
-                    <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
-                      {d.why_privacy_sensitive || "Potentially sensitive moment"}
-                    </div>
-                    <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
-                      Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
-                    </div>
-                  </li>
+                    <ul style={{ listStyle: "none", paddingLeft: 0, margin: 0 }}>
+                      {group.list.map((d) => (
+                        <li
+                          key={`${group.infoType}-${d.det_id}`}
+                          style={{
+                            padding: "8px 10px",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "8px",
+                            marginBottom: "8px",
+                            background: "#fff",
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <strong style={{ color: "#0f172a" }}>{d.detected_visual}</strong>
+                            <span style={{ fontSize: "0.85rem", color: "#475569" }}>
+                              {formatTime(d.time_sec || 0)}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
+                            {d.why_privacy_sensitive || "Potentially sensitive moment"}
+                          </div>
+                          <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
+                            Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         )}
