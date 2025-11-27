@@ -85,6 +85,31 @@ export default function TaskView({
     return Object.entries(groups).map(([infoType, list]) => ({ infoType, list }));
   }, [visibleDetections]);
 
+  const seenClipIndices = useMemo(() => {
+    const seen = new Set();
+    Object.entries(maxSeenTimeByClip || {}).forEach(([idx, t]) => {
+      if (t != null) seen.add(Number(idx));
+    });
+    Object.entries(clipCompletion || {}).forEach(([idx, done]) => {
+      if (done) seen.add(Number(idx));
+    });
+    return seen;
+  }, [maxSeenTimeByClip, clipCompletion]);
+
+  const unlockedCrossClipThreats = useMemo(() => {
+    if (!vlmAnalysis?.story?.cross_clip_threats) return [];
+    return vlmAnalysis.story.cross_clip_threats.filter((threat) => {
+      if (!Array.isArray(threat.clips_involved) || threat.clips_involved.length === 0) return false;
+      return threat.clips_involved.every((clipNum) => {
+        const n = Number(clipNum);
+        if (!Number.isFinite(n)) return false;
+        return seenClipIndices.has(n - 1);
+      });
+    });
+  }, [vlmAnalysis, seenClipIndices]);
+
+  const crossClipThreatCount = vlmAnalysis?.story?.cross_clip_threats?.length || 0;
+
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
     const m = Math.floor(sec / 60);
@@ -92,6 +117,11 @@ export default function TaskView({
       .toString()
       .padStart(2, "0");
     return `${m}:${s}`;
+  }
+
+  function formatList(list) {
+    if (!Array.isArray(list) || list.length === 0) return "";
+    return list.join(", ");
   }
 
   useEffect(() => {
@@ -307,7 +337,7 @@ export default function TaskView({
           style={{
             background: "#000",
             borderRadius: "8px",
-            overflow: "hidden",
+            overflow: "visible",
             maxHeight: "70vh",
             minHeight: "320px",
           }}
@@ -356,7 +386,7 @@ export default function TaskView({
               onLoadedData={() => {
                 if (videoRef?.current) setVideoHeight(videoRef.current.clientHeight || null);
               }}
-              style={{ width: "100%", display: "block", height: "100%" }}
+              style={{ width: "100%", display: "block", height: "auto", maxHeight: "70vh" }}
             />
           ) : (
             <div
@@ -383,7 +413,7 @@ export default function TaskView({
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-              <h3 style={{ margin: 0 }}>AI-suggested detections</h3>
+              <h3 style={{ margin: 0 }}>AI-suggested detections on single scenario</h3>
             </div>
             {visibleDetections.length === 0 ? (
               <p style={{ marginTop: "8px", color: "#475569" }}>
@@ -434,6 +464,61 @@ export default function TaskView({
                 ))}
               </div>
             )}
+
+            <div
+              style={{
+                marginTop: "14px",
+                paddingTop: "12px",
+                borderTop: "1px solid #e2e8f0",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                <h3 style={{ margin: 0 }}>AI-suggested detections on multiple scenarios</h3>
+              </div>
+              {unlockedCrossClipThreats.length === 0 ? (
+                <p style={{ marginTop: "8px", color: "#475569" }}>
+                  No multi-scenario AI suggestions available for this story yet.
+                </p>
+              ) : (
+                <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
+                  {unlockedCrossClipThreats.map((threat, idx) => (
+                    <li
+                      key={threat.threat_id || threat.title || idx}
+                      style={{
+                        padding: "10px 10px",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        marginBottom: "10px",
+                        background: "#fff",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                        <strong style={{ color: "#0f172a" }}>{threat.title || "Cross-clip threat"}</strong>
+                        <span style={{ fontSize: "0.85rem", color: "#475569" }}>
+                          Scenarios {Array.isArray(threat.clips_involved) ? threat.clips_involved.join(", ") : "n/a"}
+                        </span>
+                      </div>
+                      {threat.why_amplified_across_clips && (
+                        <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
+                          {threat.why_amplified_across_clips}
+                        </div>
+                      )}
+                      <div style={{ fontSize: "0.9rem", color: "#475569", marginTop: "6px" }}>
+                        Info types: {formatList(threat.information_types) || "n/a"}
+                      </div>
+                      <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
+                        Severity: {threat.severity_overall ?? "n/a"} | Confidence: {threat.confidence ?? "n/a"}
+                      </div>
+                      {threat.evidence_summary && (
+                        <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
+                          Evidence: {threat.evidence_summary}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
       </div>
