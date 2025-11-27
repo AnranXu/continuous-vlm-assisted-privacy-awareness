@@ -6,6 +6,7 @@ import {
   presignGet,
   // markFinished,        // you can enable later when you wire it
 } from "./api";
+import InstructionsPage from "./components/InstructionsPage";
 
 // ---------- URL PARAMS (parsed once at module load) ----------
 const params = new URLSearchParams(window.location.search);
@@ -48,10 +49,20 @@ function App() {
   // placeholder annotation text
   const [annotationText, setAnnotationText] = useState("");
   const [clipCompletion, setClipCompletion] = useState({});
+  const [awaitingVlmInstruction, setAwaitingVlmInstruction] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [helpSlide, setHelpSlide] = useState(0);
+  const [showVlmInfoModal, setShowVlmInfoModal] = useState(false);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
-  const FORWARD_HEADROOM = 1.0; // seconds participants can scrub ahead of watched time
+  const FORWARD_HEADROOM = 0.8; // seconds participants can scrub ahead of watched time
+
+  const helpSlides = [
+    "You will watch short, first-person video clips and imagine they reflect your own daily activities.",
+    "Identify parts of each video you consider private, sensitive, or revealing and briefly explain why.",
+    "There are no right or wrong answers—use your judgment about what feels privacy-relevant.",
+  ];
 
   function clampToFurthest(videoEl) {
     if (!videoEl || IS_TEST_MODE) return;
@@ -114,6 +125,8 @@ function App() {
     setCurrentClipIndex(0);
     setAnnotationText("");
     setClipCompletion({});
+    setAwaitingVlmInstruction(false);
+    setShowVlmInfoModal(false);
 
     const pid = resolvedParticipantId();
     if (!pid) {
@@ -141,6 +154,10 @@ function App() {
       }
 
       setAssignment(assignRes);
+      if (assignRes.mode === "vlm") {
+        setAwaitingVlmInstruction(true);
+        setShowVlmInfoModal(true);
+      }
       await loadStoryConfig(assignRes.storyId);
     } catch (err) {
       console.error(err);
@@ -208,7 +225,9 @@ function App() {
   const hasActiveTask = Boolean(assignment && storyConfig);
 
   const pageTitle = (() => {
-    if (!hasActiveTask) return "Identify privacy threats in egocentric videos";
+    if (!hasActiveTask) {
+      return "Privacy Perception in Visual Content Understanding (30-45 minutes)";
+    }
     const mode = (assignment?.mode || "").toLowerCase();
     return mode === "vlm"
       ? "AI-assisted identification of privacy threats in egocentric videos"
@@ -254,6 +273,14 @@ function App() {
       </div>
     );
 
+  useEffect(() => {
+    if (!assignment) return;
+    const pid = resolvedParticipantId() || "(unknown)";
+    const story = assignment.storyId || "(no story)";
+    const mode = assignment.mode || assignment.assigned_mode || "(unknown mode)";
+    console.info("Study session context:", { story, mode, participantId: pid });
+  }, [assignment]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div
       style={{
@@ -263,96 +290,40 @@ function App() {
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "8px" }}>{pageTitle}</h1>
+      {hasActiveTask && (
+        <h1 style={{ fontSize: "2rem", marginBottom: "8px" }}>{pageTitle}</h1>
+      )}
       {testBanner}
 
       {!hasActiveTask && (
-        <>
-          <p style={{ marginBottom: "24px", lineHeight: 1.4 }}>
-            Please enter your <strong>Prolific ID</strong> to start the task.
-            You will be assigned one egocentric video story and asked to review
-            each clip with a simple annotation step (placeholder for now).
-          </p>
-
-          <form
-            onSubmit={handleStart}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "16px",
-              marginBottom: "20px",
-              background: "#fff",
-              boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
-            }}
-          >
-            <label
-              htmlFor="prolificId"
-              style={{ display: "block", fontWeight: 600, marginBottom: "8px" }}
-            >
-              Prolific ID:
-            </label>
-            <input
-              id="prolificId"
-              type="text"
-              value={prolificId}
-              onChange={(e) => setProlificId(e.target.value)}
-              placeholder={
-                IS_TEST_MODE && TEST_PARTICIPANT_FROM_URL
-                  ? `Optional (default: ${TEST_PARTICIPANT_FROM_URL})`
-                  : "Enter your Prolific ID"
-              }
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "10px",
-                border: "1px solid #cbd5e1",
-                marginBottom: "14px",
-                fontSize: "1rem",
-              }}
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: "10px 18px",
-                borderRadius: "10px",
-                border: "none",
-                background: loading ? "#94a3b8" : "#2563eb",
-                color: "white",
-                fontWeight: 700,
-                cursor: loading ? "default" : "pointer",
-                boxShadow: loading
-                  ? "none"
-                  : "0 10px 18px rgba(37, 99, 235, 0.2)",
-              }}
-            >
-              {loading ? "Starting..." : "Start"}
-            </button>
-
-            {renderFeedback({ showStatus: true })}
-          </form>
-        </>
+        <InstructionsPage
+          prolificId={prolificId}
+          loading={loading}
+          onChange={(e) => setProlificId(e.target.value)}
+          onSubmit={handleStart}
+          placeholder={
+            IS_TEST_MODE && TEST_PARTICIPANT_FROM_URL
+              ? `Optional (default: ${TEST_PARTICIPANT_FROM_URL})`
+              : "Enter your Prolific ID"
+          }
+          feedback={renderFeedback({ showStatus: true })}
+        />
       )}
 
       {/* Main task area */}
       {hasActiveTask && (
         <div>
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "16px",
-            }}
-          >
+          <div style={{ marginBottom: "10px" }}>
             <h2
               style={{
                 fontSize: "2rem",
-                marginBottom: "10px",
+                margin: 0,
                 fontWeight: 800,
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
                 gap: "10px",
                 flexWrap: "wrap",
+                paddingLeft: "12px",
               }}
             >
               {IS_TEST_MODE ? (
@@ -377,13 +348,63 @@ function App() {
                 </>
               )}
             </h2>
+          </div>
+
+          <div
+            style={{
+              marginBottom: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowHelpModal(true);
+                  setHelpSlide(0);
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid #cbd5e1",
+                  background: "#fff",
+                  cursor: "pointer",
+                  color: "#0f172a",
+                }}
+              >
+                View instructions
+              </button>
+              {assignment?.mode === "vlm" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowVlmInfoModal(true);
+                    setAwaitingVlmInstruction(false);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "10px",
+                    border: "1px solid #cbd5e1",
+                    background: "#fff",
+                    cursor: "pointer",
+                    color: "#0f172a",
+                  }}
+                >
+                  AI assistance info
+                </button>
+              )}
+            </div>
+
             <div
               style={{
-                marginTop: "12px",
                 display: "flex",
-                justifyContent: "center",
                 gap: "12px",
                 alignItems: "center",
+                flexWrap: "wrap",
               }}
             >
               <button
@@ -459,6 +480,11 @@ function App() {
               >
                 Next clip
               </button>
+              {!IS_TEST_MODE && !clipCompletion[currentClipIndex] && (
+                <div style={{ color: "#b45309", fontSize: "0.95rem" }}>
+                  Finish watching this scenario to unlock Next.
+                </div>
+              )}
             </div>
           </div>
 
@@ -519,11 +545,6 @@ function App() {
           </div>
 
           {/* Annotation placeholder */}
-          {!IS_TEST_MODE && !clipCompletion[currentClipIndex] && (
-            <div style={{ color: "#b45309", marginBottom: "10px" }}>
-              Finish watching this scenario to unlock Next.
-            </div>
-          )}
           {renderFeedback({ showStatus: !IS_TEST_MODE })}
           <div
             style={{
@@ -573,6 +594,145 @@ function App() {
             >
               Save annotation (placeholder)
             </button>
+          </div>
+        </div>
+      )}
+
+      {showHelpModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 50,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "16px",
+              width: "min(600px, 90vw)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>Instructions</h3>
+              <button
+                onClick={() => setShowHelpModal(false)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: "1.2rem",
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  lineHeight: 1,
+                  color: "#0f172a",
+                }}
+                aria-label="Close instructions"
+              >
+                ×
+              </button>
+            </div>
+            <p style={{ marginTop: "12px", marginBottom: "8px" }}>
+              {helpSlides[helpSlide]}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "12px" }}>
+              <input
+                type="range"
+                min={0}
+                max={helpSlides.length - 1}
+                value={helpSlide}
+                onChange={(e) => setHelpSlide(parseInt(e.target.value, 10))}
+                style={{ flex: 1 }}
+              />
+              <span>
+                {helpSlide + 1} / {helpSlides.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showVlmInfoModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 50,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "18px",
+              width: "min(640px, 92vw)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+              lineHeight: 1.5,
+              color: "#0f172a",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>AI-assisted mode</h3>
+            <p>
+              In this version of the task, you will receive automated suggestions generated by an AI system that
+              analyzes the video frames. The AI may highlight moments or visual details that could potentially be
+              sensitive.
+            </p>
+            <p style={{ marginBottom: "8px" }}>Your role is to:</p>
+            <ul>
+              <li>Review the AI’s suggestions.</li>
+              <li>Correct them if needed.</li>
+              <li>Add any privacy-sensitive moments the AI may have missed.</li>
+            </ul>
+            <p>
+              The AI suggestions are not always complete or accurate — your own judgment is essential. Please take your
+              time and provide your own input in addition to reviewing the AI’s output. Your feedback will help us
+              understand how people interact with automated assistance when reasoning about privacy.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button
+                onClick={() => {
+                  setShowVlmInfoModal(false);
+                  setAwaitingVlmInstruction(false);
+                }}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  border: "1px solid #1d4ed8",
+                  background: "#1d4ed8",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+                aria-label="Close AI assistance info"
+              >
+                Got it
+              </button>
+              <button
+                onClick={() => {
+                  setShowVlmInfoModal(false);
+                  setAwaitingVlmInstruction(false);
+                }}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  background: "#fff",
+                  cursor: "pointer",
+                  color: "#0f172a",
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
