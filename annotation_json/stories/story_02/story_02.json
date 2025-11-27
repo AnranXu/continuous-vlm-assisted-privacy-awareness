@@ -1,7 +1,7 @@
 {
   "story_id": "story_02",
   "story": {
-    "overall_description": "This video series documents the morning domestic routine of a resident in a ground-floor home in the Indian states of Andhra Pradesh or Telangana. The narrative progresses from religious rituals in a dedicated prayer room to household maintenance activities like sweeping the patio and organizing a wardrobe. The footage provides granular details on the resident's religious beliefs, linguistic background (Telugu), socioeconomic status, and daily habits, while consistently featuring soft biometric markers like specific jewelry.",
+    "overall_description": "This video series documents the morning domestic routine of a resident in a ground-floor home in the Indian states of Andhra Pradesh or Telangana. The narrative follows a logical sequence: sweeping the marble floors of the bedroom (Clip 1) and main living hall (Clip 2), organizing and folding laundry (Clip 3), cleaning furniture (Clip 4), and concluding with religious rituals in a dedicated prayer room (Clip 5). The footage provides granular details on the resident's religious beliefs, linguistic background (Telugu), socioeconomic status, and daily habits.",
     "cross_clip_threats": [
       {
         "threat_id": "story_t1",
@@ -10,7 +10,7 @@
           3,
           5
         ],
-        "why_amplified_across_clips": "While Clip 3 suggested a South Asian context, Clip 5 provides definitive geolocation markers. The devotional book features Telugu script, narrowing the location to Andhra Pradesh or Telangana, India. This is corroborated by the 'Home Lites' matchbox (an Indian brand) and the architectural style of the independent house with a compound wall.",
+        "why_amplified_across_clips": "While Clip 1 and 3 suggest a South Asian context via decor and attire, Clip 5 provides definitive geolocation markers. The devotional book features Telugu script, narrowing the location to Andhra Pradesh or Telangana, India. This is corroborated by the 'Home Lites' matchbox (an Indian brand).",
         "information_types": [
           "location of shooting",
           "personal information"
@@ -27,11 +27,13 @@
         "threat_id": "story_t2",
         "title": "Persistent Re-identification via Attire and Jewelry",
         "clips_involved": [
+          1,
+          2,
           3,
           4,
           5
         ],
-        "why_amplified_across_clips": "The wearer is visually tracked across all three clips through identical markers: a yellow floral-print dress, a set of red bangles on both wrists, and a green bracelet. This continuity links the intimate religious activities in Clip 5 with the general chores in Clips 3 and 4, creating a unified profile of a single individual.",
+        "why_amplified_across_clips": "The wearer is visually tracked across all clips through identical markers: a yellow floral-print dress, a set of red bangles on both wrists, and a green bracelet. This continuity links the physical labor of cleaning (Clips 1-2) with the intimate religious activities in Clip 5.",
         "information_types": [
           "personal information"
         ],
@@ -45,29 +47,32 @@
       },
       {
         "threat_id": "story_t3",
-        "title": "Religious and Cultural Profiling",
+        "title": "Comprehensive Floor Plan Reconstruction",
         "clips_involved": [
+          1,
+          2,
+          3,
           5
         ],
-        "why_amplified_across_clips": "Clip 5 provides a deep dive into the wearer's sensitive personal beliefs. The detailed view of the home altar, specific deities (Krishna, etc.), and the ritual process allows for precise religious profiling (Hinduism) that was not present in the previous, chore-focused clips.",
+        "why_amplified_across_clips": "The video sequences map the entire home layout. Clip 1 shows the bedroom; Clip 2 reveals the central hall connecting the bedroom to the entrance; Clip 3 shows the storage area/patio access; Clip 5 shows the prayer room. This sequential movement allows for a near-complete schematic of the residence.",
         "information_types": [
-          "individual preferences/pastimes",
-          "personal information"
+          "location of shooting",
+          "assets/property"
         ],
-        "severity_overall": 3,
+        "severity_overall": 2,
         "confidence": "high",
-        "evidence_summary": "Home altar with specific deities + Ritual objects (diya, flowers) + Devotional text.",
+        "evidence_summary": "Bedroom -> Living Hall -> Utility Area -> Prayer Room flow.",
         "mitigation_ideas": [
-          "avoid filming prayer rooms/altars",
-          "blur religious imagery"
+          "limit continuous shots between rooms",
+          "avoid filming entry/exit points"
         ]
       }
     ],
     "coverage": {
       "counts_by_information_type": {
-        "personal information": 8,
-        "location of shooting": 10,
-        "individual preferences/pastimes": 14,
+        "personal information": 10,
+        "location of shooting": 13,
+        "individual preferences/pastimes": 18,
         "social circle": 0,
         "others’ private/confidential": 0,
         "Other privacy issues": 0
@@ -80,18 +85,199 @@
       ],
       "top_attributes": [
         "home interior",
+        "clothing",
         "religious sign",
-        "storefront logo",
-        "clothing"
+        "storefront logo"
       ],
       "top_categories": [
         "place identifier",
-        "printed material",
-        "accessory"
+        "person",
+        "printed material"
       ]
     }
   },
   "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 305,
+      "scene_summary": "The wearer sweeps the white marble floor of a bedroom or living area with a soft broom. A wooden bed with patterned sheets is visible. The wearer is dressed in a yellow floral dress and red bangles.",
+      "dominant_elements": [
+        "broom",
+        "marble floor",
+        "bed",
+        "hands/jewelry"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 5,
+          "detected_visual": "Red bangles on wrists",
+          "why_privacy_sensitive": "Distinctive jewelry acts as a soft biometric identifier and indicates cultural status.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "social"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of hands holding the broom.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 10,
+          "detected_visual": "Marble flooring pattern",
+          "why_privacy_sensitive": "Distinctive floor material that links this room to the rest of the house seen in later clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "White marble with grey veins visible throughout.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 20,
+          "detected_visual": "Wooden bed/furniture",
+          "why_privacy_sensitive": "Reveals interior furnishings and socioeconomic status.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Corner of a wooden bed frame visible.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 310,
+      "scene_summary": "The wearer continues sweeping, moving from the bedroom into a larger central hall or living room. The area features the same marble flooring, a sofa set, and a view towards the main entrance door. The activity is continuous and methodical.",
+      "dominant_elements": [
+        "broom",
+        "living room furniture",
+        "entrance door",
+        "marble floor"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 15,
+          "detected_visual": "Living room layout and furniture",
+          "why_privacy_sensitive": "Reveals the layout of the main common area and specific furniture assets (sofa style/color).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Wide angle view of the hall while sweeping.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 45,
+          "detected_visual": "Yellow floral dress (Lower hem)",
+          "why_privacy_sensitive": "Reconfirms the wearer's identity and consistent attire across the timeline.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Dress fabric visible at the bottom of the frame.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 120,
+          "detected_visual": "Main entrance door structure",
+          "why_privacy_sensitive": "Shows the security features (door type, lock style) and the position of the entrance relative to the living space.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer sweeps dust towards the main door threshold.",
+          "notes_redaction": ""
+        }
+      ]
+    },
     {
       "clip_index": 3,
       "clip_id": "clip_03",
@@ -519,6 +705,6 @@
     }
   ],
   "meta": {
-    "generation_notes": "Clip 5 provides the strongest geolocation evidence yet (Telugu script, Indian brands) and deepens the personal profile with religious details."
+    "generation_notes": "Story 02 is now fully reconstructed with all 5 clips analyzed and merged. The narrative flow from cleaning to worship is complete, and the geolocation evidence (Telugu script, Indian products) is robust."
   }
 }
