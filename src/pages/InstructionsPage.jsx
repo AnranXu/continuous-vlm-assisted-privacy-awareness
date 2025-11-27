@@ -41,7 +41,7 @@ export default function InstructionsPage() {
 
   return (
     <div className="container">
-      <h1>Continuous VLM-assisted Privacy Awareness</h1>
+      <h1>Identify privacy threats in egocentric videos</h1>
       <InstructionAccordion />
       <div className="card">
         <label>Prolific ID</label>

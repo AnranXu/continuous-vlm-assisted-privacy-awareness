@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   assignParticipant,
   assignTestParticipant,
@@ -47,6 +47,19 @@ function App() {
 
   // placeholder annotation text
   const [annotationText, setAnnotationText] = useState("");
+  const [clipCompletion, setClipCompletion] = useState({});
+
+  const videoRef = useRef(null);
+  const furthestTimeRef = useRef(0);
+  const FORWARD_HEADROOM = 1.0; // seconds participants can scrub ahead of watched time
+
+  function clampToFurthest(videoEl) {
+    if (!videoEl || IS_TEST_MODE) return;
+    const allowed = furthestTimeRef.current + FORWARD_HEADROOM;
+    if (videoEl.currentTime > allowed) {
+      videoEl.currentTime = allowed;
+    }
+  }
 
   // ---------- Helpers ----------
 
@@ -66,7 +79,10 @@ function App() {
     const url = await presignGet(clip.video_key);
     setVideoUrl(url);
     setCurrentClipIndex(idx);
-    setStatus(`Loaded clip ${idx + 1} / ${cfg.clips.length}`);
+    furthestTimeRef.current = 0;
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+    }
   }
 
   async function loadStoryConfig(storyId) {
@@ -97,6 +113,7 @@ function App() {
     setVideoUrl("");
     setCurrentClipIndex(0);
     setAnnotationText("");
+    setClipCompletion({});
 
     const pid = resolvedParticipantId();
     if (!pid) {
@@ -137,6 +154,10 @@ function App() {
 
   async function handleNextClip() {
     if (!storyConfig) return;
+    if (!IS_TEST_MODE && !clipCompletion[currentClipIndex]) {
+      setStatus("Finish this scenario to unlock Next.");
+      return;
+    }
     const next = currentClipIndex + 1;
     if (next >= storyConfig.clips.length) return;
     setLoading(true);
@@ -186,10 +207,18 @@ function App() {
 
   const hasActiveTask = Boolean(assignment && storyConfig);
 
-  const feedback = (
+  const pageTitle = (() => {
+    if (!hasActiveTask) return "Identify privacy threats in egocentric videos";
+    const mode = (assignment?.mode || "").toLowerCase();
+    return mode === "vlm"
+      ? "AI-assisted identification of privacy threats in egocentric videos"
+      : "Identify privacy threats in egocentric videos";
+  })();
+
+  const renderFeedback = (opts = { showStatus: true }) => (
     <>
       {error && <div style={{ color: "red", marginTop: "12px" }}>{error}</div>}
-      {status && !error && (
+      {opts.showStatus && status && !error && (
         <div
           style={{
             color: "#1d4ed8",
@@ -234,9 +263,7 @@ function App() {
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "8px" }}>
-        Continuous VLM-assisted Privacy Awareness
-      </h1>
+      <h1 style={{ fontSize: "2rem", marginBottom: "8px" }}>{pageTitle}</h1>
       {testBanner}
 
       {!hasActiveTask && (
@@ -303,7 +330,7 @@ function App() {
               {loading ? "Starting..." : "Start"}
             </button>
 
-            {feedback}
+            {renderFeedback({ showStatus: true })}
           </form>
         </>
       )}
@@ -311,20 +338,129 @@ function App() {
       {/* Main task area */}
       {hasActiveTask && (
         <div>
-          <h2 style={{ fontSize: "1.4rem", marginBottom: "8px" }}>
-            Story: {assignment.storyId}
-            {IS_TEST_MODE && assignment.mode && (
-              <>
-                {" "}
-                <span style={{ fontSize: "0.9rem", fontWeight: "normal" }}>
-                  ({assignment.mode})
-                </span>
-              </>
-            )}
-          </h2>
-          <p style={{ marginBottom: "12px" }}>
-            Clip {currentClipIndex + 1} of {storyConfig.clips.length}
-          </p>
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "2rem",
+                marginBottom: "10px",
+                fontWeight: 800,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                flexWrap: "wrap",
+              }}
+            >
+              {IS_TEST_MODE ? (
+                <>
+                  Story: {assignment.storyId}
+                  {assignment.mode && (
+                    <span style={{ fontSize: "1rem", fontWeight: "normal" }}>
+                      ({assignment.mode})
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  Now Viewing Scenario{" "}
+                  <span style={{ color: "#1d4ed8" }}>
+                    {currentClipIndex + 1}
+                  </span>{" "}
+                  of{" "}
+                  <span style={{ color: "#0ea5e9" }}>
+                    {storyConfig.clips.length}
+                  </span>
+                </>
+              )}
+            </h2>
+            <div
+              style={{
+                marginTop: "12px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "12px",
+                alignItems: "center",
+              }}
+            >
+              <button
+                type="button"
+                onClick={handlePrevClip}
+                disabled={currentClipIndex === 0 || loading}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid",
+                  borderColor:
+                    currentClipIndex === 0 || loading ? "#cbd5e1" : "#1d4ed8",
+                  background:
+                    currentClipIndex === 0 || loading ? "#e2e8f0" : "#1d4ed8",
+                  color:
+                    currentClipIndex === 0 || loading ? "#475569" : "#fff",
+                  fontWeight: 700,
+                  boxShadow:
+                    currentClipIndex === 0 || loading
+                      ? "none"
+                      : "0 8px 16px rgba(37, 99, 235, 0.25)",
+                  cursor:
+                    currentClipIndex === 0 || loading ? "default" : "pointer",
+                }}
+              >
+                Previous clip
+              </button>
+              <button
+                type="button"
+                onClick={handleNextClip}
+                disabled={
+                  !storyConfig ||
+                  currentClipIndex >= storyConfig.clips.length - 1 ||
+                  loading ||
+                  (!IS_TEST_MODE && !clipCompletion[currentClipIndex])
+                }
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid",
+                  borderColor:
+                    !storyConfig ||
+                    currentClipIndex >= storyConfig.clips.length - 1 ||
+                    loading
+                      ? "#cbd5e1"
+                      : "#1d4ed8",
+                  background:
+                    !storyConfig ||
+                    currentClipIndex >= storyConfig.clips.length - 1 ||
+                    loading
+                      ? "#e2e8f0"
+                      : "#1d4ed8",
+                  color:
+                    !storyConfig ||
+                    currentClipIndex >= storyConfig.clips.length - 1 ||
+                    loading
+                      ? "#475569"
+                      : "#fff",
+                  fontWeight: 700,
+                  boxShadow:
+                    !storyConfig ||
+                    currentClipIndex >= storyConfig.clips.length - 1 ||
+                    loading
+                      ? "none"
+                      : "0 8px 16px rgba(37, 99, 235, 0.25)",
+                  cursor:
+                    !storyConfig ||
+                    currentClipIndex >= storyConfig.clips.length - 1 ||
+                    loading
+                      ? "default"
+                      : "pointer",
+                }}
+              >
+                Next clip
+              </button>
+            </div>
+          </div>
 
           {/* Video player */}
           <div
@@ -338,8 +474,35 @@ function App() {
             {videoUrl ? (
               <video
                 key={videoUrl}
+                ref={videoRef}
                 src={videoUrl}
                 controls
+                onTimeUpdate={(e) => {
+                  if (IS_TEST_MODE) return;
+                  const t = e.target.currentTime;
+                  const allowed = furthestTimeRef.current + FORWARD_HEADROOM;
+                  if (t > allowed) {
+                    clampToFurthest(e.target);
+                    return;
+                  }
+                  if (t > furthestTimeRef.current) {
+                    furthestTimeRef.current = t;
+                  }
+                }}
+                onSeeking={(e) => {
+                  if (IS_TEST_MODE) return;
+                  clampToFurthest(e.target);
+                }}
+                onPlay={(e) => clampToFurthest(e.target)}
+                onEnded={() => {
+                  setClipCompletion((prev) => ({
+                    ...prev,
+                    [currentClipIndex]: true,
+                  }));
+                  if (!IS_TEST_MODE) {
+                    furthestTimeRef.current = videoRef.current?.duration || furthestTimeRef.current;
+                  }
+                }}
                 style={{ width: "100%", display: "block" }}
               />
             ) : (
@@ -355,91 +518,13 @@ function App() {
             )}
           </div>
 
-          {/* Navigation buttons */}
-          {feedback}
-          <div
-            style={{
-              marginBottom: "18px",
-              display: "flex",
-              gap: "12px",
-              alignItems: "center",
-            }}
-          >
-            <button
-              type="button"
-              onClick={handlePrevClip}
-              disabled={currentClipIndex === 0 || loading}
-              style={{
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: "1px solid",
-                borderColor:
-                  currentClipIndex === 0 || loading ? "#cbd5e1" : "#1d4ed8",
-                background:
-                  currentClipIndex === 0 || loading ? "#e2e8f0" : "#1d4ed8",
-                color:
-                  currentClipIndex === 0 || loading ? "#475569" : "#fff",
-                fontWeight: 700,
-                boxShadow:
-                  currentClipIndex === 0 || loading
-                    ? "none"
-                    : "0 8px 16px rgba(37, 99, 235, 0.25)",
-                cursor:
-                  currentClipIndex === 0 || loading ? "default" : "pointer",
-              }}
-            >
-              Previous clip
-            </button>
-            <button
-              type="button"
-              onClick={handleNextClip}
-              disabled={
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading
-              }
-              style={{
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: "1px solid",
-                borderColor:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#cbd5e1"
-                    : "#1d4ed8",
-                background:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#e2e8f0"
-                    : "#1d4ed8",
-                color:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#475569"
-                    : "#fff",
-                fontWeight: 700,
-                boxShadow:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "none"
-                    : "0 8px 16px rgba(37, 99, 235, 0.25)",
-                cursor:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "default"
-                    : "pointer",
-              }}
-            >
-              Next clip
-            </button>
-          </div>
-
           {/* Annotation placeholder */}
+          {!IS_TEST_MODE && !clipCompletion[currentClipIndex] && (
+            <div style={{ color: "#b45309", marginBottom: "10px" }}>
+              Finish watching this scenario to unlock Next.
+            </div>
+          )}
+          {renderFeedback({ showStatus: !IS_TEST_MODE })}
           <div
             style={{
               border: "1px solid #ddd",
