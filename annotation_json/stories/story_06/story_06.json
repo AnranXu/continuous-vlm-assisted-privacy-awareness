@@ -1,0 +1,528 @@
+{
+  "story_id": "story_06",
+  "story": {
+    "overall_description": "The video series profiles the professional and private life of a skilled industrial technician. The narrative begins in a workshop with the precision polishing of a steel injection mold, transitions to the maintenance of a personal vehicle (Peugeot 108) in a private courtyard, and concludes with domestic activities in a kitchen, including reviewing financial documents and cooking. The footage links high-value industrial trade secrets with specific personal assets and PII.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Holistic Identity Reconstruction (Work/Life Bridge)",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The series connects a specialized profession (mold polishing) with personal identifiers. The wearer is linked across contexts by physical attributes and accessories (Watch in Clips 1-2, Fitness Tracker in Clips 3-5). This allows an observer to correlate the workplace location (via shop layout) with the home location (via courtyard and kitchen) and personal assets (Peugeot 108).",
+        "information_types": [
+          "personal information",
+          "workplace/school",
+          "location of shooting"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "Mold Polishing (Work) + Peugeot 108 (Asset) + Busta Paga/Pay Slip (Identity).",
+        "mitigation_ideas": [
+          "segregate professional and personal recording",
+          "blur personal documents"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Industrial Intellectual Property Exposure",
+        "clips_involved": [
+          1,
+          2
+        ],
+        "why_amplified_across_clips": "Clips 1 and 2 provide sustained, multi-angle views of a proprietary steel injection mold during the polishing phase. The sequence reveals the internal geometry, core structure, and surface finish requirements, constituting a leak of manufacturing trade secrets.",
+        "information_types": [
+          "assets/property",
+          "workplace/school"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Internal cavity geometry + Specific polishing tool sequence.",
+        "mitigation_ideas": [
+          "blur unreleased product prototypes",
+          "restrict filming in IP-sensitive areas"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "High-Risk PII Exposure via Documents",
+        "clips_involved": [
+          5
+        ],
+        "why_amplified_across_clips": "Clip 5 introduces the highest severity risk: the handling of a structured financial document (likely a pay slip or 'Busta Paga') in the home. Unlike the indirect identifiers in previous clips (car, watch), this document potentially contains direct names, addresses, and income data.",
+        "information_types": [
+          "personal information",
+          "finance"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "Close-up of structured document with 'Euro' currency symbols and personal data fields.",
+        "mitigation_ideas": [
+          "shred or hide documents before filming",
+          "blur text fields in post-production"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 8,
+        "location of shooting": 7,
+        "individual preferences/pastimes": 12,
+        "social circle": 0,
+        "others’ private/confidential": 1,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "assets/property",
+        "identity",
+        "finance",
+        "workplace/school"
+      ],
+      "top_attributes": [
+        "machine/device",
+        "invoice",
+        "home interior",
+        "vehicle plate"
+      ],
+      "top_categories": [
+        "machine/device",
+        "printed material",
+        "place identifier"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 305,
+      "scene_summary": "The wearer sits at a workbench polishing the internal cavity of a heavy steel mold using a handheld rotary tool. They periodically wipe the surface to check the finish. The background shows shelves stocked with industrial supplies.",
+      "dominant_elements": [
+        "metal mold",
+        "polishing tool",
+        "gloves",
+        "workshop shelves"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 10,
+          "detected_visual": "Steel Injection Mold (Cavity side)",
+          "why_privacy_sensitive": "Highly sensitive industrial IP. Reveals the design of the product being manufactured.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "The metal block is the central subject of the video.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 45,
+          "detected_visual": "Black digital watch on left wrist",
+          "why_privacy_sensitive": "A personal accessory that can distinguish the worker from others in the same uniform.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Watch visible between the glove and sleeve cuff.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 120,
+          "detected_visual": "Rotary polishing tool",
+          "why_privacy_sensitive": "Identifies the specific tooling and techniques used by the shop.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Tool held in hand throughout the clip.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 250,
+          "detected_visual": "Workshop shelving with blue bins",
+          "why_privacy_sensitive": "Background details that contribute to location fingerprinting.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Shelves visible behind the workbench.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 303,
+      "scene_summary": "The wearer uses a powered reciprocating profiler to work on the tight corners of the mold. A syringe of diamond polishing compound is visible on the bench.",
+      "dominant_elements": [
+        "metal mold",
+        "reciprocating tool",
+        "polishing compound",
+        "hands"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 15,
+          "detected_visual": "Reciprocating profiler tool",
+          "why_privacy_sensitive": "Reveals specific shop equipment capabilities.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Tool vibrating back and forth in the user's hand.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 40,
+          "detected_visual": "Syringe of Diamond Compound",
+          "why_privacy_sensitive": "Identifies the specific abrasives and finish specifications used.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Plastic syringe lying on the workbench.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 428,
+      "scene_summary": "The wearer cleans the interior of a blue Peugeot 108 in a courtyard. They vacuum the plaid seats and shake out floor mats.",
+      "dominant_elements": [
+        "vehicle (Peugeot 108)",
+        "vacuum cleaner",
+        "floor mats",
+        "courtyard"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 0,
+          "detected_visual": "Floor mats with '108' logo",
+          "why_privacy_sensitive": "Identifies the specific car model (Peugeot 108).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer holds up mats with clear text.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 1,
+          "detected_visual": "Dark blue Peugeot 108 exterior",
+          "why_privacy_sensitive": "Reveals the user's primary vehicle.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Full view of the car side and rear.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 24,
+          "detected_visual": "Black fitness tracker on wrist",
+          "why_privacy_sensitive": "Personal device identifier, distinct from the work watch.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Tracker visible on left wrist.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 304,
+      "scene_summary": "The wearer details the dashboard of the Peugeot 108. The key is in the ignition.",
+      "dominant_elements": [
+        "vehicle interior",
+        "steering wheel",
+        "key",
+        "courtyard"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 5,
+          "detected_visual": "Peugeot Steering Wheel Logo",
+          "why_privacy_sensitive": "Confirms vehicle make.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Silver lion logo clearly visible.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 15,
+          "detected_visual": "Vehicle Key in Ignition",
+          "why_privacy_sensitive": "Exposure of physical key bitting creates a security vulnerability.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 2,
+          "confidence": "medium",
+          "evidence_rationale": "Key visible in the steering column.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 305,
+      "scene_summary": "The wearer is in a domestic kitchen, holding a financial document (Pay Slip/Busta Paga) at a table. They then proceed to cook at the stove. A calendar is visible on the wall.",
+      "dominant_elements": [
+        "document",
+        "kitchen interior",
+        "fitness tracker",
+        "cooking"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 10,
+          "detected_visual": "Financial Document (Pay Slip/Busta Paga)",
+          "why_privacy_sensitive": "Reveals sensitive financial and employment information. The layout suggests a standard Italian pay slip.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "finance",
+            "identity",
+            "workplace/school"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Wearer holding a paper document with structured data fields and currency symbols.",
+          "notes_redaction": "Text details redacted."
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 45,
+          "detected_visual": "Black fitness tracker on wrist",
+          "why_privacy_sensitive": "Re-identifies the wearer from Clips 3 and 4, confirming the link between the car/home and the person.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Tracker visible while handling the document and cooking.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 120,
+          "detected_visual": "Kitchen Interior and Layout",
+          "why_privacy_sensitive": "Reveals the interior of the private residence, including appliance brands and layout.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "preference/routine"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Background visible during cooking sequence.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip provides the critical link between the public/professional persona and the private/financial identity of the wearer via the pay slip document."
+  }
+}

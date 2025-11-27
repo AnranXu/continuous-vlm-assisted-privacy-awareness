@@ -1,0 +1,1104 @@
+{
+  "story_id": "story_01",
+  "story": {
+    "overall_description": "The video series comprehensively documents a resident's evening routine at the King Abdullah University of Science and Technology (KAUST) in Saudi Arabia. The narrative spans domestic activities within a duplex apartment (cooking, laundry, dishwashing, unboxing electronics) and a trip to the campus commercial center. The footage establishes a definitive geolocation through signage and architectural cues, while capturing intimate lifestyle details, consumption habits, and biometric markers.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Definitive Institutional Geolocation",
+        "clips_involved": [
+          2,
+          3,
+          4
+        ],
+        "why_amplified_across_clips": "The evidence for geolocation is irrefutable. 'Tamimi Markets' bags (Clip 2) and Arabic exit signs (Clip 3) place the user in Saudi Arabia. Clip 4 provides the specific facility via 'Keep KAUST Safe' signage and campus-specific venues ('Ya Hala', 'Community Hub'). This allows for the precise identification of the housing complex shown in Clips 1-3.",
+        "information_types": [
+          "location of shooting"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "'Keep KAUST Safe' sign + 'Ya Hala' restaurant + Tamimi Markets bag + Housing architecture + Neighboring building view.",
+        "mitigation_ideas": [
+          "blur institutional logos",
+          "avoid filming distinctive landmarks"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Biometric Linkage of Activity to Identity",
+        "clips_involved": [
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "Clip 5 reveals a distinct text tattoo on the wearer's left inner forearm while dishwashing. This biometric marker connects the first-person view across all clips—linking the hands that paid for food in Clip 4 and unboxed electronics in Clip 3 to a specific, identifiable individual, preventing plausible deniability of their presence.",
+        "information_types": [
+          "personal information"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "Script tattoo on left forearm (Clip 5) + Hands holding receipt (Clip 4) + Hands unboxing router (Clip 3).",
+        "mitigation_ideas": [
+          "wear long sleeves",
+          "blur distinctive tattoos"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Comprehensive Routine and Asset Profiling",
+        "clips_involved": [
+          1,
+          3,
+          5
+        ],
+        "why_amplified_across_clips": "The video constructs a detailed inventory of the user's assets and habits: dietary preferences (Clip 1), specific networking hardware (Clip 3), hygiene products (Clip 5), and daily schedule. This creates a high-resolution profile usable for social engineering or targeted marketing.",
+        "information_types": [
+          "individual preferences/pastimes",
+          "assets/property"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Mesh WiFi nodes + Gaming PC setup + Specific food brands (Fairy, Arwa, Milo) + Daily timeline.",
+        "mitigation_ideas": [
+          "avoid filming expensive electronics",
+          "blur brand labels"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 9,
+        "location of shooting": 23,
+        "individual preferences/pastimes": 28,
+        "social circle": 0,
+        "others’ private/confidential": 4,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "preference/routine",
+        "location",
+        "assets/property",
+        "identity"
+      ],
+      "top_attributes": [
+        "storefront logo",
+        "home interior",
+        "place identifier",
+        "medical device"
+      ],
+      "top_categories": [
+        "place identifier",
+        "printed material",
+        "machine/device"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 102,
+      "scene_summary": "The wearer moves from the kitchen sink to the fridge to get water, then to the oven to retrieve heated bread, and finally sits at a dining table loaded with food and a computer monitor.",
+      "dominant_elements": [
+        "home interior",
+        "food/beverages",
+        "appliances",
+        "screen"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 0,
+          "detected_visual": "Kitchen counter with blue mosaic tile backsplash and various condiments",
+          "why_privacy_sensitive": "Distinctive interior design (blue tiles) can serve as a fingerprint for the specific residential unit.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of kitchen layout and decor.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 15,
+          "detected_visual": "Type G electrical wall sockets",
+          "why_privacy_sensitive": "Electrical socket types restrict the possible geographic location of the video (e.g., UK, Middle East, Singapore).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Standard square-pin sockets visible on the wall.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 18,
+          "detected_visual": "Open refrigerator contents including Milo tin and juice cartons",
+          "why_privacy_sensitive": "Reveals dietary preferences and brand loyalties which can imply cultural background or specific region.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Brands visible inside the fridge.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 25,
+          "detected_visual": "Arwa brand water bottle label",
+          "why_privacy_sensitive": "Arwa is a specific bottled water brand predominantly sold in the Middle East, providing a strong geolocation cue when combined with the socket type.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material",
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Clear text 'Arwa' on the bottle label.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d005",
+          "time_sec": 50,
+          "detected_visual": "Collection of spices, oils, and condiments near stove",
+          "why_privacy_sensitive": "Detailed view of cooking ingredients reveals dietary habits and household routine.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Multiple bottles and jars clustered on the counter.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d006",
+          "time_sec": 113,
+          "detected_visual": "Storage shelves with disorganized personal items",
+          "why_privacy_sensitive": "Reveals living conditions, tidiness habits, and potentially identifiable personal clutter.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "reputation",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Open shelving unit with visible miscellaneous contents.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d007",
+          "time_sec": 120,
+          "detected_visual": "Ricola cough drop box on dining table",
+          "why_privacy_sensitive": "Indicates a potential minor health issue (sore throat/cough), constituting a low-level medical inference.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "health/medical"
+          ],
+          "attributes": [
+            "medication bottle"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Yellow box with 'Ricola' branding clearly visible on the table.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d008",
+          "time_sec": 125,
+          "detected_visual": "Computer monitor on dining table",
+          "why_privacy_sensitive": "Suggests a work-from-home arrangement or limited living space; screen is off but presence implies digital activity in this space.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "workplace/school"
+          ],
+          "attributes": [
+            "screen with chat"
+          ],
+          "categories": [
+            "screen",
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "White monitor stand and back visible on the table.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d009",
+          "time_sec": 128,
+          "detected_visual": "Meal composition (curries, flatbread)",
+          "why_privacy_sensitive": "Further details on cultural or personal dietary preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Specific dishes prepared and set out for consumption.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d010",
+          "time_sec": 130,
+          "detected_visual": "Aluminum foil box",
+          "why_privacy_sensitive": "Household consumption patterns/brand preference.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Blue box labeled 'Aluminum Foil' on table.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 308,
+      "scene_summary": "The wearer navigates from a desk area in a bedroom, down a staircase with blue LED lighting, to a laundry room to load a washing machine. They then exit the apartment briefly, revealing the corridor and unit number, before returning upstairs.",
+      "dominant_elements": [
+        "screen",
+        "home interior",
+        "printed materials",
+        "stairs"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 0,
+          "detected_visual": "Computer screen showing YouTube video with Traditional Chinese title",
+          "why_privacy_sensitive": "Reveals language proficiency (Traditional Chinese) and media preferences (acoustic guitar music).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "identity"
+          ],
+          "attributes": [
+            "screen with chat"
+          ],
+          "categories": [
+            "screen"
+          ],
+          "information_types": [
+            "individual preferences/pastimes",
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Screen displays video titled '超好聽 木吉他樂曲' (Super nice acoustic guitar music).",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 5,
+          "detected_visual": "Desk clutter: Dettol wipes, 7-Up bottle, Logitech/Razer peripherals",
+          "why_privacy_sensitive": "Reveals brand preferences, potential hygiene habits (Dettol), and gaming/computer usage habits.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "machine/device",
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of branded items on the desk.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 22,
+          "detected_visual": "Clothes drying on railing",
+          "why_privacy_sensitive": "Reveals personal clothing items and laundry routines.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "T-shirts and towels draped over the glass railing.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d004",
+          "time_sec": 136,
+          "detected_visual": "Staircase with blue LED strip lighting",
+          "why_privacy_sensitive": "Highly distinctive interior design feature that makes the specific apartment easily recognizable and re-identifiable.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Unique blue light strips running along the staircase ceiling/wall.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d005",
+          "time_sec": 218,
+          "detected_visual": "Yellow shopping bag with 'Tamimi Markets' logo",
+          "why_privacy_sensitive": "Tamimi Markets is a supermarket chain operating primarily in Saudi Arabia. This serves as a definitive country-level geolocation marker.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material",
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Text 'Tamimi Markets' visible on the yellow bag.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d006",
+          "time_sec": 330,
+          "detected_visual": "Persil detergent and fabric softener bottles",
+          "why_privacy_sensitive": "Household brand preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear branding on bottles in laundry room.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d007",
+          "time_sec": 444,
+          "detected_visual": "Exterior view through hallway window",
+          "why_privacy_sensitive": "Reveals the architecture of the neighboring building, which helps pinpoint the exact complex when combined with other clues.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "medium",
+          "evidence_rationale": "Beige/stone facade of adjacent building visible.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d008",
+          "time_sec": 447,
+          "detected_visual": "Door number '201'",
+          "why_privacy_sensitive": "Reveals the specific unit number of the wearer or their immediate neighbor, significantly narrowing down their physical address.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "place identifier"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Number '201' clearly visible on the door plaque.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 211,
+      "scene_summary": "The wearer collects trash bags, walks down a distinctive blue-striped corridor to a garbage chute, and returns to their apartment. Back inside, they sit at the dining table to unbox black networking devices (routers/nodes) amidst other personal items.",
+      "dominant_elements": [
+        "corridor/hallway",
+        "printed materials",
+        "home interior",
+        "boxes"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 19,
+          "detected_visual": "Corridor with blue horizontal stripes and white walls",
+          "why_privacy_sensitive": "The highly specific interior design of the common area corridor (blue stripes) allows for building re-identification by locals or via real estate listings.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Distinctive blue striping pattern on the hallway walls.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 20,
+          "detected_visual": "Bilingual 'EXIT' sign (English/Arabic)",
+          "why_privacy_sensitive": "Confirms the linguistic region (Arabic-speaking country), corroborating the Saudi Arabia hypothesis from the Tamimi bag.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "political sign"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Green exit sign with Arabic text clearly visible on the ceiling.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 36,
+          "detected_visual": "Neighbor Unit Number '207'",
+          "why_privacy_sensitive": "Maps the wearer's unit (201) relative to neighbors (207), revealing the specific floor plan location.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "others’ information"
+          ],
+          "attributes": [
+            "place identifier"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "others’ private/confidential",
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Door plaque '207' visible as wearer walks past.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d004",
+          "time_sec": 54,
+          "detected_visual": "Trash chute labeled 'GARBAGE HOPPER'",
+          "why_privacy_sensitive": "Building amenity detail that helps characterize the property type.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Metal chute door with clear labeling.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d005",
+          "time_sec": 121,
+          "detected_visual": "Window view of internal courtyard with artificial grass",
+          "why_privacy_sensitive": "Exterior view provides a specific architectural fingerprint (beige facade, artificial turf) that aids in satellite or street view geolocation.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "medium",
+          "evidence_rationale": "View through corridor window showing building layout and landscaping.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d006",
+          "time_sec": 220,
+          "detected_visual": "Unboxing black networking devices (Mesh/Router nodes)",
+          "why_privacy_sensitive": "Reveals the specific hardware used for home networking. Visual access to box labels during unboxing can leak serial numbers or MAC addresses.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property",
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "User handling multiple small black electronic boxes typical of mesh WiFi points.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d007",
+          "time_sec": 229,
+          "detected_visual": "Label/Barcode on back of device box",
+          "why_privacy_sensitive": "High risk of leaking unique device identifiers (Serial No, MAC) if resolution allows reading.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 2,
+          "confidence": "medium",
+          "evidence_rationale": "White label with barcode visible on the black box as user rotates it.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 316,
+      "scene_summary": "The wearer interacts with a service counter, walks through a large open-air plaza with various shops and restaurants, enters a restaurant named 'Ya Hala', and pays for an order. The environment is a modern commercial hub with distinct branding and COVID-19 safety signage.",
+      "dominant_elements": [
+        "storefront logo",
+        "place identifier",
+        "bystander face",
+        "receipt"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 30,
+          "detected_visual": "'The Coffee Bean & Tea Leaf' storefront",
+          "why_privacy_sensitive": "Identifiable retail chain present in the specific commercial plaza, aiding in geolocation verification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Standard logo and branding visible on glass facade.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 123,
+          "detected_visual": "'Community Hub' sign",
+          "why_privacy_sensitive": "Specific name of the building or zone, narrowing down the location to a particular campus or development.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "place identifier"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Blue sign with white text 'Community Hub' visible above entrance.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 195,
+          "detected_visual": "'Ya Hala' restaurant sign",
+          "why_privacy_sensitive": "Name of the specific restaurant the wearer enters. 'Ya Hala' is a known dining establishment on the KAUST campus.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Gold script text on the glass door.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d004",
+          "time_sec": 214,
+          "detected_visual": "'Keep KAUST Safe' COVID-19 signage",
+          "why_privacy_sensitive": "Explicitly names the institution (KAUST: King Abdullah University of Science and Technology), providing definitive geolocation.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "political sign"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Poster on door/counter with university logo and safety text.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d005",
+          "time_sec": 235,
+          "detected_visual": "Restaurant staff member (face visible)",
+          "why_privacy_sensitive": "Captures a worker in their place of employment without consent, creating a bystander privacy risk.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "others’ information"
+          ],
+          "attributes": [
+            "bystander face"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "others’ private/confidential"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Cashier interacting with the wearer at the counter.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d006",
+          "time_sec": 253,
+          "detected_visual": "Payment terminal interaction",
+          "why_privacy_sensitive": "Close-up view of payment process. Risk of leaking card details if the physical card is shown or screen reflects sensitive data.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "finance"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer holding phone/card near Geidea payment terminal.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d007",
+          "time_sec": 336,
+          "detected_visual": "Receipt with 'Coastline' logo and number '0067'",
+          "why_privacy_sensitive": "Provides a timestamped transaction record with a unique identifier, linking the wearer to a specific time and place.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "finance",
+            "location"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information",
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "White receipt held in hand clearly showing logo and sequence number.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 307,
+      "scene_summary": "The wearer is actively washing dishes at the kitchen sink, using yellow Fairy liquid soap and a sponge. They load plates into a dishwasher and briefly move to the living area, where unboxed electronics and snacks are visible.",
+      "dominant_elements": [
+        "home interior",
+        "appliances",
+        "food/beverages",
+        "person"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 3,
+          "detected_visual": "Fairy Dish Soap (Lemon)",
+          "why_privacy_sensitive": "Specific brand preference typical of the UK and Middle East markets, supporting the regional location.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Yellow bottle with red cap and Fairy logo next to the sink.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 19,
+          "detected_visual": "Tattoo on left inner forearm",
+          "why_privacy_sensitive": "A highly distinctive soft biometric identifier. This allows for the re-identification of the wearer across different videos or contexts where their face is not visible.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "bystander face"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Script text tattoo visible on the arm while scrubbing dishes.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 114,
+          "detected_visual": "Loading dishwasher interior",
+          "why_privacy_sensitive": "Reveals appliance model and household hygiene routines.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "View inside the open dishwasher rack.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d004",
+          "time_sec": 305,
+          "detected_visual": "Smartphone screen lighting up",
+          "why_privacy_sensitive": "Potential to reveal notifications, time, or background image, though blur limits specific data leakage here.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "contact"
+          ],
+          "attributes": [
+            "screen with chat"
+          ],
+          "categories": [
+            "screen"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer lifts phone in living room, screen activates.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d005",
+          "time_sec": 307,
+          "detected_visual": "Unboxed networking gear on living room table",
+          "why_privacy_sensitive": "Reconfirms the presence of specific tech assets (mesh nodes) seen in Clip 3, linking the timeline and location.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Black electronic devices and boxes still present on the white table.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip reinforces the geolocation through product brands and introduces a critical biometric identifier (tattoo) that links the wearer's identity across the entire video series."
+  }
+}

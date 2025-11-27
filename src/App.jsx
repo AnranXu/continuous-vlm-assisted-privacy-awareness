@@ -7,6 +7,7 @@ import {
   // markFinished,        // you can enable later when you wire it
 } from "./api";
 import InstructionsPage from "./components/InstructionsPage";
+import TaskView from "./components/TaskView";
 
 // ---------- URL PARAMS (parsed once at module load) ----------
 const params = new URLSearchParams(window.location.search);

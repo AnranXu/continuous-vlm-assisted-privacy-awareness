@@ -1,0 +1,512 @@
+{
+  "story_id": "story_08",
+  "story": {
+    "overall_description": "The video series documents a complete domestic cooking and cleaning routine in an Italian home kitchen. The footage covers the preparation of a tomato-based pasta sauce using specific regional ingredients, the consumption timeline (inferred from the clock), and the manual cleanup of dishes and appliances. The environment is characterized by distinctive blue and white tiled walls, a Candy gas stove, and a lack of automated dishwashing facilities.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "High-Confidence Geolocation via Consumer Ecosystem",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The cumulative presence of market-specific brands creates a definitive geographic profile. 'Mutti' puree (Clip 1), Italian smartphone interface (Clip 2), 'Voiello' pasta (Clip 3), and 'Vileda' cleaning products (Clip 5) strongly triangulate the location to Italy.",
+        "information_types": [
+          "location of shooting",
+          "individual preferences/pastimes"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Mutti puree + Italian phone UI + Voiello pasta + Vileda sponge + Candy stove.",
+        "mitigation_ideas": [
+          "decant products into plain containers",
+          "avoid filming branded cleaning supplies"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Household Routine and Infrastructure Profiling",
+        "clips_involved": [
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The sequence of hand-washing dishes (Clip 4) followed by manually cleaning the stovetop (Clip 5) confirms the household lacks or does not use a dishwasher. This provides insights into the resident's daily labor burden and lifestyle habits.",
+        "information_types": [
+          "individual preferences/pastimes",
+          "assets/property"
+        ],
+        "severity_overall": 1,
+        "confidence": "medium",
+        "evidence_summary": "Manual dishwashing + Scrubbing stove gratings.",
+        "mitigation_ideas": [
+          "limit filming of domestic chores"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 3,
+        "location of shooting": 12,
+        "individual preferences/pastimes": 16,
+        "social circle": 0,
+        "others’ private/confidential": 0,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "preference/routine",
+        "location",
+        "assets/property",
+        "identity"
+      ],
+      "top_attributes": [
+        "storefront logo",
+        "home interior",
+        "machine/device",
+        "screen with chat"
+      ],
+      "top_categories": [
+        "printed material",
+        "place identifier",
+        "machine/device"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 333,
+      "scene_summary": "The wearer prepares the base for a sauce. They pour Mutti tomato puree into a terracotta pot on a Candy gas stove. The kitchen features distinctive blue and white patterned tiles.",
+      "dominant_elements": [
+        "cooking pot",
+        "tomato puree",
+        "gas stove",
+        "kitchen tiles"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 0,
+          "detected_visual": "Mutti Tomato Puree Bottle",
+          "why_privacy_sensitive": "Identifies specific brand preference and geographic region (Italy/Europe).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes",
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of the label 'MUTTI Passata'.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 5,
+          "detected_visual": "Kitchen Backsplash (Blue/White Patterned Tiles)",
+          "why_privacy_sensitive": "Highly distinctive interior design feature acting as a location fingerprint.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Tiles are visible throughout the clip.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 50,
+          "detected_visual": "'Candy' Gas Stovetop",
+          "why_privacy_sensitive": "Identifies appliance brand (Candy is European).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Brand name visible on the stove.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 245,
+          "detected_visual": "Wearer's attire (Black long sleeves, brown apron)",
+          "why_privacy_sensitive": "Visual attributes for re-identification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clothing visible when reaching for items.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 400,
+      "scene_summary": "The wearer chops an onion on a wooden board. They check a smartphone screen which displays the time 15:32 and an Italian interface.",
+      "dominant_elements": [
+        "onion",
+        "knife",
+        "smartphone",
+        "cutting board"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 215,
+          "detected_visual": "Smartphone Screen (Time 15:32)",
+          "why_privacy_sensitive": "Reveals exact time and interface language (Italian), confirming region.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "preference/routine"
+          ],
+          "attributes": [
+            "screen with chat"
+          ],
+          "categories": [
+            "screen"
+          ],
+          "information_types": [
+            "personal information",
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Wearer checks phone lock screen.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 10,
+          "detected_visual": "Green plastic tray",
+          "why_privacy_sensitive": "Specific kitchenware item helping map the inventory.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Tray used for vegetable waste.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 320,
+      "scene_summary": "The wearer adds dry pasta from a 'Voiello' package directly into the sauce pot. The package confirms the Italian context.",
+      "dominant_elements": [
+        "pasta package",
+        "terracotta pot",
+        "gas stove"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 15,
+          "detected_visual": "Voiello Pasta Packaging",
+          "why_privacy_sensitive": "Identifies specific consumer choices and correlates with Italian location (Voiello is a Neapolitan brand).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting",
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Blue packaging with 'Voiello' logo.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 5,
+          "detected_visual": "Terracotta Pot cooking",
+          "why_privacy_sensitive": "Reveals specific cooking habits/equipment.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Sauce simmering in distinctive pot.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 251,
+      "scene_summary": "The wearer washes dishes by hand in the sink, scrubbing colorful plates and bowls with a sponge and yellow soap.",
+      "dominant_elements": [
+        "dirty dishes",
+        "sink",
+        "sponge/soap",
+        "drying rack"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 0,
+          "detected_visual": "Yellow dish soap bottle (likely Svelto)",
+          "why_privacy_sensitive": "Product brand associated with Italy.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes",
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Bottle shape/color on sink edge.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 10,
+          "detected_visual": "Set of colorful plates",
+          "why_privacy_sensitive": "Distinctive household assets aiding re-identification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Stack of bright plates in the drying rack.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 120,
+          "detected_visual": "Copper faucet/tap",
+          "why_privacy_sensitive": "Distinctive fixture design aiding location fingerprinting.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Vintage-style tap is central to the frame.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 306,
+      "scene_summary": "The wearer cleans the Candy stovetop. They remove the grates and burners, wipe down the stainless steel surface with a Vileda sponge cloth, and reassemble the stove components.",
+      "dominant_elements": [
+        "stovetop",
+        "sponge cloth",
+        "cleaning activity"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 10,
+          "detected_visual": "Vileda Sponge Cloth",
+          "why_privacy_sensitive": "Identifies cleaning brand preferences (Vileda is a major European brand), reinforcing the regional context.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Logo/texture of the yellow cleaning cloth.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 30,
+          "detected_visual": "Disassembled Candy Stovetop",
+          "why_privacy_sensitive": "Reveals the specific model and condition of the appliance, adding detail to the home asset profile.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of burners removed for cleaning.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 100,
+          "detected_visual": "Kitchen Counter Layout",
+          "why_privacy_sensitive": "Shows the spatial relationship between the stove and the adjacent counter/sink area.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Pan across the work surface during cleaning.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip confirms the cleanup routine and adds 'Vileda' to the list of European brand identifiers. The geolocation to Italy is supported by multiple product categories (food, tech, cleaning)."
+  }
+}

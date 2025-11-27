@@ -1,0 +1,635 @@
+{
+  "story_id": "story_07",
+  "story": {
+    "overall_description": "The video series documents a residential renovation project executed by 'HARPEN CONSTRUCTION'. The narrative spans the full scope of work: cutting trim in the front yard, installing white railing on a back deck, and laying 'TrafficMaster' laminate flooring throughout the living areas. The footage provides a comprehensive view of the occupied private residence, the contractor's equipment, and specific installation techniques.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Definitive Business and Job Site Identification",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The 'HARPEN CONSTRUCTION' logo is a constant visual anchor across all clips. When combined with the exterior street view (Clip 1), the backyard layout with a bystander (Clip 2), and the specific interior floor plan (Clips 3-5), this creates a publicly verifiable record linking the business to a specific client address.",
+        "information_types": [
+          "workplace/school",
+          "location of shooting",
+          "personal information"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "'HARPEN CONSTRUCTION' logo + Street view + Work truck + Interior layout.",
+        "mitigation_ideas": [
+          "blur business logos on clothing",
+          "avoid filming exterior landmarks"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Client Privacy and Security Exposure",
+        "clips_involved": [
+          1,
+          2,
+          5
+        ],
+        "why_amplified_across_clips": "The video exposes the interior and exterior security of a private home. Clip 1 shows the front entry, Clip 2 shows the rear access, and Clip 5 details interior transition points (doorways). The presence of a resident in Clip 2 further highlights the privacy intrusion into an occupied home.",
+        "information_types": [
+          "location of shooting",
+          "others’ private/confidential"
+        ],
+        "severity_overall": 2,
+        "confidence": "medium",
+        "evidence_summary": "Front and rear entry points + Interior doorways + Resident bystander.",
+        "mitigation_ideas": [
+          "obtain client consent",
+          "restrict filming to work areas only"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Material Specification and Cost Profiling",
+        "clips_involved": [
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The sequence detailing the flooring installation (Clips 3-5) identifies the specific product ('TrafficMaster Lakeshore Pecan') and installation method. This allows for a precise estimation of the project's material costs and quality tier, which is sensitive commercial or personal financial information.",
+        "information_types": [
+          "assets/property",
+          "individual preferences/pastimes"
+        ],
+        "severity_overall": 1,
+        "confidence": "high",
+        "evidence_summary": "TrafficMaster packaging + Specific installation tools (pull bar, tapping block).",
+        "mitigation_ideas": [
+          "avoid filming product labels"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 5,
+        "location of shooting": 9,
+        "individual preferences/pastimes": 13,
+        "social circle": 0,
+        "others’ private/confidential": 3,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "workplace/school",
+        "location",
+        "assets/property",
+        "identity"
+      ],
+      "top_attributes": [
+        "storefront logo",
+        "home interior",
+        "machine/device",
+        "bystander face"
+      ],
+      "top_categories": [
+        "place identifier",
+        "printed material",
+        "machine/device"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 316,
+      "scene_summary": "The worker walks from the kitchen (new flooring) through the living room, out the front door, down the porch steps to a white work truck. They retrieve a long piece of white trim from the truck, carry it back to the porch, and place it on a miter saw stand.",
+      "dominant_elements": [
+        "construction tools",
+        "home interior",
+        "work vehicle",
+        "miter saw"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 15,
+          "detected_visual": "'HARPEN CONSTRUCTION' T-shirt logo",
+          "why_privacy_sensitive": "Directly identifies the business entity and likely the wearer's employer.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "identity"
+          ],
+          "attributes": [
+            "storefront logo",
+            "clothing"
+          ],
+          "categories": [
+            "printed material",
+            "person"
+          ],
+          "information_types": [
+            "workplace/school",
+            "personal information"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Logo clearly readable on the chest when looking down.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 35,
+          "detected_visual": "Interior of private residence (Client's home)",
+          "why_privacy_sensitive": "Reveals the private living space of a third party (the client). Specific decor and layout are visible.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "others’ information"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "others’ private/confidential",
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Walkthrough of living room and kitchen area.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 105,
+          "detected_visual": "Work Truck License Plate",
+          "why_privacy_sensitive": "Unique vehicle identifier linked to the business or individual owner.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "location"
+          ],
+          "attributes": [
+            "vehicle plate"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "medium",
+          "evidence_rationale": "Rear plate of the white truck visible as doors are opened.",
+          "notes_redaction": "Plate text blurred in keyframe."
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 45,
+          "detected_visual": "Exterior neighborhood view",
+          "why_privacy_sensitive": "Shows neighboring houses, street layout, and parked cars, allowing for geolocation of the job site.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "View from the front porch looking out at the street.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d005",
+          "time_sec": 310,
+          "detected_visual": "Craftsman Miter Saw",
+          "why_privacy_sensitive": "Identifies professional equipment assets.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Red and silver saw set up on a stand in the yard.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 304,
+      "scene_summary": "The worker moves to the back deck/patio area to install the white trim piece. They measure and fit the railing. A male resident is seen walking in the background. The worker uses a DeWalt drill.",
+      "dominant_elements": [
+        "construction tools",
+        "deck/patio",
+        "resident/bystander",
+        "neighboring houses"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 10,
+          "detected_visual": "Male resident/bystander",
+          "why_privacy_sensitive": "Capture of a person in their private backyard without explicit consent (implied by the candid nature).",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "others’ information",
+            "social"
+          ],
+          "attributes": [
+            "bystander face"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "others’ private/confidential"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Man walking across the deck in the background.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 45,
+          "detected_visual": "Backyard and neighboring properties",
+          "why_privacy_sensitive": "Reveals the rear layout of the property and proximity to neighbors, aiding in geolocation.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wide view of the deck and fence line.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 120,
+          "detected_visual": "DeWalt Power Drill",
+          "why_privacy_sensitive": "Identifies tool assets, consistent with professional contractor equipment.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Yellow drill used to secure the railing.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d004",
+          "time_sec": 200,
+          "detected_visual": "'HARPEN CONSTRUCTION' Logo (again)",
+          "why_privacy_sensitive": "Reconfirms the business identity.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "workplace/school"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Logo visible on shirt as worker bends over.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 303,
+      "scene_summary": "The wearer is inside the house, opening a box of laminate flooring with a utility knife. They begin laying the planks on the floor. The specific brand and model of the flooring are clearly visible on the packaging.",
+      "dominant_elements": [
+        "flooring box",
+        "utility knife",
+        "home interior",
+        "logo on shirt"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 10,
+          "detected_visual": "TrafficMaster Flooring Box",
+          "why_privacy_sensitive": "Identifies the specific product and supplier (TrafficMaster is a Home Depot exclusive brand), revealing material costs and sourcing.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Brand name 'TrafficMaster' clearly visible on the cardboard box.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 15,
+          "detected_visual": "Product Label: 'Lakeshore Pecan'",
+          "why_privacy_sensitive": "Specifies the exact aesthetic choice and SKU of the renovation material.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Text 'Lakeshore Pecan' visible on the box end.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 60,
+          "detected_visual": "'HARPEN CONSTRUCTION' Logo (again)",
+          "why_privacy_sensitive": "Maintains the link between the interior flooring work and the exterior construction seen in previous clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "workplace/school"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Logo on shirt visible while working on the floor.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 303,
+      "scene_summary": "The worker is kneeling on the new floor, using a tapping block and hammer to secure the laminate planks together. The 'HARPEN CONSTRUCTION' logo is visible on their shirt as they work.",
+      "dominant_elements": [
+        "flooring tools",
+        "laminate planks",
+        "worker hands/torso",
+        "home interior"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 15,
+          "detected_visual": "'HARPEN CONSTRUCTION' Logo",
+          "why_privacy_sensitive": "Continuous identification of the contractor during the installation phase.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "identity"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "workplace/school"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Logo visible on chest while tapping the floor.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 30,
+          "detected_visual": "Installation Tools (Tapping Block, Hammer)",
+          "why_privacy_sensitive": "Reveals professional tooling and methods.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of tools being used to join planks.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 60,
+          "detected_visual": "Interior layout details (Baseboards, walls)",
+          "why_privacy_sensitive": "Further reveals the interior condition and layout of the client's home.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "others’ information"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "others’ private/confidential"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Background view of the room being floored.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 304,
+      "scene_summary": "The worker continues installing the laminate flooring near a doorway transition. They use a metal pull bar and hammer to tighten the joints of the final planks. The work truck and tools are briefly visible through the doorway.",
+      "dominant_elements": [
+        "flooring tools",
+        "doorway",
+        "home interior"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 10,
+          "detected_visual": "Metal Pull Bar usage",
+          "why_privacy_sensitive": "Demonstrates specific installation technique for tight spaces.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of tool being hammered to close the gap.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 45,
+          "detected_visual": "Interior Doorway and Transition",
+          "why_privacy_sensitive": "Provides detailed architectural information about the home's interior layout and flow.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Framing of the shot includes the door jamb and adjacent room.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 100,
+          "detected_visual": "'HARPEN CONSTRUCTION' Logo (continuous)",
+          "why_privacy_sensitive": "Maintains the business identification throughout the final clip.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "workplace/school"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Logo visible on shirt.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip completes the renovation narrative. The persistent exposure of the business name and the client's home interior constitutes the primary privacy profile of this story."
+  }
+}

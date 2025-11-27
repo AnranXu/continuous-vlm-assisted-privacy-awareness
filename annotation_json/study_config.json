@@ -1,0 +1,75 @@
+{
+  "studyId": "soups26_vlma_01",
+  "bucketName": "continuous-vlm-privacy-data",
+  "storiesPrefix": "stories/",
+  "participantsPrefix": "participants/",
+  "modes": [
+    "human",
+    "vlm"
+  ],
+  "stories": [
+    {
+      "storyId": "story_01",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_02",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_03",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_04",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_05",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_06",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_07",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_08",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    },
+    {
+      "storyId": "story_09",
+      "maxAssignments": {
+        "human": 1,
+        "vlm": 1
+      }
+    }
+  ]
+}

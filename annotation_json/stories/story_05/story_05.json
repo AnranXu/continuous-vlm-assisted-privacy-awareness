@@ -1,0 +1,700 @@
+{
+  "story_id": "story_05",
+  "story": {
+    "overall_description": "The video series documents a mechanic's workflow in a professional vehicle repair shop characterized by tiled flooring and cluttered workbenches. The footage covers repairs on two distinct scooters: disassembly of a dark green Piaggio Liberty (Clip 1) and extensive mechanical work on a silver Piaggio Liberty (Clips 2-5), including brake replacement, engine timing adjustment, carburetor tuning, and exhaust reassembly. The environment reveals specific tool brands, inventory systems, and customer personal items.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Vehicle Identification and Customer Linkage",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The video captures high-fidelity details of two specific customer vehicles. Clip 1 exposes the license plate and unique stickers of a dark green scooter. Clips 2-5 build a comprehensive repair log for a silver scooter (brakes, engine, exhaust). This creates a permanent record of the vehicles' conditions, locations, and maintenance histories, which can be linked to their owners.",
+        "information_types": [
+          "personal information",
+          "assets/property"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "License plate (Clip 1) + Vehicle makes/models + Unique wear patterns.",
+        "mitigation_ideas": [
+          "blur license plates",
+          "avoid filming unique vehicle identifiers"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Workshop Fingerprinting and Inventory Exposure",
+        "clips_involved": [
+          1,
+          2,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The cumulative footage maps the entire workshop layout: the workbench with the Nokia phone (Clip 1), the brake pad inventory shelf (Clip 2), the red tool chest (Clip 4), and the spare parts bin (Clip 5). Combined with the distinctive floor tiles, this allows for precise location fingerprinting and asset assessment.",
+        "information_types": [
+          "location of shooting",
+          "workplace/school",
+          "assets/property"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Distinctive floor tiles + Red tool chest + EBC brake pad stock + Tool brands (DeWalt).",
+        "mitigation_ideas": [
+          "blur background shelves",
+          "limit wide-angle shots"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Customer Privacy Intrusion (Storage Areas)",
+        "clips_involved": [
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "Multiple clips show the under-seat storage compartment of the silver scooter left open, revealing a white cloth bag and potentially other personal effects. Repeatedly filming inside private storage compartments violates the customer's expectation of privacy regarding their personal belongings.",
+        "information_types": [
+          "others’ private/confidential",
+          "personal information"
+        ],
+        "severity_overall": 1,
+        "confidence": "medium",
+        "evidence_summary": "Open seat storage with white cloth bag visible in Clips 4 and 5.",
+        "mitigation_ideas": [
+          "close storage compartments before filming",
+          "blur personal items"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 5,
+        "location of shooting": 8,
+        "individual preferences/pastimes": 15,
+        "social circle": 0,
+        "others’ private/confidential": 2,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "assets/property",
+        "workplace/school",
+        "location",
+        "preference/routine"
+      ],
+      "top_attributes": [
+        "machine/device",
+        "storefront logo",
+        "home interior",
+        "license plate"
+      ],
+      "top_categories": [
+        "machine/device",
+        "place identifier",
+        "printed material"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 261,
+      "scene_summary": "The mechanic disassembles a dark green scooter, removing the air filter cover and transmission cover. They frequently move between the vehicle and a cluttered workbench to retrieve tools or parts.",
+      "dominant_elements": [
+        "scooter/motorcycle",
+        "tools",
+        "workshop interior",
+        "hands"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 0,
+          "detected_visual": "Scooter Make/Model and 'Catalyzer' sticker",
+          "why_privacy_sensitive": "Identifies the specific asset being worked on. The condition and stickers serve as unique identifiers.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of the scooter's side panel.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 71,
+          "detected_visual": "Scooter License Plate",
+          "why_privacy_sensitive": "A direct identifier linking the vehicle to a registered owner and address. High privacy risk.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "location"
+          ],
+          "attributes": [
+            "license plate"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 3,
+          "confidence": "high",
+          "evidence_rationale": "Rear license plate visible as the wearer moves around the bike.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 159,
+          "detected_visual": "Old Nokia-style mobile phone on workbench",
+          "why_privacy_sensitive": "Reveals personal technology usage. The screen could potentially display contacts or messages.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "contact",
+            "assets/property"
+          ],
+          "attributes": [
+            "screen with chat"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Black feature phone lying face up on the cluttered workbench.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 235,
+          "detected_visual": "DeWalt Power Drill",
+          "why_privacy_sensitive": "Identifies professional assets and brand preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Yellow and black drill used on the workbench.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d005",
+          "time_sec": 240,
+          "detected_visual": "Spare parts packaging with labels",
+          "why_privacy_sensitive": "Text on packaging could reveal supplier information.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer handles a plastic package containing a new part.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 315,
+      "scene_summary": "The mechanic works on the front wheel assembly of a silver scooter. They remove the brake caliper, retrieve new EBC brake pads from a storage shelf, clean the caliper piston, and install the new pads.",
+      "dominant_elements": [
+        "scooter/motorcycle",
+        "tools",
+        "brake pads",
+        "hands"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 0,
+          "detected_visual": "Silver Piaggio Liberty Scooter",
+          "why_privacy_sensitive": "Specific vehicle model being serviced. Unique wear and tear can identify the exact bike.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of the scooter's front fender and wheel.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 65,
+          "detected_visual": "EBC Brake Pads packaging",
+          "why_privacy_sensitive": "Reveals specific parts used and inventory. Packaging text is readable.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Mechanic picks up a blue package labeled 'EBC Brakes'.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 90,
+          "detected_visual": "Inventory shelf with multiple brake pad boxes",
+          "why_privacy_sensitive": "Shows the shop's stock levels and organizational system for spare parts.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer walks to a wooden cabinet filled with parts.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d004",
+          "time_sec": 245,
+          "detected_visual": "DeWalt Drill (Yellow)",
+          "why_privacy_sensitive": "Consistent tool usage reinforces the professional profile of the shop.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Drill used to clean/prep parts.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d005",
+          "time_sec": 300,
+          "detected_visual": "Arexons Svitol lubricant can",
+          "why_privacy_sensitive": "Brand usage ('Arexons') is common in Italy/Europe, providing a weak geolocation cue.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Spray can used on the brake caliper.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 304,
+      "scene_summary": "The mechanic works deep inside the engine compartment of the scooter, using a T-handle wrench to adjust the camshaft sprocket/timing gear. A DeWalt power tool is used for illumination.",
+      "dominant_elements": [
+        "engine components",
+        "tools",
+        "hands",
+        "lighting"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 10,
+          "detected_visual": "Camshaft sprocket/timing chain",
+          "why_privacy_sensitive": "Reveals the specific mechanical issue or maintenance procedure being performed.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up view of the engine's internal timing mechanism.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 45,
+          "detected_visual": "DeWalt Impact Driver/Light",
+          "why_privacy_sensitive": "Consistent identification of shop assets.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Yellow and black power tool illuminating the work area.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 200,
+          "detected_visual": "Orange nitrile gloves",
+          "why_privacy_sensitive": "Consistent visual marker linking the wearer across clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Gloves worn throughout the clip.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 259,
+      "scene_summary": "The mechanic adjusts the carburetor on the silver scooter. The seat is open, revealing storage contents. The mechanic also moves around the shop, showing a red tool chest and various supplies.",
+      "dominant_elements": [
+        "scooter engine",
+        "tools",
+        "workshop interior",
+        "storage compartment"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 45,
+          "detected_visual": "Carburetor assembly",
+          "why_privacy_sensitive": "Reveals technical details of the vehicle's fuel system tuning.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of the carburetor intake.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 120,
+          "detected_visual": "Under-seat storage contents (White bag)",
+          "why_privacy_sensitive": "Exposure of a customer's personal storage space.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "others’ information"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "others’ private/confidential"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Open seat reveals items stored inside.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 200,
+          "detected_visual": "Red tool chest with drawers",
+          "why_privacy_sensitive": "Standard professional workshop equipment.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Large red cabinet in the background.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d004",
+          "time_sec": 230,
+          "detected_visual": "Bin of assorted screws/bolts",
+          "why_privacy_sensitive": "Depicts shop organization.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "reputation",
+            "workplace/school"
+          ],
+          "attributes": [],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Plastic bin full of fasteners held by the mechanic.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 295,
+      "scene_summary": "The mechanic reattaches the exhaust system to the silver scooter. They retrieve bolts from a bin of spare parts, position the muffler, and tighten the mounting bolts using a socket wrench. The under-seat storage is briefly visible again.",
+      "dominant_elements": [
+        "scooter/motorcycle",
+        "exhaust/muffler",
+        "tools",
+        "spare parts"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 5,
+          "detected_visual": "Bin of assorted screws and bolts",
+          "why_privacy_sensitive": "Depicts the shop's organization and resource management.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "reputation"
+          ],
+          "attributes": [],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "workplace/school"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Mechanic sifting through a dirty plastic container for fasteners.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 45,
+          "detected_visual": "Exhaust system/muffler",
+          "why_privacy_sensitive": "Part of the vehicle's specific configuration. Condition can help identify the bike.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer mounting the silver heat-shielded muffler.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 200,
+          "detected_visual": "Under-seat storage contents (White bag)",
+          "why_privacy_sensitive": "Re-exposure of customer's personal items in the storage bin.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "others’ information"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "others’ private/confidential"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Seat is open while working near the rear of the bike.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d004",
+          "time_sec": 150,
+          "detected_visual": "Tiled workshop floor",
+          "why_privacy_sensitive": "Distinctive flooring pattern aids in location fingerprinting.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Floor visible throughout the clip.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "Story 5 is fully analyzed. Key privacy findings include the identification of multiple customer vehicles, including a readable license plate in Clip 1, and the exposure of internal shop assets and customer belongings."
+  }
+}

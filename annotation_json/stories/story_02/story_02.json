@@ -1,0 +1,524 @@
+{
+  "story_id": "story_02",
+  "story": {
+    "overall_description": "This video series documents the morning domestic routine of a resident in a ground-floor home in the Indian states of Andhra Pradesh or Telangana. The narrative progresses from religious rituals in a dedicated prayer room to household maintenance activities like sweeping the patio and organizing a wardrobe. The footage provides granular details on the resident's religious beliefs, linguistic background (Telugu), socioeconomic status, and daily habits, while consistently featuring soft biometric markers like specific jewelry.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "High-Confidence Geolocation via Language and Products",
+        "clips_involved": [
+          3,
+          5
+        ],
+        "why_amplified_across_clips": "While Clip 3 suggested a South Asian context, Clip 5 provides definitive geolocation markers. The devotional book features Telugu script, narrowing the location to Andhra Pradesh or Telangana, India. This is corroborated by the 'Home Lites' matchbox (an Indian brand) and the architectural style of the independent house with a compound wall.",
+        "information_types": [
+          "location of shooting",
+          "personal information"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "Telugu text on prayer book + 'Home Lites' matchbox + Tropical vegetation/architecture.",
+        "mitigation_ideas": [
+          "blur text on books and products",
+          "avoid filming exterior landmarks"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Persistent Re-identification via Attire and Jewelry",
+        "clips_involved": [
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The wearer is visually tracked across all three clips through identical markers: a yellow floral-print dress, a set of red bangles on both wrists, and a green bracelet. This continuity links the intimate religious activities in Clip 5 with the general chores in Clips 3 and 4, creating a unified profile of a single individual.",
+        "information_types": [
+          "personal information"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Red bangles + Green bracelet + Yellow floral dress consistent across all clips.",
+        "mitigation_ideas": [
+          "blur jewelry/wrists",
+          "avoid filming distinctive clothing patterns"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Religious and Cultural Profiling",
+        "clips_involved": [
+          5
+        ],
+        "why_amplified_across_clips": "Clip 5 provides a deep dive into the wearer's sensitive personal beliefs. The detailed view of the home altar, specific deities (Krishna, etc.), and the ritual process allows for precise religious profiling (Hinduism) that was not present in the previous, chore-focused clips.",
+        "information_types": [
+          "individual preferences/pastimes",
+          "personal information"
+        ],
+        "severity_overall": 3,
+        "confidence": "high",
+        "evidence_summary": "Home altar with specific deities + Ritual objects (diya, flowers) + Devotional text.",
+        "mitigation_ideas": [
+          "avoid filming prayer rooms/altars",
+          "blur religious imagery"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 8,
+        "location of shooting": 10,
+        "individual preferences/pastimes": 14,
+        "social circle": 0,
+        "others’ private/confidential": 0,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "preference/routine",
+        "location",
+        "identity",
+        "assets/property"
+      ],
+      "top_attributes": [
+        "home interior",
+        "religious sign",
+        "storefront logo",
+        "clothing"
+      ],
+      "top_categories": [
+        "place identifier",
+        "printed material",
+        "accessory"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 315,
+      "scene_summary": "The wearer stands in a room with marble floors, initially spraying a garment with a black aerosol can. They then proceed to fold various colorful fabrics and garments on a wooden surface, periodically placing them into a white shelving unit. The clip ends with a view towards an outdoor patio area.",
+      "dominant_elements": [
+        "home interior",
+        "clothing/fabrics",
+        "hands/jewelry",
+        "furniture"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 0,
+          "detected_visual": "Black aerosol spray can (deodorant/perfume)",
+          "why_privacy_sensitive": "Reveals personal grooming product preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "cosmetics"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer holding and using a black spray can.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 1,
+          "detected_visual": "Red bangles and green bracelet on wrists",
+          "why_privacy_sensitive": "Distinctive jewelry acts as a soft biometric identifier and indicates cultural/marital status context (common in South Asia).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "social"
+          ],
+          "attributes": [],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of hands/wrists while working.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 2,
+          "detected_visual": "Blue plastic stool and traditional broom",
+          "why_privacy_sensitive": "Household objects that hint at the cultural setting and economic status.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "preference/routine"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Items visible on the floor next to the table.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d004",
+          "time_sec": 10,
+          "detected_visual": "Open cupboard with stacked clothes",
+          "why_privacy_sensitive": "Reveals personal clothing inventory and organization habits.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "View inside the white shelving unit.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d005",
+          "time_sec": 205,
+          "detected_visual": "'WELCOME' door mat",
+          "why_privacy_sensitive": "Generic but distinctive home decor item; its position helps map the room layout relative to the entrance/exit.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Brown mat with text visible on the floor.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d006",
+          "time_sec": 312,
+          "detected_visual": "View of outdoor patio/yard through doorway",
+          "why_privacy_sensitive": "Exterior view reveals the tiling pattern of the yard and neighboring vegetation, potentially aiding in geolocation if distinctive landmarks were visible (none prominent here).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Camera pans to show the open door and outside area.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d007",
+          "time_sec": 50,
+          "detected_visual": "Marble flooring pattern",
+          "why_privacy_sensitive": "Distinctive floor patterns can be a unique fingerprint for a specific room/house.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "White marble with grey veins visible throughout the clip.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 16,
+      "scene_summary": "The wearer is seen cleaning or wiping a wooden surface, possibly the bed frame or a table, with a cloth. The clip is brief and maintains the first-person perspective, focusing on the hands and the immediate task.",
+      "dominant_elements": [
+        "hands/jewelry",
+        "cleaning activity",
+        "furniture"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 0,
+          "detected_visual": "Red bangles on wrists",
+          "why_privacy_sensitive": "Consistent soft biometric identifier seen in previous clip.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Close-up of wrists with red bangles.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 2,
+          "detected_visual": "Wooden furniture detail",
+          "why_privacy_sensitive": "Reveals furniture style and material, contributing to the overall interior profile.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close-up view of wooden surface being wiped.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 10,
+          "detected_visual": "Yellow floral print dress",
+          "why_privacy_sensitive": "Specific clothing item that aids in re-identification across clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Fabric pattern visible on the wearer's body.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 325,
+      "scene_summary": "The wearer performs a religious ritual at a home altar, arranging flowers and lighting a lamp. They then read a small devotional book. Afterwards, they pick up a broom, sweep the marble floors, and move outside to sweep the large concrete patio/yard area before returning inside to organize clothes in the wardrobe.",
+      "dominant_elements": [
+        "home altar",
+        "flowers/fruit",
+        "book",
+        "broom",
+        "outdoor yard",
+        "clothing"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 0,
+          "detected_visual": "Home altar with pictures of Hindu deities (Krishna, etc.)",
+          "why_privacy_sensitive": "Reveals specific religious affiliation (Hinduism) and personal devotion practices.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "identity"
+          ],
+          "attributes": [
+            "religious sign"
+          ],
+          "categories": [
+            "place identifier",
+            "photo"
+          ],
+          "information_types": [
+            "individual preferences/pastimes",
+            "personal information"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Detailed view of puja room with framed deity images.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 425,
+          "detected_visual": "Matchbox labeled 'Home Lites'",
+          "why_privacy_sensitive": "Identifies the country of origin (India) as this is a popular Indian brand.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Brand name 'Home Lites' clearly visible on the matchbox.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 507,
+          "detected_visual": "Devotional book with Telugu script",
+          "why_privacy_sensitive": "The script on the book cover is Telugu, strongly indicating the location as Andhra Pradesh or Telangana, India, or a Telugu-speaking household.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "identity"
+          ],
+          "attributes": [
+            "religious sign"
+          ],
+          "categories": [
+            "book",
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting",
+            "individual preferences/pastimes"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Text on the small book held by the wearer is in Telugu script.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d004",
+          "time_sec": 132,
+          "detected_visual": "Exterior yard/patio with compound wall and gate",
+          "why_privacy_sensitive": "Reveals the layout of the property's exterior, the height of the perimeter wall, and the type of gate, useful for physical reconnaissance.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Wide shots of the outdoor area while sweeping.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d005",
+          "time_sec": 302,
+          "detected_visual": "Plastic bag with 'Option One' logo",
+          "why_privacy_sensitive": "Likely a local retail store bag, which could further narrow down the specific city or neighborhood if the brand is local.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "White bag with red text handled in the wardrobe.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "Clip 5 provides the strongest geolocation evidence yet (Telugu script, Indian brands) and deepens the personal profile with religious details."
+  }
+}

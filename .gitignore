@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#add video files
+
+*.mp4
+*.mov
+*.avi
+*.wmv
+*.flv
+*.mkv
+*.webm
+*.mpeg
+*.mpg
+*.3gp
+*.m4v
+*.vob
+*.ogv

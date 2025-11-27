@@ -1,0 +1,671 @@
+{
+  "story_id": "story_04",
+  "story": {
+    "overall_description": "The video series documents the creation of a personalized felt \"Quiet Book\" (a fabric activity book for children). The footage details the crafting process, from sewing individual finger puppets (dog, pig, chick) to assembling the book's cover page, which features a grey elephant and the name \"GABRIELE\". The activity takes place on a yellow polka-dot table, utilizing various tools like needles, tweezers, and a hot glue gun.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Recipient Identification via Personalized Artifacts",
+        "clips_involved": [
+          5
+        ],
+        "why_amplified_across_clips": "While previous clips showed generic animal figures, Clip 5 reveals the final context: a personalized book cover bearing the name \"GABRIELE\". This connects the crafting activity to a specific individual (likely a child), raising privacy risks regarding the recipient's identity.",
+        "information_types": [
+          "personal information",
+          "social circle"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Name 'GABRIELE' stitched onto the orange felt book cover.",
+        "mitigation_ideas": [
+          "blur names on personalized items",
+          "avoid filming custom text"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Persistent Biometric and Accessory Identification",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The wearer remains identifiable throughout the entire series via consistent markers: a gold ring on the right hand, a pink smartwatch on the left wrist, and specific hand features (nail shape/care). These elements creates a continuous identity thread linking all crafting stages.",
+        "information_types": [
+          "personal information",
+          "identity"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Gold ring (right hand) + Pink smartwatch (left hand) + Hand biometrics.",
+        "mitigation_ideas": [
+          "remove distinctive jewelry",
+          "wear gloves"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Workspace and Tool Profiling",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The environment is statically defined by the yellow polka-dot tablecloth. Clip 5 adds specific tool brand identification (Einhell glue gun) to the asset inventory established in earlier clips, creating a detailed profile of the wearer's equipment and workspace.",
+        "information_types": [
+          "location of shooting",
+          "assets/property"
+        ],
+        "severity_overall": 1,
+        "confidence": "high",
+        "evidence_summary": "Yellow polka-dot background + Einhell glue gun + Crafting supply storage.",
+        "mitigation_ideas": [
+          "use neutral backgrounds",
+          "obscure tool brands"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 9,
+        "location of shooting": 5,
+        "individual preferences/pastimes": 16,
+        "social circle": 1,
+        "others’ private/confidential": 0,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "preference/routine",
+        "identity",
+        "assets/property",
+        "social"
+      ],
+      "top_attributes": [
+        "machine/device",
+        "clothing",
+        "home interior",
+        "name on package (redacted)"
+      ],
+      "top_categories": [
+        "printed material",
+        "machine/device",
+        "accessory"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 305,
+      "scene_summary": "A crafting tutorial or demonstration showing the hand-sewing of a felt dog face. The camera is positioned overhead, focusing on the hands and the workpiece on a yellow polka-dot surface.",
+      "dominant_elements": [
+        "hands",
+        "fabric/felt",
+        "sewing tools",
+        "smartwatch"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 0,
+          "detected_visual": "Smartwatch with pink strap",
+          "why_privacy_sensitive": "Specific model and color of wearable tech can help identify the user or their lifestyle preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information",
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Watch visible on left wrist throughout the clip.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 5,
+          "detected_visual": "Hands and manicure",
+          "why_privacy_sensitive": "Soft biometric data (hand shape, skin tone, nail care) can be used for re-identification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Continuous close-up of hands performing fine motor tasks.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 10,
+          "detected_visual": "Felt dog craft project",
+          "why_privacy_sensitive": "Reveals specific hobby and skill level.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Central object of the video.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 250,
+          "detected_visual": "Clothing pattern (patterned sleeve/top)",
+          "why_privacy_sensitive": "Visible clothing patterns can aid in re-identification if seen in other contexts.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Small portion of patterned clothing visible at the bottom of the frame.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 307,
+      "scene_summary": "The wearer continues stitching the felt dog head, attaching the ears and muzzle. They then use a hot glue gun to affix small details like the nose and eyes. Finally, the completed dog puppet is shown on a finger, along with pig and chick puppets.",
+      "dominant_elements": [
+        "hands",
+        "craft materials",
+        "glue gun",
+        "puppets"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 0,
+          "detected_visual": "Smartwatch on wrist",
+          "why_privacy_sensitive": "Wearable tech identifier, consistent with Clip 1.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Pink strap watch visible on left wrist.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 10,
+          "detected_visual": "Sewing kit with various thread spools",
+          "why_privacy_sensitive": "Reveals specific supplies and organizational habits.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear box full of colorful thread spools in background.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 195,
+          "detected_visual": "Hot glue gun (blue)",
+          "why_privacy_sensitive": "Specific tool model used in the craft.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "User picks up and uses the blue glue gun.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d004",
+          "time_sec": 216,
+          "detected_visual": "Finished finger puppets (Dog, Pig, Chick)",
+          "why_privacy_sensitive": "Shows the output of the hobby, potentially linking to online craft listings or social media posts of the same items.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Three puppets displayed on the user's fingers.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d005",
+          "time_sec": 5,
+          "detected_visual": "Yellow polka-dot tablecloth",
+          "why_privacy_sensitive": "Distinctive background pattern that acts as a location identifier.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Surface visible throughout the video.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 312,
+      "scene_summary": "The final assembly and presentation of the felt dog puppet. The wearer glues on the nose and eyes, then displays the finished dog puppet on their finger next to a pig and a chick puppet. The camera pans over the workspace, showing a box of threads.",
+      "dominant_elements": [
+        "hands",
+        "puppets",
+        "glue gun",
+        "thread box"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 5,
+          "detected_visual": "Smartwatch with pink strap",
+          "why_privacy_sensitive": "Consistent wearable identifier linking this clip to previous ones.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Watch visible on wrist while gluing.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 250,
+          "detected_visual": "Box of colorful sewing threads",
+          "why_privacy_sensitive": "Inventory of crafting supplies, potentially identifying specific brands or the scale of the hobby.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Clear view of organized thread box in background.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 300,
+          "detected_visual": "Set of three finger puppets (Dog, Pig, Chick)",
+          "why_privacy_sensitive": "Unique combination of crafts that could be used to find the creator's online presence (e.g., Etsy shop, Pinterest board).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Final shot of all three puppets on fingers.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d004",
+          "time_sec": 150,
+          "detected_visual": "Blue hot glue gun",
+          "why_privacy_sensitive": "Specific tool used, consistent with previous clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "User applying glue with the gun.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 304,
+      "scene_summary": "The wearer uses a hot glue gun to assemble the face of the felt dog. They glue the beige muzzle, black nose, white eyes, and black pupils onto the head piece. The clip is a continuous close-up of the hands working on the yellow surface.",
+      "dominant_elements": [
+        "hands",
+        "glue gun",
+        "felt pieces",
+        "jewelry"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 12,
+          "detected_visual": "Gold ring on right ring finger",
+          "why_privacy_sensitive": "A specific piece of jewelry that acts as a unique identifier for the wearer, distinguishing them from others who might have similar hands.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Gold band clearly visible on finger while positioning felt.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 45,
+          "detected_visual": "Pink smartwatch",
+          "why_privacy_sensitive": "Reconfirms the wearable tech identifier seen in previous clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Watch visible on left wrist.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 60,
+          "detected_visual": "Blue hot glue gun",
+          "why_privacy_sensitive": "Specific tool model used in the craft.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "User applies glue to the felt pieces.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 313,
+      "scene_summary": "The wearer works on the cover of the quiet book. They use tweezers to thread a white string or ribbon through holes in the orange felt page, creating a mechanism for the elephant figure. The finished book cover with the name 'GABRIELE' is displayed.",
+      "dominant_elements": [
+        "felt book",
+        "glue gun",
+        "tweezers",
+        "name text"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 15,
+          "detected_visual": "Book cover with name 'GABRIELE' (redacted)",
+          "why_privacy_sensitive": "Directly identifies a person (likely a child) associated with the wearer. This is high-risk PII.",
+          "stakeholders": [
+            "third_party"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "social",
+            "others’ information"
+          ],
+          "attributes": [
+            "name on package (redacted)"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information",
+            "social circle"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "White felt letters spelling 'GABRIELE' glued onto the orange background.",
+          "notes_redaction": "Name 'GABRIELE' visible."
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 100,
+          "detected_visual": "'Einhell' brand hot glue gun",
+          "why_privacy_sensitive": "Specific brand identification of tools adds to the asset profile.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Brand name 'Einhell' visible on the side of the blue glue gun.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 5,
+          "detected_visual": "Use of tweezers/forceps for threading",
+          "why_privacy_sensitive": "Demonstrates specific crafting technique and tool usage.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer uses metal tweezers to pull ribbon through felt.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d004",
+          "time_sec": 2,
+          "detected_visual": "Patterned dress/clothing",
+          "why_privacy_sensitive": "Provides an additional visual identifier for the wearer beyond hands and jewelry.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Patterned fabric visible in the lower part of the frame (lap area).",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip reveals the recipient's name ('GABRIELE') and provides brand-specific asset information ('Einhell'), significantly increasing the privacy risk profile of the story."
+  }
+}

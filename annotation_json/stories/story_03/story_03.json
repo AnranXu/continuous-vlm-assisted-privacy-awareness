@@ -1,0 +1,730 @@
+{
+  "story_id": "story_03",
+  "story": {
+    "overall_description": "The video series documents the end-to-end workflow of a professional woodworker in a distinctive workshop with stone paver flooring and masonry walls. The narrative progresses from rough sanding of wooden frames using power drills and orbital sanders to detailed hand-finishing of ornate furniture, followed by the mixing and application of varnish in a spray booth, and finally the inspection of finished panels. The environment is populated by a black shop dog and contains specific industrial assets and chemical brands.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "High-Confidence Geolocation via Infrastructure and Supply Chain",
+        "clips_involved": [
+          2,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The unique workshop interior (stone paver flooring seen in Clips 2 & 5, rough stone walls in Clip 4) creates a visual fingerprint. This is compounded by the presence of specific Italian chemical brands ('Chimital', 'TEDA') in Clip 4, which strongly suggests a location in Italy or a region heavily importing Italian woodworking supplies.",
+        "information_types": [
+          "location of shooting",
+          "assets/property"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Stone paver flooring + Italian chemical brands (Chimital) + TEDA logo on shirt.",
+        "mitigation_ideas": [
+          "blur product labels",
+          "avoid wide shots of distinctive flooring/walls"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Re-identification via Attire and Shop Pet",
+        "clips_involved": [
+          1,
+          2,
+          5
+        ],
+        "why_amplified_across_clips": "The wearer is linked across the timeline by consistent attire (blue sneakers with white soles, grey/blue shorts) and the recurring presence of a black shop dog (Clips 2 & 5). This confirms that the sanding, spraying, and sawing are all performed by the same individual.",
+        "information_types": [
+          "personal information",
+          "location of shooting"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Blue sneakers (Clips 1, 5) + Black dog (Clips 2, 5) + Consistent shorts.",
+        "mitigation_ideas": [
+          "wear standard safety coveralls",
+          "keep pets out of frame"
+        ]
+      },
+      {
+        "threat_id": "story_t3",
+        "title": "Comprehensive Asset and Skill Profiling",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The cumulative footage acts as a full inventory of the workshop's capabilities: from handheld improvisation (drill sander) to industrial machinery (sliding table saw, spray booth). It also reveals the specific techniques and finish recipes used, which could be proprietary.",
+        "information_types": [
+          "assets/property",
+          "individual preferences/pastimes"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Inventory of power tools + Spray gun model + Chemical mixing ratios + Table saw model.",
+        "mitigation_ideas": [
+          "avoid filming mixing ratios and equipment models"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 5,
+        "location of shooting": 20,
+        "individual preferences/pastimes": 25,
+        "social circle": 0,
+        "others’ private/confidential": 0,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "workplace/school",
+        "preference/routine",
+        "assets/property",
+        "location"
+      ],
+      "top_attributes": [
+        "machine/device",
+        "home interior",
+        "clothing",
+        "storefront logo"
+      ],
+      "top_categories": [
+        "machine/device",
+        "place identifier",
+        "printed material"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 315,
+      "scene_summary": "A close-up egocentric view of a woodworking task. The wearer stands at a work table sanding a square wooden frame with a mesh insert, rotating the frame periodically to access different edges.",
+      "dominant_elements": [
+        "machine/device",
+        "wood/materials",
+        "hands",
+        "workshop interior"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 0,
+          "detected_visual": "Power drill with red sanding attachment",
+          "why_privacy_sensitive": "Reveals specific tools and assets owned or used by the wearer. The condition of the tool (worn, dusty) implies regular heavy use.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Drill is the central focus of the clip.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 5,
+          "detected_visual": "Wearer's attire (Red T-shirt, bare arms)",
+          "why_privacy_sensitive": "Visual attributes that allow for re-identification of the person within the video series.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity",
+            "reputation"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Torso and arms visible throughout the activity.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 10,
+          "detected_visual": "Workshop background (shelves, buckets, wood scraps)",
+          "why_privacy_sensitive": "Contextual information that defines the setting as a workshop. While generic, the specific layout of shelves and clutter could re-identify the specific shop to someone familiar with it.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "workplace/school"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Background visible when wearer moves the frame.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 26,
+          "detected_visual": "Blue sneakers with white soles",
+          "why_privacy_sensitive": "Clothing item that contributes to the wearer's visual profile for re-identification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Feet visible when the wearer looks down/steps back.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d005",
+          "time_sec": 100,
+          "detected_visual": "Wooden frame with mesh screen (Workpiece)",
+          "why_privacy_sensitive": "Reveals the nature of the project (possibly cabinet making, window screening, or beekeeping equipment).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "The object being worked on is clearly visible.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 63,
+      "scene_summary": "The wearer walks across the workshop, revealing stone paver flooring. They open a cabinet to retrieve a sanding disc, then move to a workbench to attach it to a pneumatic orbital sander before sanding a dark, curved wooden furniture piece.",
+      "dominant_elements": [
+        "workshop interior",
+        "machine/device",
+        "pet",
+        "furniture"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 8,
+          "detected_visual": "Black dog wandering in workshop",
+          "why_privacy_sensitive": "A unique 'living asset' that significantly narrows down the location. It suggests a less regulated or owner-operated workshop environment.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "social"
+          ],
+          "attributes": [
+            "pet"
+          ],
+          "categories": [
+            "pet"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Medium-sized black dog walks past the camera.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 12,
+          "detected_visual": "Supply cabinet with branded boxes (e.g., sanding discs)",
+          "why_privacy_sensitive": "Reveals supplier preferences and inventory organization. Text on boxes is partially legible.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "preference/routine"
+          ],
+          "attributes": [
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Wearer opens white cabinet doors to access supplies.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 18,
+          "detected_visual": "Stone paver flooring",
+          "why_privacy_sensitive": "Highly distinctive flooring material (rough-hewn stone tiles) that is atypical for modern industrial workshops, aiding in specific location fingerprinting.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Camera looks down at feet walking across the floor.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d004",
+          "time_sec": 35,
+          "detected_visual": "Pneumatic orbital sander setup",
+          "why_privacy_sensitive": "Reveals professional tooling assets. The specific model and the act of changing the pad demonstrate professional trade practices.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Close up of hand attaching a new sanding disc to the machine.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d005",
+          "time_sec": 40,
+          "detected_visual": "Dark stained curved wooden furniture",
+          "why_privacy_sensitive": "Shows a specific client project or product line, distinct from the light frame in the previous clip.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer begins sanding a dark, ornate wooden piece.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 315,
+      "scene_summary": "The wearer uses a handheld sanding block and a folded piece of sandpaper to manually smooth the intricate curves and interior edges of a dark-stained wooden frame. The camera angle is close-up, focusing intensely on the hands and the workpiece.",
+      "dominant_elements": [
+        "hands",
+        "wood/materials",
+        "tools"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 5,
+          "detected_visual": "Dark stained curved wooden frame",
+          "why_privacy_sensitive": "A unique object that could be recognized by its owner or a buyer. Its specific shape (oval/curved) distinguishes it from standard stock.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Object is the primary focus of the entire clip.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 15,
+          "detected_visual": "Hand sanding technique",
+          "why_privacy_sensitive": "Demonstrates specific craftsmanship skill and patience. While not highly sensitive, it contributes to the professional profile of the user.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Continuous shot of hands using sandpaper.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 45,
+          "detected_visual": "Sanding sponge/block (pink/purple)",
+          "why_privacy_sensitive": "Reveals consumable brand preferences (e.g., 3M or similar sanding sponges).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Specific color and texture of the sanding block.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d004",
+          "time_sec": 120,
+          "detected_visual": "Stone paver flooring",
+          "why_privacy_sensitive": "Reconfirms the specific location fingerprint established in Clip 2.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Floor visible in background/periphery.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 316,
+      "scene_summary": "The wearer prepares a spray gun for varnishing. They mix chemicals from metal cans into the gun's cup, walk to a ventilated spray booth area with a turntable, and proceed to spray a clear finish onto a light wooden panel.",
+      "dominant_elements": [
+        "machine/device",
+        "paint/chemicals",
+        "workshop interior",
+        "hands"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 5,
+          "detected_visual": "Spray gun (Gravity feed type)",
+          "why_privacy_sensitive": "Professional equipment that indicates the specific trade (finishing/painting).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer is holding and assembling the spray gun.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 57,
+          "detected_visual": "TEDA branded T-shirt on wearer",
+          "why_privacy_sensitive": "Logo on clothing ('TEDA') combined with the work context suggests this might be a company uniform or a promotional item from a supplier, potentially identifying the employer or key business partners.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "identity"
+          ],
+          "attributes": [
+            "storefront logo",
+            "clothing"
+          ],
+          "categories": [
+            "printed material",
+            "person"
+          ],
+          "information_types": [
+            "personal information",
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Logo clearly visible on the white t-shirt when the wearer looks down.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 145,
+          "detected_visual": "Paint cans labeled 'Chimital srl' and 'TEDA'",
+          "why_privacy_sensitive": "Specific brand names of industrial coatings. 'Chimital' is an Italian chemical company. This provides a strong geolocation clue (Italy or a region importing Italian wood finishes).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "workplace/school"
+          ],
+          "attributes": [
+            "storefront logo",
+            "invoice"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 2,
+          "confidence": "high",
+          "evidence_rationale": "Labels on metal cans used for mixing.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d004",
+          "time_sec": 220,
+          "detected_visual": "Spray booth with turntable",
+          "why_privacy_sensitive": "Reveals the facility's capability and infrastructure. The specific type of booth (dry filter vs water curtain) and the turntable setup characterize the workshop's scale.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer places wood on a metal turntable in a designated spraying area.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 300,
+      "scene_summary": "The wearer moves a large, light-colored wooden panel from a sliding table saw to a work table. They inspect the panel's surface, possibly checking for smoothness or finish quality. A black dog is seen resting on the floor nearby.",
+      "dominant_elements": [
+        "machine/device",
+        "wood/materials",
+        "workshop interior",
+        "pet"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 10,
+          "detected_visual": "Sliding table saw",
+          "why_privacy_sensitive": "A large, expensive piece of industrial machinery. Its make and model (partially visible) can indicate the shop's capital investment and capabilities.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property",
+            "workplace/school"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Large machine used to cut/move the panel.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 25,
+          "detected_visual": "Black dog on stone floor",
+          "why_privacy_sensitive": "Re-identifies the location as the same workshop from Clip 2. The dog's presence is a unique social/environmental marker.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "social"
+          ],
+          "attributes": [
+            "pet"
+          ],
+          "categories": [
+            "pet"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "high",
+          "evidence_rationale": "Dog lying on the floor near the machine.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 45,
+          "detected_visual": "Wearer's shoes (Blue sneakers)",
+          "why_privacy_sensitive": "Confirms the identity of the wearer across clips.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "accessory"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Feet visible while walking around the machine.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d004",
+          "time_sec": 150,
+          "detected_visual": "Light wooden panel (finished)",
+          "why_privacy_sensitive": "Shows the output of the work. High-quality finish implies professional skill.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "workplace/school"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer inspects the surface of the panel.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "The final clip ties the narrative together by showing the inspection of the work and re-confirming the location and identity markers (dog, shoes, floor). The Italian product labels in Clip 4 were the most significant new finding in this batch."
+  }
+}

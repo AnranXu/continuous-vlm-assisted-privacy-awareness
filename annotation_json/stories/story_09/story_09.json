@@ -1,0 +1,545 @@
+{
+  "story_id": "story_09",
+  "story": {
+    "overall_description": "The video series documents the step-by-step preparation of a one-pot pasta Bolognese (meat sauce) in a home kitchen. The process begins with chopping red onions and sautéing them with green vegetables in a stainless steel pot on a gas stove. The cook then browns ground meat, adds tomato passata and seasoning, and finally cooks the dry pasta directly in the simmering sauce, adding water from a kettle.",
+    "cross_clip_threats": [
+      {
+        "threat_id": "story_t1",
+        "title": "Comprehensive Kitchen Facility Fingerprinting",
+        "clips_involved": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The video provides a complete visual inventory of the kitchen's fixed assets: the speckled granite countertops (Clip 1), the specific control layout of the stainless steel gas stove (Clips 2-3), and small appliances like the electric kettle (Clip 5). This combination allows for a high-fidelity reconstruction of the cooking space.",
+        "information_types": [
+          "location of shooting",
+          "assets/property"
+        ],
+        "severity_overall": 2,
+        "confidence": "high",
+        "evidence_summary": "Granite counter pattern + Gas stove make/model + Stainless steel kettle + Cookware set.",
+        "mitigation_ideas": [
+          "blur background details",
+          "avoid filming distinctive appliances"
+        ]
+      },
+      {
+        "threat_id": "story_t2",
+        "title": "Detailed Dietary and Behavioral Profiling",
+        "clips_involved": [
+          1,
+          3,
+          4,
+          5
+        ],
+        "why_amplified_across_clips": "The specific sequence of ingredients (fresh produce -> packaged meat -> processed sauce -> dry pasta) and techniques (rinsing sauce bottles, one-pot pasta cooking) builds a detailed profile of the user's dietary preferences, economic habits, and culinary skill level.",
+        "information_types": [
+          "individual preferences/pastimes",
+          "personal information"
+        ],
+        "severity_overall": 1,
+        "confidence": "high",
+        "evidence_summary": "Ragù recipe steps + Frugal bottle rinsing + 'Risottata' pasta technique.",
+        "mitigation_ideas": [
+          "omit specific recipe steps",
+          "hide ingredient packaging"
+        ]
+      }
+    ],
+    "coverage": {
+      "counts_by_information_type": {
+        "personal information": 3,
+        "location of shooting": 6,
+        "individual preferences/pastimes": 15,
+        "social circle": 0,
+        "others’ private/confidential": 0,
+        "Other privacy issues": 0
+      },
+      "top_sensitivity_themes": [
+        "preference/routine",
+        "assets/property",
+        "location",
+        "identity"
+      ],
+      "top_attributes": [
+        "machine/device",
+        "home interior",
+        "clothing"
+      ],
+      "top_categories": [
+        "machine/device",
+        "printed material",
+        "person"
+      ]
+    }
+  },
+  "clips": [
+    {
+      "clip_index": 1,
+      "clip_id": "clip_01",
+      "duration_sec": 305,
+      "scene_summary": "The wearer stands at a kitchen counter chopping a red onion on a white cutting board. They use a black-handled knife. A stainless steel gas stove is visible in the background.",
+      "dominant_elements": [
+        "red onion",
+        "knife",
+        "cutting board",
+        "granite counter"
+      ],
+      "detections": [
+        {
+          "det_id": "c1_d001",
+          "time_sec": 5,
+          "detected_visual": "Red Onion preparation",
+          "why_privacy_sensitive": "Reveals specific dietary habits and cooking preferences.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer slicing a red onion.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d002",
+          "time_sec": 10,
+          "detected_visual": "Kitchen Countertop (Speckled Granite)",
+          "why_privacy_sensitive": "Distinctive interior surface pattern that helps fingerprint the location.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "place identifier"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "Counter surface visible beneath the cutting board.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d003",
+          "time_sec": 25,
+          "detected_visual": "Stainless Steel Gas Stove",
+          "why_privacy_sensitive": "Identifies the type of appliance and kitchen infrastructure.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior",
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Stove visible in the background/periphery.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c1_d004",
+          "time_sec": 45,
+          "detected_visual": "Wearer's hands and sleeves",
+          "why_privacy_sensitive": "Visual attributes (skin tone, grey sleeves) allow for re-identification.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "identity"
+          ],
+          "attributes": [
+            "clothing"
+          ],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "personal information"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Hands and cuffs visible while chopping.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 2,
+      "clip_id": "clip_02",
+      "duration_sec": 306,
+      "scene_summary": "The wearer is cooking at the gas stove. Red onions are sizzling in a stainless steel pot. The wearer stirs them with a wooden spoon and then adds chopped green vegetables from a white bowl.",
+      "dominant_elements": [
+        "cooking pot",
+        "gas stove",
+        "wooden spoon",
+        "vegetables"
+      ],
+      "detections": [
+        {
+          "det_id": "c2_d001",
+          "time_sec": 10,
+          "detected_visual": "Stainless Steel Pot on Gas Flame",
+          "why_privacy_sensitive": "Reveals specific cookware assets and cooking method (gas).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine",
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Pot sits on the active burner.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d002",
+          "time_sec": 45,
+          "detected_visual": "Chopped Green Vegetables",
+          "why_privacy_sensitive": "Further details on the recipe/diet being prepared.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Bowl of green ingredients poured into the pot.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c2_d003",
+          "time_sec": 5,
+          "detected_visual": "Gas Stove Control Knobs",
+          "why_privacy_sensitive": "Specific design of the knobs can help identify the appliance model/brand.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "home interior"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "location of shooting"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Knobs visible on the front of the stove.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 3,
+      "clip_id": "clip_03",
+      "duration_sec": 306,
+      "scene_summary": "The wearer adds ground meat (mince) from a white styrofoam supermarket tray into the pot with the sautéed vegetables. They use a wooden spoon to break up and brown the meat.",
+      "dominant_elements": [
+        "ground meat",
+        "meat packaging",
+        "cooking pot",
+        "stove"
+      ],
+      "detections": [
+        {
+          "det_id": "c3_d001",
+          "time_sec": 5,
+          "detected_visual": "Ground Meat (Beef/Pork Mince)",
+          "why_privacy_sensitive": "Confirms non-vegetarian dietary preference.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Raw meat visible as it is poured into the pot.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d002",
+          "time_sec": 8,
+          "detected_visual": "Supermarket Meat Packaging",
+          "why_privacy_sensitive": "Packaging style/label could identify the supermarket chain.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "location",
+            "finance"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 1,
+          "confidence": "medium",
+          "evidence_rationale": "White styrofoam tray held by the wearer.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c3_d003",
+          "time_sec": 30,
+          "detected_visual": "Cooking Technique (Browning Meat)",
+          "why_privacy_sensitive": "Routine activity profiling.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer stirring and breaking up meat in the pot.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 4,
+      "clip_id": "clip_04",
+      "duration_sec": 305,
+      "scene_summary": "The wearer pours a bottle of tomato passata into the pot. They add water to the bottle to rinse the remnants, pour that in as well, and then season the sauce generously with salt from a large container.",
+      "dominant_elements": [
+        "tomato puree",
+        "cooking pot",
+        "salt container",
+        "stove"
+      ],
+      "detections": [
+        {
+          "det_id": "c4_d001",
+          "time_sec": 10,
+          "detected_visual": "Tomato Passata Bottle",
+          "why_privacy_sensitive": "Indicates consumption of specific processed food products.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Glass bottle of red sauce poured into pot.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d002",
+          "time_sec": 25,
+          "detected_visual": "Bottle Rinsing Technique",
+          "why_privacy_sensitive": "Demonstrates a specific domestic habit (frugality/waste reduction).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer adds water to the empty bottle and shakes it before pouring.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c4_d003",
+          "time_sec": 60,
+          "detected_visual": "Bulk Salt Container",
+          "why_privacy_sensitive": "Household inventory detail.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "storefront logo"
+          ],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "medium",
+          "evidence_rationale": "Large white/translucent container used for seasoning.",
+          "notes_redaction": ""
+        }
+      ]
+    },
+    {
+      "clip_index": 5,
+      "clip_id": "clip_05",
+      "duration_sec": 306,
+      "scene_summary": "The sauce is simmering. The wearer pours dry pasta (penne/rigatoni) directly into the sauce pot. They then use a stainless steel electric kettle to add hot water to the mixture.",
+      "dominant_elements": [
+        "dry pasta",
+        "electric kettle",
+        "simmering pot",
+        "steam"
+      ],
+      "detections": [
+        {
+          "det_id": "c5_d001",
+          "time_sec": 5,
+          "detected_visual": "Dry Pasta (Penne/Rigatoni)",
+          "why_privacy_sensitive": "Identifies dietary staples and specific meal preparation.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "printed material"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Wearer pours pasta shapes into the sauce.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d002",
+          "time_sec": 30,
+          "detected_visual": "Stainless Steel Electric Kettle",
+          "why_privacy_sensitive": "Identifies another small appliance asset in the kitchen inventory.",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "assets/property"
+          ],
+          "attributes": [
+            "machine/device"
+          ],
+          "categories": [
+            "machine/device"
+          ],
+          "information_types": [
+            "assets/property"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Kettle used to pour hot water into the pot.",
+          "notes_redaction": ""
+        },
+        {
+          "det_id": "c5_d003",
+          "time_sec": 45,
+          "detected_visual": "One-pot cooking technique ('Risottata')",
+          "why_privacy_sensitive": "Reveals specific culinary knowledge and habit (cooking pasta in sauce vs boiling water separately).",
+          "stakeholders": [
+            "wearer"
+          ],
+          "sensitivity_themes": [
+            "preference/routine"
+          ],
+          "attributes": [],
+          "categories": [
+            "person"
+          ],
+          "information_types": [
+            "individual preferences/pastimes"
+          ],
+          "severity": 0,
+          "confidence": "high",
+          "evidence_rationale": "Pasta cooking directly in the sauce mixture.",
+          "notes_redaction": ""
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generation_notes": "Story 9 is fully analyzed. The sequence confirms the preparation of a one-pot Bolognese pasta dish in a modern, well-equipped home kitchen."
+  }
+}
