@@ -1,5 +1,5 @@
 // src/components/TaskView.jsx
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export default function TaskView({
   assignment,
@@ -26,7 +26,71 @@ export default function TaskView({
   videoRef,
   clampToFurthest,
   furthestTimeRef,
+  vlmAnalysis,
+  setClipCompletion,
 }) {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [maxSeenTimeByClip, setMaxSeenTimeByClip] = useState({});
+  const [videoHeight, setVideoHeight] = useState(null);
+  const videoWrapRef = useRef(null);
+
+  const currentClipMeta = useMemo(() => {
+    if (!vlmAnalysis || !vlmAnalysis.clips || !storyConfig?.clips?.[currentClipIndex]) return null;
+    const cfgClip = storyConfig.clips[currentClipIndex];
+    const id = cfgClip.clip_id || cfgClip.clip_index;
+    const found = vlmAnalysis.clips.find(
+      (c) => c.clip_id === id || c.clip_index === cfgClip.clip_index || c.clip_index === currentClipIndex + 1
+    );
+    if (found) {
+      console.info("VLM clip meta loaded", {
+        clip: cfgClip.clip_id || cfgClip.clip_index,
+        detections: found.detections?.length || 0,
+      });
+    } else {
+      console.info("VLM clip meta not found", { clip: cfgClip.clip_id || cfgClip.clip_index });
+    }
+    return found;
+  }, [vlmAnalysis, storyConfig, currentClipIndex]);
+
+  const visibleDetections = useMemo(() => {
+    if (!currentClipMeta || !currentClipMeta.detections) return [];
+    const maxSeen =
+      maxSeenTimeByClip[currentClipIndex] != null
+        ? Math.max(currentTime, maxSeenTimeByClip[currentClipIndex])
+        : currentTime;
+    const vis = currentClipMeta.detections
+      .filter((d) => d.time_sec == null || d.time_sec <= maxSeen + 0.01)
+      .sort((a, b) => (a.time_sec || 0) - (b.time_sec || 0));
+    console.info("Visible detections", {
+      clip: currentClipMeta.clip_id || currentClipMeta.clip_index,
+      visible: vis.length,
+      total: currentClipMeta.detections.length,
+      currentTime,
+      maxSeen,
+    });
+    return vis;
+  }, [currentClipMeta, currentTime, maxSeenTimeByClip, currentClipIndex]);
+
+  function formatTime(sec) {
+    if (sec == null || Number.isNaN(sec)) return "";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${m}:${s}`;
+  }
+
+  useEffect(() => {
+    if (!videoWrapRef.current) return undefined;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setVideoHeight(entry.contentRect.height || null);
+      }
+    });
+    ro.observe(videoWrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <>
       <div style={{ marginBottom: "10px" }}>
@@ -143,133 +207,208 @@ export default function TaskView({
           >
             Previous clip
           </button>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-              alignItems: "flex-start",
+          <button
+            type="button"
+            onClick={() => {
+              const blocked =
+                !storyConfig ||
+                currentClipIndex >= storyConfig.clips.length - 1 ||
+                loading ||
+                (!isTestMode && !clipCompletion[currentClipIndex]);
+              if (blocked) {
+                alert("Finish watching this scenario to unlock Next.");
+                return;
+              }
+              handleNextClip();
             }}
-          >
-            <button
-              type="button"
-              onClick={handleNextClip}
-              disabled={
+            disabled={
+              !storyConfig ||
+              currentClipIndex >= storyConfig.clips.length - 1 ||
+              loading
+            }
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: "1px solid",
+              borderColor:
+                !storyConfig ||
+                currentClipIndex >= storyConfig.clips.length - 1 ||
+                loading
+                  ? "#cbd5e1"
+                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                  ? "#cbd5e1"
+                  : "#1d4ed8",
+              background:
+                !storyConfig ||
+                currentClipIndex >= storyConfig.clips.length - 1 ||
+                loading
+                  ? "#e2e8f0"
+                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                  ? "#e2e8f0"
+                  : "#1d4ed8",
+              color:
+                !storyConfig ||
+                currentClipIndex >= storyConfig.clips.length - 1 ||
+                loading
+                  ? "#475569"
+                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                  ? "#475569"
+                  : "#fff",
+              fontWeight: 700,
+              boxShadow:
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
                 loading ||
                 (!isTestMode && !clipCompletion[currentClipIndex])
-              }
-              style={{
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: "1px solid",
-                borderColor:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#cbd5e1"
-                    : "#1d4ed8",
-                background:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#e2e8f0"
-                    : "#1d4ed8",
-                color:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "#475569"
-                    : "#fff",
-                fontWeight: 700,
-                boxShadow:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "none"
-                    : "0 8px 16px rgba(37, 99, 235, 0.25)",
-                cursor:
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading
-                    ? "default"
-                    : "pointer",
-              }}
-            >
-              Next clip
-            </button>
-            {!isTestMode && !clipCompletion[currentClipIndex] && (
-              <div style={{ color: "#b45309", fontSize: "0.95rem" }}>
-                Finish watching this scenario to unlock Next.
-              </div>
-            )}
-          </div>
+                  ? "none"
+                  : "0 8px 16px rgba(37, 99, 235, 0.25)",
+              cursor:
+                !storyConfig ||
+                currentClipIndex >= storyConfig.clips.length - 1 ||
+                loading ||
+                (!isTestMode && !clipCompletion[currentClipIndex])
+                  ? "default"
+                  : "pointer",
+              opacity:
+                !isTestMode && !clipCompletion[currentClipIndex] ? 0.65 : 1,
+              marginLeft: "12px",
+            }}
+          >
+            Next clip
+          </button>
         </div>
       </div>
 
       <div
         style={{
+          display: "grid",
+          gridTemplateColumns: assignment?.mode === "vlm" ? "7fr 5fr" : "1fr",
+          gap: "20px",
+          alignItems: "start",
           marginBottom: "12px",
-          background: "#000",
-          borderRadius: "8px",
-          overflow: "hidden",
         }}
       >
-        {videoUrl ? (
-          <video
-            key={videoUrl}
-            ref={videoRef}
-            src={videoUrl}
-            controls
-            onTimeUpdate={(e) => {
-              if (isTestMode) return;
-              const t = e.target.currentTime;
-              const allowed = furthestTimeRef.current + 0.5;
-              if (t > allowed) {
+        <div
+          ref={videoWrapRef}
+          style={{
+            background: "#000",
+            borderRadius: "8px",
+            overflow: "hidden",
+            maxHeight: "70vh",
+            minHeight: "320px",
+          }}
+        >
+          {videoUrl ? (
+            <video
+              key={videoUrl}
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              onTimeUpdate={(e) => {
+                const t = e.target.currentTime;
+                setCurrentTime(t);
+                setMaxSeenTimeByClip((prev) => {
+                  const currentMax = prev[currentClipIndex] || 0;
+                  return t > currentMax ? { ...prev, [currentClipIndex]: t } : prev;
+                });
+                if (isTestMode) return;
+                const allowed = furthestTimeRef.current + 0.8;
+                if (t > allowed) {
+                  clampToFurthest(e.target);
+                  return;
+                }
+                if (t > furthestTimeRef.current) {
+                  furthestTimeRef.current = t;
+                }
+              }}
+              onSeeking={(e) => {
+                if (isTestMode) return;
                 clampToFurthest(e.target);
-                return;
-              }
-              if (t > furthestTimeRef.current) {
-                furthestTimeRef.current = t;
-              }
-            }}
-            onSeeking={(e) => {
-              if (isTestMode) return;
-              clampToFurthest(e.target);
-            }}
-            onPlay={(e) => clampToFurthest(e.target)}
-            onEnded={() => {
-              setClipCompletion((prev) => ({
-                ...prev,
-                [currentClipIndex]: true,
-              }));
-              if (!isTestMode) {
-                furthestTimeRef.current =
-                  videoRef.current?.duration || furthestTimeRef.current;
-              }
-            }}
-            style={{ width: "100%", display: "block" }}
-          />
-        ) : (
+              }}
+              onPlay={(e) => clampToFurthest(e.target)}
+              onEnded={() => {
+                setClipCompletion((prev) => ({
+                  ...prev,
+                  [currentClipIndex]: true,
+                }));
+                if (!isTestMode) {
+                  furthestTimeRef.current =
+                    videoRef.current?.duration || furthestTimeRef.current;
+                }
+              }}
+              onLoadedMetadata={() => {
+                if (videoRef?.current) setVideoHeight(videoRef.current.clientHeight || null);
+              }}
+              onLoadedData={() => {
+                if (videoRef?.current) setVideoHeight(videoRef.current.clientHeight || null);
+              }}
+              style={{ width: "100%", display: "block", height: "100%" }}
+            />
+          ) : (
+            <div
+              style={{
+                padding: "40px",
+                textAlign: "center",
+                color: "#fff",
+              }}
+            >
+              Loading video...
+            </div>
+          )}
+        </div>
+
+        {assignment?.mode === "vlm" && currentClipMeta && (
           <div
             style={{
-              padding: "40px",
-              textAlign: "center",
-              color: "#fff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "10px",
+              padding: "12px",
+              background: "#f8fafc",
+              height: videoHeight ? `${videoHeight}px` : "auto",
+              overflowY: videoHeight ? "auto" : "visible",
             }}
           >
-            Loading video...
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <h3 style={{ margin: 0 }}>AI-suggested detections</h3>
+            </div>
+            {visibleDetections.length === 0 ? (
+              <p style={{ marginTop: "8px", color: "#475569" }}>
+                Keep watching to see AI detections appear.
+              </p>
+            ) : (
+              <ul style={{ listStyle: "none", paddingLeft: 0, marginTop: "8px", marginBottom: 0 }}>
+                {visibleDetections.map((d) => (
+                  <li
+                    key={d.det_id}
+                    style={{
+                      padding: "8px 10px",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      marginBottom: "8px",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <strong style={{ color: "#0f172a" }}>{d.detected_visual}</strong>
+                      <span style={{ fontSize: "0.85rem", color: "#475569" }}>
+                        {formatTime(d.time_sec || 0)}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
+                      {d.why_privacy_sensitive || "Potentially sensitive moment"}
+                    </div>
+                    <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
+                      Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>
 
       {/* Annotation placeholder */}
-      {!isTestMode && !clipCompletion[currentClipIndex] && (
-        <div style={{ color: "#b45309", marginBottom: "10px" }}>
-          Finish watching this scenario to unlock Next.
-        </div>
-      )}
       {renderFeedback({ showStatus: !isTestMode })}
       <div
         style={{

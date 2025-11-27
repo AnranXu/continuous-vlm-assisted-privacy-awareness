@@ -110,7 +110,11 @@ export default function InstructionsPage({
             onChange={(e) => onChange && onChange(e)}
             placeholder={placeholder}
           />
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ marginTop: '12px' }}
+          >
             {loading ? 'Loading...' : 'Start / Resume Study'}
           </button>
         </form>

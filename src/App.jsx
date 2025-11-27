@@ -54,6 +54,7 @@ function App() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [helpSlide, setHelpSlide] = useState(0);
   const [showVlmInfoModal, setShowVlmInfoModal] = useState(false);
+  const [vlmAnalysis, setVlmAnalysis] = useState(null);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
@@ -97,7 +98,7 @@ function App() {
     }
   }
 
-  async function loadStoryConfig(storyId) {
+  async function loadStoryConfig(storyId, modeHint) {
     const configKey = `stories/${storyId}/config.json`;
     const configUrl = await presignGet(configKey);
 
@@ -107,9 +108,26 @@ function App() {
     }
     const cfg = await res.json();
     setStoryConfig(cfg);
+    setVlmAnalysis(null);
 
     if (!cfg.clips || cfg.clips.length === 0) {
       throw new Error("Story config has no clips.");
+    }
+    if ((modeHint || assignment?.mode) === "vlm") {
+      try {
+        if (cfg.analysis_key) {
+          const analysisUrl = await presignGet(cfg.analysis_key);
+          const aRes = await fetch(analysisUrl);
+          if (aRes.ok) {
+            const data = await aRes.json();
+            setVlmAnalysis(data);
+          } else {
+            console.error("Failed to fetch analysis JSON", aRes.status);
+          }
+        }
+      } catch (err) {
+        console.error("Analysis load error", err);
+      }
     }
     await loadClipByIndex(0, cfg);
   }
@@ -159,7 +177,7 @@ function App() {
         setAwaitingVlmInstruction(true);
         setShowVlmInfoModal(true);
       }
-      await loadStoryConfig(assignRes.storyId);
+      await loadStoryConfig(assignRes.storyId, assignRes.mode);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unknown error during assignment.");
@@ -285,7 +303,7 @@ function App() {
   return (
     <div
       style={{
-        maxWidth: "960px",
+        maxWidth: "1280px",
         margin: "0 auto",
         padding: "24px 16px 40px",
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -313,290 +331,34 @@ function App() {
 
       {/* Main task area */}
       {hasActiveTask && (
-        <div>
-          <div style={{ marginBottom: "10px" }}>
-            <h2
-              style={{
-                fontSize: "2rem",
-                margin: 0,
-                fontWeight: 800,
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                flexWrap: "wrap",
-                paddingLeft: "12px",
-              }}
-            >
-              {IS_TEST_MODE ? (
-                <>
-                  Story: {assignment.storyId}
-                  {assignment.mode && (
-                    <span style={{ fontSize: "1rem", fontWeight: "normal" }}>
-                      ({assignment.mode})
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  Now Viewing Scenario{" "}
-                  <span style={{ color: "#1d4ed8" }}>
-                    {currentClipIndex + 1}
-                  </span>{" "}
-                  of{" "}
-                  <span style={{ color: "#0ea5e9" }}>
-                    {storyConfig.clips.length}
-                  </span>
-                </>
-              )}
-            </h2>
-          </div>
-
-          <div
-            style={{
-              marginBottom: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowHelpModal(true);
-                  setHelpSlide(0);
-                }}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "10px",
-                  border: "1px solid #cbd5e1",
-                  background: "#fff",
-                  cursor: "pointer",
-                  color: "#0f172a",
-                }}
-              >
-                View instructions
-              </button>
-              {assignment?.mode === "vlm" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowVlmInfoModal(true);
-                    setAwaitingVlmInstruction(false);
-                  }}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: "10px",
-                    border: "1px solid #cbd5e1",
-                    background: "#fff",
-                    cursor: "pointer",
-                    color: "#0f172a",
-                  }}
-                >
-                  AI assistance info
-                </button>
-              )}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                type="button"
-                onClick={handlePrevClip}
-                disabled={currentClipIndex === 0 || loading}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid",
-                  borderColor:
-                    currentClipIndex === 0 || loading ? "#cbd5e1" : "#1d4ed8",
-                  background:
-                    currentClipIndex === 0 || loading ? "#e2e8f0" : "#1d4ed8",
-                  color:
-                    currentClipIndex === 0 || loading ? "#475569" : "#fff",
-                  fontWeight: 700,
-                  boxShadow:
-                    currentClipIndex === 0 || loading
-                      ? "none"
-                      : "0 8px 16px rgba(37, 99, 235, 0.25)",
-                  cursor:
-                    currentClipIndex === 0 || loading ? "default" : "pointer",
-                }}
-              >
-                Previous clip
-              </button>
-              <button
-                type="button"
-                onClick={handleNextClip}
-                disabled={
-                  !storyConfig ||
-                  currentClipIndex >= storyConfig.clips.length - 1 ||
-                  loading ||
-                  (!IS_TEST_MODE && !clipCompletion[currentClipIndex])
-                }
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid",
-                  borderColor:
-                    !storyConfig ||
-                    currentClipIndex >= storyConfig.clips.length - 1 ||
-                    loading
-                      ? "#cbd5e1"
-                      : "#1d4ed8",
-                  background:
-                    !storyConfig ||
-                    currentClipIndex >= storyConfig.clips.length - 1 ||
-                    loading
-                      ? "#e2e8f0"
-                      : "#1d4ed8",
-                  color:
-                    !storyConfig ||
-                    currentClipIndex >= storyConfig.clips.length - 1 ||
-                    loading
-                      ? "#475569"
-                      : "#fff",
-                  fontWeight: 700,
-                  boxShadow:
-                    !storyConfig ||
-                    currentClipIndex >= storyConfig.clips.length - 1 ||
-                    loading
-                      ? "none"
-                      : "0 8px 16px rgba(37, 99, 235, 0.25)",
-                  cursor:
-                    !storyConfig ||
-                    currentClipIndex >= storyConfig.clips.length - 1 ||
-                    loading
-                      ? "default"
-                      : "pointer",
-                }}
-              >
-                Next clip
-              </button>
-              {!IS_TEST_MODE && !clipCompletion[currentClipIndex] && (
-                <div style={{ color: "#b45309", fontSize: "0.95rem" }}>
-                  Finish watching this scenario to unlock Next.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Video player */}
-          <div
-            style={{
-              marginBottom: "12px",
-              background: "#000",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            {videoUrl ? (
-              <video
-                key={videoUrl}
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                onTimeUpdate={(e) => {
-                  if (IS_TEST_MODE) return;
-                  const t = e.target.currentTime;
-                  const allowed = furthestTimeRef.current + FORWARD_HEADROOM;
-                  if (t > allowed) {
-                    clampToFurthest(e.target);
-                    return;
-                  }
-                  if (t > furthestTimeRef.current) {
-                    furthestTimeRef.current = t;
-                  }
-                }}
-                onSeeking={(e) => {
-                  if (IS_TEST_MODE) return;
-                  clampToFurthest(e.target);
-                }}
-                onPlay={(e) => clampToFurthest(e.target)}
-                onEnded={() => {
-                  setClipCompletion((prev) => ({
-                    ...prev,
-                    [currentClipIndex]: true,
-                  }));
-                  if (!IS_TEST_MODE) {
-                    furthestTimeRef.current = videoRef.current?.duration || furthestTimeRef.current;
-                  }
-                }}
-                style={{ width: "100%", display: "block" }}
-              />
-            ) : (
-              <div
-                style={{
-                  padding: "40px",
-                  textAlign: "center",
-                  color: "#fff",
-                }}
-              >
-                Loading video...
-              </div>
-            )}
-          </div>
-
-          {/* Annotation placeholder */}
-          {renderFeedback({ showStatus: !IS_TEST_MODE })}
-          <div
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "12px",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "1.1rem",
-                marginBottom: "8px",
-              }}
-            >
-              Annotation (placeholder)
-            </h3>
-            <p style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
-              Please type anything here to simulate your annotation. In the real
-              study this will be replaced with the privacy-threat questions and
-              S3 upload logic.
-            </p>
-            <textarea
-              rows={4}
-              value={annotationText}
-              onChange={(e) => setAnnotationText(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                marginBottom: "8px",
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleSaveAnnotation}
-              disabled={loading}
-              style={{
-                padding: "6px 14px",
-                borderRadius: "6px",
-                border: "none",
-                background: "#10b981",
-                color: "#fff",
-                fontWeight: 600,
-                cursor: loading ? "default" : "pointer",
-              }}
-            >
-              Save annotation (placeholder)
-            </button>
-          </div>
-        </div>
+        <TaskView
+          assignment={assignment}
+          storyConfig={storyConfig}
+          currentClipIndex={currentClipIndex}
+          videoUrl={videoUrl}
+          loading={loading}
+          clipCompletion={clipCompletion}
+          setClipCompletion={setClipCompletion}
+          isTestMode={IS_TEST_MODE}
+          handlePrevClip={handlePrevClip}
+          handleNextClip={handleNextClip}
+          renderFeedback={renderFeedback}
+          annotationText={annotationText}
+          setAnnotationText={setAnnotationText}
+          handleSaveAnnotation={handleSaveAnnotation}
+          helpSlides={helpSlides}
+          showHelpModal={showHelpModal}
+          setShowHelpModal={setShowHelpModal}
+          helpSlide={helpSlide}
+          setHelpSlide={setHelpSlide}
+          showVlmInfoModal={showVlmInfoModal}
+          setShowVlmInfoModal={setShowVlmInfoModal}
+          setAwaitingVlmInstruction={setAwaitingVlmInstruction}
+          videoRef={videoRef}
+          clampToFurthest={clampToFurthest}
+          furthestTimeRef={furthestTimeRef}
+          vlmAnalysis={vlmAnalysis}
+        />
       )}
 
       {showHelpModal && (
