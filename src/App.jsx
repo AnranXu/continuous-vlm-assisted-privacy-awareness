@@ -4,10 +4,21 @@ import {
   assignParticipant,
   assignTestParticipant,
   presignGet,
+  submitPreStudy,
+  fetchStudyStatus,
+  submitPostStudy,
+  updateStage,
+  markFinished,
   // markFinished,        // you can enable later when you wire it
 } from "./api";
 import InstructionsPage from "./components/InstructionsPage";
+import PreStudyPage from "./components/PreStudyPage";
+import PostStudyPage from "./components/PostStudyPage";
 import TaskView from "./components/TaskView";
+
+const PROLIFIC_COMPLETION_URL =
+  import.meta.env.VITE_PROLIFIC_COMPLETION_URL ||
+  "https://app.prolific.co/submissions/complete?cc=PLACEHOLDER_CODE";
 
 // ---------- URL PARAMS (parsed once at module load) ----------
 const params = new URLSearchParams(window.location.search);
@@ -55,6 +66,12 @@ function App() {
   const [helpSlide, setHelpSlide] = useState(0);
   const [showVlmInfoModal, setShowVlmInfoModal] = useState(false);
   const [vlmAnalysis, setVlmAnalysis] = useState(null);
+  const [participantStage, setParticipantStage] = useState(0); // 0=assigned,1=prestudy,2=annotation done,3=finished
+  const [preStudyComplete, setPreStudyComplete] = useState(false);
+  const [preStudySaving, setPreStudySaving] = useState(false);
+  const [showPostStudyPage, setShowPostStudyPage] = useState(false);
+  const [postStudyComplete, setPostStudyComplete] = useState(false);
+  const [postStudySaving, setPostStudySaving] = useState(false);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
@@ -146,6 +163,10 @@ function App() {
     setClipCompletion({});
     setAwaitingVlmInstruction(false);
     setShowVlmInfoModal(false);
+    setParticipantStage(0);
+    setPreStudyComplete(false);
+    setShowPostStudyPage(false);
+    setPostStudyComplete(false);
 
     const pid = resolvedParticipantId();
     if (!pid) {
@@ -173,11 +194,9 @@ function App() {
       }
 
       setAssignment(assignRes);
-      if (assignRes.mode === "vlm") {
-        setAwaitingVlmInstruction(true);
-        setShowVlmInfoModal(true);
-      }
+      setParticipantStage(assignRes.stage ?? 0);
       await loadStoryConfig(assignRes.storyId, assignRes.mode);
+      await maybeMarkPreStudyComplete(assignRes, pid);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unknown error during assignment.");
@@ -239,18 +258,150 @@ function App() {
     setStatus("Annotation saved (placeholder only).");
   }
 
+  async function handlePreStudySubmit(responses) {
+    const pid = resolvedParticipantId();
+    if (!pid) {
+      setError("Please enter your Prolific ID.");
+      return;
+    }
+    if (!assignment) {
+      setError("No assignment found. Please restart the study.");
+      return;
+    }
+
+    setPreStudySaving(true);
+    setError("");
+    setStatus("");
+    try {
+      await submitPreStudy({
+        participantId: pid,
+        studyId: assignment.studyId,
+        storyId: assignment.storyId,
+        mode: assignment.mode || assignment.assigned_mode,
+        answers: responses,
+      });
+      setPreStudyComplete(true);
+      setParticipantStage((prev) => Math.max(prev, 1));
+      console.info("Stage advanced to 1 (pre-study complete).");
+      setStatus("Pre-study responses saved. You can start annotating the clips.");
+      if ((assignment.mode || assignment.assigned_mode) === "vlm") {
+        setShowVlmInfoModal(true);
+        setAwaitingVlmInstruction(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to save pre-study responses.");
+    } finally {
+      setPreStudySaving(false);
+    }
+  }
+
+  async function handlePostStudySubmit(payload) {
+    const pid = resolvedParticipantId();
+    if (!pid) {
+      setError("Please enter your Prolific ID.");
+      return;
+    }
+    if (!assignment) {
+      setError("No assignment found. Please restart the study.");
+      return;
+    }
+    setPostStudySaving(true);
+    setError("");
+    setStatus("");
+    try {
+      await submitPostStudy({
+        participantId: pid,
+        studyId: assignment.studyId,
+        storyId: assignment.storyId,
+        mode: assignment.mode || assignment.assigned_mode,
+        ...payload,
+      });
+      setPostStudyComplete(true);
+      setParticipantStage(3);
+      console.info("Stage advanced to 3 (post-study complete).");
+      setStatus("Post-study responses saved. Thank you!");
+      await markFinished(pid);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to save post-study responses.");
+    } finally {
+      setPostStudySaving(false);
+    }
+  }
+
+  async function maybeMarkPreStudyComplete(assignRes, pid) {
+    try {
+      const statusRes = await fetchStudyStatus(pid);
+      if (statusRes?.stage != null) {
+        setParticipantStage(statusRes.stage);
+        console.info("Restored participant stage", statusRes.stage);
+      }
+      const stageVal = statusRes?.stage ?? 0;
+      if (stageVal >= 1) {
+        setPreStudyComplete(true);
+      }
+      if (statusRes?.prestudyExists || stageVal >= 1) {
+        setPreStudyComplete(true);
+        if (stageVal >= 2) {
+          setShowPostStudyPage(true);
+          setStatus("Annotation already completed. Please finish the post-study questions.");
+        } else {
+          setStatus("Pre-study already completed. You can start annotating the clips.");
+        }
+        if ((assignRes.mode || assignRes.assigned_mode) === "vlm" && stageVal < 2) {
+          setShowVlmInfoModal(true);
+          setAwaitingVlmInstruction(true);
+        }
+        return;
+      }
+    } catch (err) {
+      console.warn("Pre-study status check failed:", err);
+    }
+    setPreStudyComplete(false);
+    setStatus("Please complete the pre-study questions to begin the annotation task.");
+  }
+
+  async function handleProceedToPostStudy() {
+    const pid = resolvedParticipantId();
+    setShowPostStudyPage(true);
+    setParticipantStage((prev) => Math.max(prev, 2));
+    console.info("Stage advanced to 2 (annotation complete).");
+    try {
+      if (pid) {
+        await updateStage(pid, 2);
+        console.info("Stage update persisted (2) for participant", pid);
+      }
+    } catch (err) {
+      console.warn("Stage update to 2 failed:", err);
+    }
+  }
+
   // ---------- UI ----------
 
-  const hasActiveTask = Boolean(assignment && storyConfig);
+  const hasAssignment = Boolean(assignment && storyConfig);
+  const showPreStudy = hasAssignment && !preStudyComplete;
+  const allClipsDone =
+    Boolean(storyConfig?.clips?.length) &&
+    storyConfig.clips.every((_, idx) => clipCompletion[idx]);
+  const shouldShowPostStudy =
+    hasAssignment && preStudyComplete && (showPostStudyPage || participantStage >= 2 || allClipsDone) && !postStudyComplete;
+  const hasActiveTask = hasAssignment && preStudyComplete && !shouldShowPostStudy && participantStage < 2;
 
   const pageTitle = (() => {
-    if (!hasActiveTask) {
-      return "Privacy Perception in Visual Content Understanding (30-45 minutes)";
+    if (shouldShowPostStudy) {
+      return "Post-study feedback";
     }
-    const mode = (assignment?.mode || "").toLowerCase();
-    return mode === "vlm"
-      ? "AI-assisted identification of privacy threats in egocentric videos"
-      : "Identify privacy threats in egocentric videos";
+    if (hasActiveTask) {
+      const mode = (assignment?.mode || "").toLowerCase();
+      return mode === "vlm"
+        ? "AI-assisted identification of privacy threats in egocentric videos"
+        : "Identify privacy threats in egocentric videos";
+    }
+    if (showPreStudy) {
+      return "Pre-study: your view on AI assistants";
+    }
+    return "Privacy Perception in Visual Content Understanding (30-45 minutes)";
   })();
 
   const renderFeedback = (opts = { showStatus: true }) => (
@@ -300,6 +451,37 @@ function App() {
     console.info("Study session context:", { story, mode, participantId: pid });
   }, [assignment]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (allClipsDone && preStudyComplete && participantStage < 2) {
+      handleProceedToPostStudy();
+    }
+  }, [allClipsDone, preStudyComplete, participantStage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (participantStage >= 3) {
+      setPostStudyComplete(true);
+      setShowPostStudyPage(false);
+      console.info("Participant at stage 3; post-study considered complete.");
+    }
+  }, [participantStage]);
+
+  useEffect(() => {
+    if (participantStage >= 2) {
+      setShowPostStudyPage(true);
+    }
+  }, [participantStage]);
+
+  useEffect(() => {
+    if (postStudyComplete) {
+      const timer = setTimeout(() => {
+        console.info("Redirecting to Prolific completion link:", PROLIFIC_COMPLETION_URL);
+        window.location.href = PROLIFIC_COMPLETION_URL;
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [postStudyComplete]);
+
   return (
     <div
       style={{
@@ -309,12 +491,12 @@ function App() {
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
-      {hasActiveTask && (
+      {hasAssignment && (
         <h1 style={{ fontSize: "2rem", marginBottom: "8px" }}>{pageTitle}</h1>
       )}
       {testBanner}
 
-      {!hasActiveTask && (
+      {!hasAssignment && (
         <InstructionsPage
           prolificId={prolificId}
           loading={loading}
@@ -327,6 +509,46 @@ function App() {
           }
           feedback={renderFeedback({ showStatus: true })}
         />
+      )}
+
+      {showPreStudy && (
+        <PreStudyPage
+          onSubmit={handlePreStudySubmit}
+          saving={preStudySaving}
+          feedback={renderFeedback({ showStatus: true })}
+        />
+      )}
+
+      {shouldShowPostStudy && (
+        <PostStudyPage
+          onSubmit={handlePostStudySubmit}
+          saving={postStudySaving}
+          feedback={renderFeedback({ showStatus: true })}
+        />
+      )}
+
+      {postStudyComplete && (
+        <div className="container card" style={{ marginTop: "12px" }}>
+          <h2>Thank you!</h2>
+          <p>You have completed the study. A completion link will be provided via Prolific.</p>
+          <a
+            href={PROLIFIC_COMPLETION_URL}
+            style={{
+              display: "inline-block",
+              padding: "10px 16px",
+              borderRadius: "10px",
+              border: "1px solid #1d4ed8",
+              background: "#1d4ed8",
+              color: "#fff",
+              cursor: "pointer",
+              fontWeight: 700,
+              marginTop: "8px",
+              textDecoration: "none",
+            }}
+          >
+            Return to Prolific
+          </a>
+        </div>
       )}
 
       {/* Main task area */}

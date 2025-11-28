@@ -68,6 +68,7 @@ export const handler = async (event) => {
         storyId: existing.Item.story_id.S,
         mode: existing.Item.mode.S,
         finished: existing.Item.finished?.BOOL || false,
+        stage: existing.Item.stage?.N ? Number(existing.Item.stage.N) : 0,
         reused: true
       });
     }
@@ -105,6 +106,7 @@ export const handler = async (event) => {
                 story_id: { S: storyId },
                 mode: { S: mode },
                 finished: { BOOL: false },
+                stage: { N: "0" },
                 created_at: { S: new Date().toISOString() }
               },
               ConditionExpression: "attribute_not_exists(sk)"
@@ -117,6 +119,7 @@ export const handler = async (event) => {
             storyId,
             mode,
             finished: false,
+            stage: 0,
             reused: false
           });
         } catch (err) {

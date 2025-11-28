@@ -68,6 +68,7 @@ export const handler = async (event) => {
       storyIndex,
       testMode: true,
       finished: false,
+      stage: Number.isFinite(body.stage) ? Number(body.stage) : 0,
       reused: true,
     };
 

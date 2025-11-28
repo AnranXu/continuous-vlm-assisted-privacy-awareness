@@ -1,6 +1,6 @@
 import {
   DynamoDBClient,
-  UpdateItemCommand
+  GetItemCommand
 } from "@aws-sdk/client-dynamodb";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
@@ -38,37 +38,53 @@ export const handler = async (event) => {
     const STUDY_ID = cfg.studyId;
 
     const body = event.body ? JSON.parse(event.body) : {};
-    const participantId = body.participantId;
+    const participantId = (body.participantId || "").trim();
 
     if (!participantId) {
       return respond(400, { error: "participantId is required" });
     }
 
-    const sk = `${STUDY_ID}#participant_${participantId}`;
+    const participantKey = {
+      pk: { S: "soups26_vlm_assignment_participant" },
+      sk: { S: `${STUDY_ID}#participant_${participantId}` }
+    };
 
-    await ddb.send(
-      new UpdateItemCommand({
-        TableName: TABLE,
-        Key: {
-          pk: { S: "soups26_vlm_assignment_participant" },
-          sk: { S: sk }
-        },
-        UpdateExpression: "SET finished = :t, finished_at = :ts, stage = :stage",
-        ExpressionAttributeValues: {
-          ":t": { BOOL: true },
-          ":ts": { S: new Date().toISOString() },
-          ":stage": { N: "3" }
-        }
-      })
-    );
+    const prestudyKey = {
+      pk: { S: "soups26_vlm_assignment_participant" },
+      sk: { S: `${STUDY_ID}#participant_${participantId}#prestudy` }
+    };
+
+    const poststudyKey = {
+      pk: { S: "soups26_vlm_assignment_participant" },
+      sk: { S: `${STUDY_ID}#participant_${participantId}#poststudy` }
+    };
+
+    const [participantRes, prestudyRes, poststudyRes] = await Promise.all([
+      ddb.send(new GetItemCommand({ TableName: TABLE, Key: participantKey })),
+      ddb.send(new GetItemCommand({ TableName: TABLE, Key: prestudyKey })),
+      ddb.send(new GetItemCommand({ TableName: TABLE, Key: poststudyKey }))
+    ]);
+
+    const pItem = participantRes.Item || {};
+    const stage = pItem.stage?.N != null ? Number(pItem.stage.N) : 0;
+    const finished = pItem.finished?.BOOL || false;
+    const storyId = pItem.story_id?.S || null;
+    const mode = pItem.mode?.S || null;
 
     return respond(200, {
       participantId,
       studyId: STUDY_ID,
-      updated: true
+      stage,
+      finished,
+      storyId,
+      mode,
+      prestudyExists: Boolean(prestudyRes.Item),
+      poststudyExists: Boolean(poststudyRes.Item),
+      createdAt: pItem.created_at?.S || null,
+      updatedAt: pItem.updated_at?.S || null
     });
   } catch (err) {
-    console.error("mark-finished lambda error:", err);
+    console.error("status lambda error:", err);
     return respond(500, { error: err.message || "Internal server error" });
   }
 };

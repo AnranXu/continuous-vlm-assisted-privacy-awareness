@@ -634,7 +634,7 @@ export default function TaskView({
         </div>
       )}
 
-      {showVlmInfoModal && (
+      {false && (
         <div
           style={{
             position: "fixed",

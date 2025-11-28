@@ -38,13 +38,18 @@ export const handler = async (event) => {
     const STUDY_ID = cfg.studyId;
 
     const body = event.body ? JSON.parse(event.body) : {};
-    const participantId = body.participantId;
+    const participantId = (body.participantId || "").trim();
+    const stageVal = Number(body.stage);
 
     if (!participantId) {
       return respond(400, { error: "participantId is required" });
     }
+    if (!Number.isFinite(stageVal) || stageVal < 0 || stageVal > 3) {
+      return respond(400, { error: "stage must be between 0 and 3" });
+    }
 
     const sk = `${STUDY_ID}#participant_${participantId}`;
+    const now = new Date().toISOString();
 
     await ddb.send(
       new UpdateItemCommand({
@@ -53,22 +58,18 @@ export const handler = async (event) => {
           pk: { S: "soups26_vlm_assignment_participant" },
           sk: { S: sk }
         },
-        UpdateExpression: "SET finished = :t, finished_at = :ts, stage = :stage",
+        UpdateExpression: "SET stage = :s, updated_at = :ts",
         ExpressionAttributeValues: {
-          ":t": { BOOL: true },
-          ":ts": { S: new Date().toISOString() },
-          ":stage": { N: "3" }
+          ":s": { N: `${stageVal}` },
+          ":ts": { S: now }
         }
       })
     );
 
-    return respond(200, {
-      participantId,
-      studyId: STUDY_ID,
-      updated: true
-    });
+    console.info("Stage updated", { participantId, stage: stageVal });
+    return respond(200, { participantId, studyId: STUDY_ID, stage: stageVal });
   } catch (err) {
-    console.error("mark-finished lambda error:", err);
+    console.error("stage lambda error:", err);
     return respond(500, { error: err.message || "Internal server error" });
   }
 };
