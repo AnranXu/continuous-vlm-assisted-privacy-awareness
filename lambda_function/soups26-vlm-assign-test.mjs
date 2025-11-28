@@ -1,4 +1,4 @@
-// index.mjs — soups26_vlm_assign_test (NO CORS HEADERS)
+// index.mjs — soups26_vlm_assign_test
 
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 

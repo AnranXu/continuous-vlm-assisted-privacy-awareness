@@ -11,6 +11,7 @@ export default function TaskView({
   isTestMode,
   handlePrevClip,
   handleNextClip,
+  handleFinishAnnotations,
   renderFeedback,
   annotationText,
   setAnnotationText,
@@ -33,6 +34,7 @@ export default function TaskView({
   const [maxSeenTimeByClip, setMaxSeenTimeByClip] = useState({});
   const [videoHeight, setVideoHeight] = useState(null);
   const videoWrapRef = useRef(null);
+  const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
 
   const currentClipMeta = useMemo(() => {
     if (!vlmAnalysis || !vlmAnalysis.clips || !storyConfig?.clips?.[currentClipIndex]) return null;
@@ -320,6 +322,60 @@ export default function TaskView({
           >
             Next clip
           </button>
+          {isLastClip && (
+            <button
+              type="button"
+              disabled={
+                !storyConfig ||
+                loading ||
+                (!isTestMode && !clipCompletion[currentClipIndex])
+              }
+              onClick={() => {
+                const blocked =
+                  !storyConfig ||
+                  loading ||
+                  (!isTestMode && !clipCompletion[currentClipIndex]);
+                if (blocked) {
+                  alert("Finish watching this scenario to continue.");
+                  return;
+                }
+                handleFinishAnnotations();
+              }}
+              style={{
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: "1px solid #16a34a",
+                background:
+                  !storyConfig ||
+                  loading ||
+                  (!isTestMode && !clipCompletion[currentClipIndex])
+                    ? "#a7f3d0"
+                    : "#16a34a",
+                color:
+                  !storyConfig ||
+                  loading ||
+                  (!isTestMode && !clipCompletion[currentClipIndex])
+                    ? "#065f46"
+                    : "#fff",
+                fontWeight: 800,
+                boxShadow:
+                  !storyConfig ||
+                  loading ||
+                  (!isTestMode && !clipCompletion[currentClipIndex])
+                    ? "none"
+                    : "0 10px 18px rgba(22, 163, 74, 0.35)",
+                cursor:
+                  !storyConfig ||
+                  loading ||
+                  (!isTestMode && !clipCompletion[currentClipIndex])
+                    ? "not-allowed"
+                    : "pointer",
+                marginLeft: "12px",
+              }}
+            >
+              Finish annotation
+            </button>
+          )}
         </div>
       </div>
 

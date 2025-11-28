@@ -564,6 +564,7 @@ function App() {
           isTestMode={IS_TEST_MODE}
           handlePrevClip={handlePrevClip}
           handleNextClip={handleNextClip}
+          handleFinishAnnotations={handleProceedToPostStudy}
           renderFeedback={renderFeedback}
           annotationText={annotationText}
           setAnnotationText={setAnnotationText}
