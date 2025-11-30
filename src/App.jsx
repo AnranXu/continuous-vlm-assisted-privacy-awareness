@@ -524,6 +524,7 @@ function App() {
           onSubmit={handlePostStudySubmit}
           saving={postStudySaving}
           feedback={renderFeedback({ showStatus: true })}
+          mode={assignment?.mode || assignment?.assigned_mode}
         />
       )}
 

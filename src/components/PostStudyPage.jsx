@@ -8,6 +8,13 @@ const tickLabels = {
   21: "Very High",
 };
 
+const AI_LIKERT_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
+const aiOptionLabels = {
+  1: "Strongly disagree",
+  4: "Neutral",
+  7: "Strongly agree",
+};
+
 const QUESTION_DEFS = [
   {
     id: "mental_demand",
@@ -41,7 +48,31 @@ const QUESTION_DEFS = [
   },
 ];
 
-export default function PostStudyPage({ onSubmit, saving = false, feedback = null }) {
+const AI_QUESTION_DEFS = [
+  {
+    id: "ai_highlights_easier",
+    title: "AI highlights help notice privacy risks",
+    text: "To what extent do you agree that the AI highlights made it easier to notice potentially privacy-threatening content?",
+  },
+  {
+    id: "ai_highlights_distracting",
+    title: "AI highlights were distracting",
+    text: "To what extent do you agree that the AI highlights sometimes distracted you from what you considered important?",
+  },
+  {
+    id: "ai_trust_assistant",
+    title: "Trust AI to protect privacy",
+    text: "To what extent do you agree that, in general, you would trust an AI system to help you protect your privacy in everyday life?",
+  },
+  {
+    id: "ai_feel_in_control",
+    title: "Control with constant AI analysis",
+    text: "To what extent do you agree that you would still feel in control of what is shared, even if an AI assistant is constantly analyzing your video?",
+  },
+];
+
+export default function PostStudyPage({ onSubmit, saving = false, feedback = null, mode = "" }) {
+  const isAiMode = (mode || "").toLowerCase() === "vlm";
   const [answers, setAnswers] = useState(() => {
     const initial = {};
     QUESTION_DEFS.forEach((q) => {
@@ -49,12 +80,27 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
     });
     return initial;
   });
+  const [aiAnswers, setAiAnswers] = useState(() => {
+    const initial = {};
+    AI_QUESTION_DEFS.forEach((q) => {
+      initial[q.id] = null;
+    });
+    return initial;
+  });
   const [freeText, setFreeText] = useState("");
 
-  const allAnswered = useMemo(() => QUESTION_DEFS.every((q) => answers[q.id] !== null), [answers]);
+  const allAnswered = useMemo(() => {
+    const baseComplete = QUESTION_DEFS.every((q) => answers[q.id] !== null);
+    const aiComplete = !isAiMode || AI_QUESTION_DEFS.every((q) => aiAnswers[q.id] !== null);
+    return baseComplete && aiComplete;
+  }, [answers, aiAnswers, isAiMode]);
 
-  const handleChoice = (qid, value) => {
-    setAnswers((prev) => ({ ...prev, [qid]: value }));
+  const handleChoice = (qid, value, isAi = false) => {
+    if (isAi) {
+      setAiAnswers((prev) => ({ ...prev, [qid]: value }));
+    } else {
+      setAnswers((prev) => ({ ...prev, [qid]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -68,6 +114,15 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
         question: q.text,
         score: answers[q.id],
       })),
+      aiAnswers: isAiMode
+        ? AI_QUESTION_DEFS.map((q, idx) => ({
+            id: q.id,
+            index: idx + 1,
+            title: q.title,
+            question: q.text,
+            score: aiAnswers[q.id],
+          }))
+        : [],
       freeText,
     };
     if (onSubmit) onSubmit(payload);
@@ -147,7 +202,6 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                     {idx + 1}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>{q.title}</div>
                     <div style={{ lineHeight: 1.5 }}>{q.text}</div>
                   </div>
                 </div>
@@ -245,6 +299,114 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
               </div>
             ))}
           </div>
+
+          {isAiMode && (
+            <div
+              className="card"
+              style={{
+                marginTop: "16px",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                padding: "12px 12px 14px",
+                background: "#f8fafc",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              }}
+            >
+              <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
+                Your thoughts on AI detection of privacy risks in egocentric videos
+              </div>
+              <div style={{ color: "#334155", marginBottom: "10px", lineHeight: 1.5 }}>
+                Please answer these questions (1 = strongly disagree, 7 = strongly agree).
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {AI_QUESTION_DEFS.map((q, idx) => (
+                  <div
+                    key={q.id}
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                      padding: "10px 12px",
+                      background: "#fff",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "8px" }}>
+                      <div
+                        style={{
+                          minWidth: "28px",
+                          height: "28px",
+                          borderRadius: "8px",
+                          background: "#ede9fe",
+                          color: "#7c3aed",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {idx + 1}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ lineHeight: 1.45 }}>{q.text}</div>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(7, minmax(70px, 1fr))",
+                        gap: "8px",
+                        width: "100%",
+                        overflowX: "auto",
+                      }}
+                    >
+                      {AI_LIKERT_OPTIONS.map((value) => {
+                        const selected = aiAnswers[q.id] === value;
+                        return (
+                          <label
+                            key={`${q.id}_${value}`}
+                            style={{
+                              border: selected ? "2px solid #7c3aed" : "1px solid #cbd5e1",
+                              borderRadius: "10px",
+                              padding: "10px 6px",
+                              textAlign: "center",
+                              cursor: "pointer",
+                              background: selected ? "#f3e8ff" : "#f8fafc",
+                              fontWeight: selected ? 700 : 600,
+                              color: "#0f172a",
+                              minWidth: "70px",
+                              boxShadow: selected ? "0 1px 4px rgba(124,58,237,0.25)" : "none",
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name={`ai_${q.id}`}
+                              value={value}
+                              checked={selected}
+                              onChange={() => handleChoice(q.id, value, true)}
+                              style={{ display: "none" }}
+                            />
+                            <div style={{ fontSize: "0.95rem" }}>{aiOptionLabels[value] || value}</div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginTop: "8px",
+                        fontSize: "0.9rem",
+                        color: "#475569",
+                      }}
+                    >
+                      <span>1 = Strongly disagree</span>
+                      <span>7 = Strongly agree</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ marginTop: "16px" }}>
             <label htmlFor="postFreeText" style={{ fontWeight: 700, display: "block", marginBottom: "6px" }}>
