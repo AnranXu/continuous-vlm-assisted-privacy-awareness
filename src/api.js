@@ -1,7 +1,17 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL; // e.g. https://<api-id>.execute-api.ap-northeast-1.amazonaws.com
+// Normalize once so callers don't need to worry about missing or extra slashes.
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, ""); // e.g. https://<api-id>.execute-api.ap-northeast-1.amazonaws.com
+
+function buildUrl(path) {
+  if (!API_BASE) {
+    throw new Error(
+      "API base URL is not configured. Set VITE_API_BASE_URL in .env.local (e.g. https://<api-id>.execute-api.ap-northeast-1.amazonaws.com)"
+    );
+  }
+  return `${API_BASE}${path}`;
+}
 
 export async function assignParticipant(participantId) {
-  const res = await fetch(`${API_BASE}/assign`, {
+  const res = await fetch(buildUrl("/assign"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantId }),
@@ -13,7 +23,7 @@ export async function assignParticipant(participantId) {
 }
 
 export async function assignTestParticipant({ participantId, storyIndex, mode }) {
-  const res = await fetch(`${API_BASE}/assignTest`, {
+  const res = await fetch(buildUrl("/assignTest"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantId, storyIndex, mode }),
@@ -25,7 +35,7 @@ export async function assignTestParticipant({ participantId, storyIndex, mode })
 }
 
 export async function presignGet(key) {
-  const res = await fetch(`${API_BASE}/presign`, {
+  const res = await fetch(buildUrl("/presign"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ operation: "get", key }),
@@ -36,7 +46,7 @@ export async function presignGet(key) {
 }
 
 export async function submitPreStudy(payload) {
-  const res = await fetch(`${API_BASE}/prestudy`, {
+  const res = await fetch(buildUrl("/prestudy"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -48,7 +58,7 @@ export async function submitPreStudy(payload) {
 }
 
 export async function fetchStudyStatus(participantId) {
-  const res = await fetch(`${API_BASE}/status`, {
+  const res = await fetch(buildUrl("/status"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantId }),
@@ -60,7 +70,7 @@ export async function fetchStudyStatus(participantId) {
 }
 
 export async function submitPostStudy(payload) {
-  const res = await fetch(`${API_BASE}/poststudy`, {
+  const res = await fetch(buildUrl("/poststudy"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -72,7 +82,7 @@ export async function submitPostStudy(payload) {
 }
 
 export async function updateStage(participantId, stage) {
-  const res = await fetch(`${API_BASE}/stage`, {
+  const res = await fetch(buildUrl("/stage"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantId, stage }),
@@ -84,7 +94,7 @@ export async function updateStage(participantId, stage) {
 }
 
 export async function markFinished(participantId) {
-  const res = await fetch(`${API_BASE}/markFinished`, {
+  const res = await fetch(buildUrl("/markFinished"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantId }),
