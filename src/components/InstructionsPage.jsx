@@ -89,8 +89,7 @@ export default function InstructionsPage({
 
         <h3>Questions?</h3>
         <p>
-          Feel free to contact Anran Xu (<a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>) or message the
-          research team through Prolific.
+          Feel free to message the research team through Prolific or contact Anran Xu (<a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>) through Email.
         </p>
         <p>
           <strong>For concerns or complaints:</strong>

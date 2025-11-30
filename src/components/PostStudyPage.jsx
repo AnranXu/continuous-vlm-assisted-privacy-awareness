@@ -1,11 +1,11 @@
 // src/components/PostStudyPage.jsx
 import React, { useMemo, useState } from "react";
 
-const likertOptions = [1, 2, 3, 4, 5, 6, 7];
-const optionLabels = {
-  1: "Not at all",
-  4: "Moderate",
-  7: "Extremely",
+const likertOptions = Array.from({ length: 21 }, (_, idx) => idx + 1);
+const tickLabels = {
+  1: "Very Low",
+  11: "Medium",
+  21: "Very High",
 };
 
 const QUESTION_DEFS = [
@@ -81,7 +81,12 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
           The following questions ask about the task you just completed (watching egocentric video and answering
           questions). Please rate each statement.
         </p>
-        <p style={{ marginBottom: 0 }}>Use a 7-point scale with anchors 1 = Not at all · 7 = Extremely.</p>
+        <p style={{ marginBottom: "6px" }}>
+          Use a 21-point discrete scale with anchors 1 = Very Low · 21 = Very High.
+        </p>
+        <p style={{ marginBottom: 0, fontWeight: 600 }}>
+          Click directly on one of the 21 vertical tick marks to choose your answer for each statement.
+        </p>
       </div>
 
       <div className="card" style={{ padding: "16px" }}>
@@ -106,9 +111,9 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                 alignItems: "center",
               }}
             >
-              <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>1 = Not at all</span>
+              <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>1 = Very Low</span>
               <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
-                7 = Extremely
+                21 = Very High
               </span>
             </div>
           </div>
@@ -149,38 +154,93 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
 
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(7, minmax(70px, 1fr))",
-                    gap: "6px",
-                    width: "100%",
+                    position: "relative",
+                    padding: "12px 16px 64px 16px",
                     overflowX: "auto",
                   }}
                 >
-                  {likertOptions.map((value) => (
-                    <label
-                      key={`${q.id}_${value}`}
-                      style={{
-                        border: answers[q.id] === value ? "2px solid #0ea5e9" : "1px solid #cbd5e1",
-                        borderRadius: "10px",
-                        padding: "8px 6px",
-                        textAlign: "center",
-                        cursor: "pointer",
-                        background: answers[q.id] === value ? "#e0f2fe" : "#f8fafc",
-                        fontWeight: answers[q.id] === value ? 700 : 500,
-                        color: "#0f172a",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value={value}
-                        checked={answers[q.id] === value}
-                        onChange={() => handleChoice(q.id, value)}
-                        style={{ display: "none" }}
-                      />
-                      <div style={{ fontSize: "0.95rem" }}>{optionLabels[value] || value}</div>
-                    </label>
-                  ))}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: "16px",
+                      right: "16px",
+                      top: "12px",
+                      height: "3px",
+                      background: "#e2e8f0",
+                      zIndex: 0,
+                    }}
+                  />
+
+                  <div
+                    style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${likertOptions.length}, minmax(26px, 1fr))`,
+                    alignItems: "flex-end",
+                    gap: "8px",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  {likertOptions.map((value) => {
+                      const selected = answers[q.id] === value;
+                      const label = tickLabels[value];
+                      const isAnchor = Boolean(label);
+                      const isFirst = value === 1;
+                      const isLast = value === likertOptions.length;
+                      const labelTransform = isFirst
+                        ? "translateX(-20%)"
+                        : isLast
+                        ? "translateX(-80%)"
+                        : "translateX(-50%)";
+                      return (
+                        <label
+                          key={`${q.id}_${value}`}
+                          style={{
+                            position: "relative",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "flex-end",
+                            cursor: "pointer",
+                            minWidth: "26px",
+                            height: "40px",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name={q.id}
+                            value={value}
+                            checked={selected}
+                            onChange={() => handleChoice(q.id, value)}
+                            style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
+                          />
+                          <div
+                            style={{
+                              width: isAnchor ? "3px" : "2.5px",
+                              height: isAnchor ? "24px" : "16px",
+                              background: selected ? "#0ea5e9" : "#0f172a",
+                              borderRadius: "2px",
+                            }}
+                          />
+                          {label ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "46px",
+                                left: "50%",
+                                transform: labelTransform,
+                                whiteSpace: "nowrap",
+                                fontSize: "0.82rem",
+                                fontWeight: selected ? 700 : 600,
+                                color: selected ? "#0ea5e9" : "#475569",
+                              }}
+                            >
+                              {label}
+                            </div>
+                          ) : null}
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
