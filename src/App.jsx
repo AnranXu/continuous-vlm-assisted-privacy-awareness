@@ -72,6 +72,7 @@ function App() {
   const [showPostStudyPage, setShowPostStudyPage] = useState(false);
   const [postStudyComplete, setPostStudyComplete] = useState(false);
   const [postStudySaving, setPostStudySaving] = useState(false);
+  const [vlmCountdown, setVlmCountdown] = useState(15);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
@@ -520,10 +521,25 @@ function App() {
     return undefined;
   }, [postStudyComplete]);
 
+  useEffect(() => {
+    if (!showVlmInfoModal) return undefined;
+    setVlmCountdown(15);
+    const interval = setInterval(() => {
+      setVlmCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showVlmInfoModal]);
+
   return (
     <div
       style={{
-        maxWidth: "1280px",
+        maxWidth: "1440px",
         margin: "0 auto",
         padding: "24px 16px 40px",
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -736,25 +752,10 @@ function App() {
                   cursor: "pointer",
                   fontWeight: 600,
                 }}
+                disabled={vlmCountdown > 0}
                 aria-label="Close AI assistance info"
               >
-                Got it
-              </button>
-              <button
-                onClick={() => {
-                  setShowVlmInfoModal(false);
-                  setAwaitingVlmInstruction(false);
-                }}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "8px",
-                  border: "1px solid #cbd5e1",
-                  background: "#fff",
-                  cursor: "pointer",
-                  color: "#0f172a",
-                }}
-              >
-                Close
+                Got it{vlmCountdown > 0 ? ` (${vlmCountdown}s)` : ""}
               </button>
             </div>
           </div>
