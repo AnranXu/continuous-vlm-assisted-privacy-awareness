@@ -7,6 +7,7 @@ import {
   submitPreStudy,
   fetchStudyStatus,
   submitPostStudy,
+  submitClipAnnotation,
   updateStage,
   markFinished,
   // markFinished,        // you can enable later when you wire it
@@ -58,9 +59,8 @@ function App() {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
 
-  // placeholder annotation text
-  const [annotationText, setAnnotationText] = useState("");
   const [clipCompletion, setClipCompletion] = useState({});
+  const [clipSaving, setClipSaving] = useState(false);
   const [awaitingVlmInstruction, setAwaitingVlmInstruction] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [helpSlide, setHelpSlide] = useState(0);
@@ -80,7 +80,7 @@ function App() {
   const helpSlides = [
     "You will watch short, first-person video clips and imagine they reflect your own daily activities.",
     "Identify parts of each video you consider private, sensitive, or revealing and briefly explain why.",
-    "There are no right or wrong answers—use your judgment about what feels privacy-relevant.",
+    "There are no right or wrong answers—use your judgment about what feels privacy-related.",
   ];
 
   function clampToFurthest(videoEl) {
@@ -159,8 +159,8 @@ function App() {
     setStoryConfig(null);
     setVideoUrl("");
     setCurrentClipIndex(0);
-    setAnnotationText("");
     setClipCompletion({});
+    setClipSaving(false);
     setAwaitingVlmInstruction(false);
     setShowVlmInfoModal(false);
     setParticipantStage(0);
@@ -219,7 +219,6 @@ function App() {
     setError("");
     try {
       await loadClipByIndex(next);
-      setAnnotationText("");
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to load next clip.");
@@ -236,7 +235,6 @@ function App() {
     setError("");
     try {
       await loadClipByIndex(prev);
-      setAnnotationText("");
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to load previous clip.");
@@ -245,17 +243,52 @@ function App() {
     }
   }
 
-  // ---------- Placeholder annotation save ----------
+  async function handleSaveClipResponses(payload) {
+    const pid = resolvedParticipantId();
+    if (!pid) {
+      setError("Please enter your Prolific ID.");
+      return;
+    }
+    if (!assignment || !storyConfig) {
+      setError("No assignment found. Please restart the study.");
+      return;
+    }
 
-  function handleSaveAnnotation() {
-    // For now just log; later you will hook up presignPut & upload to S3.
-    console.log("ANNOTATION (placeholder):", {
-      participantId: resolvedParticipantId(),
-      assignment,
-      currentClipIndex,
-      text: annotationText,
-    });
-    setStatus("Annotation saved (placeholder only).");
+    const clipCfg = storyConfig.clips?.[currentClipIndex];
+    const clipIndexValue = Number(payload?.clipIndex) || currentClipIndex + 1;
+
+    setClipSaving(true);
+    setError("");
+    setStatus("");
+    try {
+      await submitClipAnnotation({
+        participantId: pid,
+        studyId: assignment.studyId,
+        storyId: assignment.storyId,
+        mode: assignment.mode || assignment.assigned_mode,
+        clipIndex: clipIndexValue,
+        clipId: payload?.clipId || clipCfg?.clip_id || clipCfg?.clip_index || null,
+        aiResponses: payload?.aiResponses || [],
+        participantFindings: payload?.participantFindings || [],
+        videoWatched: payload?.videoWatched ?? Boolean(clipCompletion[currentClipIndex]?.watched),
+      });
+      setStatus("Responses saved for this scenario.");
+      setClipCompletion((prev) => {
+        const prevEntry = prev[currentClipIndex] || {};
+        return {
+          ...prev,
+          [currentClipIndex]: {
+            watched: prevEntry.watched || payload?.videoWatched || false,
+            saved: true,
+          },
+        };
+      });
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to save responses for this scenario.");
+    } finally {
+      setClipSaving(false);
+    }
   }
 
   async function handlePreStudySubmit(responses) {
@@ -383,7 +416,7 @@ function App() {
   const showPreStudy = hasAssignment && !preStudyComplete;
   const allClipsDone =
     Boolean(storyConfig?.clips?.length) &&
-    storyConfig.clips.every((_, idx) => clipCompletion[idx]);
+    storyConfig.clips.every((_, idx) => clipCompletion[idx]?.saved);
   const shouldShowPostStudy =
     hasAssignment && preStudyComplete && (showPostStudyPage || participantStage >= 2 || allClipsDone) && !postStudyComplete;
   const hasActiveTask = hasAssignment && preStudyComplete && !shouldShowPostStudy && participantStage < 2;
@@ -470,6 +503,11 @@ function App() {
       setShowPostStudyPage(true);
     }
   }, [participantStage]);
+
+  useEffect(() => {
+    // Ensure the viewport resets when moving between major stages/pages.
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [showPreStudy, shouldShowPostStudy, hasActiveTask, postStudyComplete]);
 
   useEffect(() => {
     if (postStudyComplete) {
@@ -562,14 +600,13 @@ function App() {
           loading={loading}
           clipCompletion={clipCompletion}
           setClipCompletion={setClipCompletion}
+          clipSaving={clipSaving}
           isTestMode={IS_TEST_MODE}
           handlePrevClip={handlePrevClip}
           handleNextClip={handleNextClip}
           handleFinishAnnotations={handleProceedToPostStudy}
           renderFeedback={renderFeedback}
-          annotationText={annotationText}
-          setAnnotationText={setAnnotationText}
-          handleSaveAnnotation={handleSaveAnnotation}
+          onSaveClipResponses={handleSaveClipResponses}
           helpSlides={helpSlides}
           showHelpModal={showHelpModal}
           setShowHelpModal={setShowHelpModal}

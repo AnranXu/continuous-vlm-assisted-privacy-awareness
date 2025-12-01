@@ -1,6 +1,51 @@
 // src/components/TaskView.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+const LIKERT_OPTIONS = [-3, -2, -1, 0, 1, 2, 3];
+
+const CATEGORY_OPTIONS = [
+  {
+    value: "personal information",
+    label: "Personal information (e.g., identity, health, finances, personal documents)",
+  },
+  {
+    value: "location of shooting",
+    label: "Location of shooting (where the scene takes place)",
+  },
+  {
+    value: "individual preferences/pastimes",
+    label: "Individual preferences or pastimes (e.g., hobbies, interests, tastes)",
+  },
+  {
+    value: "social circle or relationships",
+    label: "Social circle or relationships (e.g., who your friends, family, or colleagues are)",
+  },
+  {
+    value: "others_private_or_confidential_information",
+    label: "Others' private or confidential information (e.g., another person's ID, screen, or documents)",
+  },
+  {
+    value: "other type of sensitive content",
+    label: "Other type of sensitive content not listed above",
+  },
+  {
+    value: "none",
+    label: "I do not see any privacy-related content in this video clip",
+  },
+];
+
+function createEmptyFinding() {
+  return {
+    finding_id: `manual_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+    categories: [],
+    other_text: "",
+    description: "",
+    privacy_threat_score: null,
+    share_willingness_score: null,
+    ai_memory_comfort_score: null,
+  };
+}
+
 export default function TaskView({
   assignment,
   storyConfig,
@@ -8,14 +53,14 @@ export default function TaskView({
   videoUrl,
   loading,
   clipCompletion,
+  setClipCompletion,
+  clipSaving,
   isTestMode,
   handlePrevClip,
   handleNextClip,
   handleFinishAnnotations,
   renderFeedback,
-  annotationText,
-  setAnnotationText,
-  handleSaveAnnotation,
+  onSaveClipResponses,
   helpSlides,
   showHelpModal,
   setShowHelpModal,
@@ -28,11 +73,17 @@ export default function TaskView({
   clampToFurthest,
   furthestTimeRef,
   vlmAnalysis,
-  setClipCompletion,
 }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [maxSeenTimeByClip, setMaxSeenTimeByClip] = useState({});
   const [videoHeight, setVideoHeight] = useState(null);
+  const [aiAnswersByClip, setAiAnswersByClip] = useState({});
+  const [openDetectionByClip, setOpenDetectionByClip] = useState({});
+  const [manualFindingsByClip, setManualFindingsByClip] = useState({});
+  const [expandedManualId, setExpandedManualId] = useState(null);
+  const [seenDetectionsByClip, setSeenDetectionsByClip] = useState({});
+  const [newDetectionPrompt, setNewDetectionPrompt] = useState(null);
+  const [crossThreatAnswers, setCrossThreatAnswers] = useState({});
   const videoWrapRef = useRef(null);
   const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
 
@@ -92,8 +143,9 @@ export default function TaskView({
     Object.entries(maxSeenTimeByClip || {}).forEach(([idx, t]) => {
       if (t != null) seen.add(Number(idx));
     });
-    Object.entries(clipCompletion || {}).forEach(([idx, done]) => {
-      if (done) seen.add(Number(idx));
+    Object.entries(clipCompletion || {}).forEach(([idx, status]) => {
+      const entry = status || {};
+      if (entry.watched || entry.saved) seen.add(Number(idx));
     });
     return seen;
   }, [maxSeenTimeByClip, clipCompletion]);
@@ -112,6 +164,97 @@ export default function TaskView({
 
   const crossClipThreatCount = vlmAnalysis?.story?.cross_clip_threats?.length || 0;
 
+  const currentClipStatus = clipCompletion?.[currentClipIndex] || { watched: false, saved: false };
+  const clipIsSaved = Boolean(currentClipStatus.saved);
+  const clipWatched = Boolean(currentClipStatus.watched);
+  const currentAiAnswers = aiAnswersByClip[currentClipIndex] || {};
+  const currentManualFindings = manualFindingsByClip[currentClipIndex] || [];
+  const openDetectionId = openDetectionByClip[currentClipIndex] || null;
+  const seenDetections = new Set(seenDetectionsByClip[currentClipIndex] || []);
+  const currentCrossAnswers = crossThreatAnswers[currentClipIndex] || {};
+  const manualCategoryCounts = useMemo(() => {
+    const counts = {};
+    currentManualFindings.forEach((f) => {
+      (f.categories || []).forEach((c) => {
+        counts[c] = (counts[c] || 0) + 1;
+      });
+    });
+    return counts;
+  }, [currentManualFindings]);
+  const categoryLabelMap = useMemo(() => {
+    const map = {};
+    CATEGORY_OPTIONS.forEach((opt) => {
+      map[opt.value] = opt.label;
+    });
+    return map;
+  }, []);
+
+  function isLikertScore(val) {
+    const n = Number(val);
+    return Number.isFinite(n) && n >= -3 && n <= 3;
+  }
+
+  function isAiResponseComplete(ans) {
+    if (!ans) return false;
+    return (
+      isLikertScore(ans.privacy_threat_score) &&
+      isLikertScore(ans.share_willingness_score) &&
+      isLikertScore(ans.ai_memory_comfort_score) &&
+      isLikertScore(ans.trust_ai_score)
+    );
+  }
+
+  function isFindingComplete(f) {
+    if (!f) return false;
+    const hasCategories = Array.isArray(f.categories) && f.categories.length > 0;
+    const desc = (f.description || "").trim();
+    const needsOther = f.categories?.includes("other");
+    const otherTextOk = !needsOther || (f.other_text || "").trim().length > 0;
+    const isNone = f.categories?.includes("none");
+    if (isNone) {
+      return hasCategories && desc.length > 0;
+    }
+    return (
+      hasCategories &&
+      isLikertScore(f.privacy_threat_score) &&
+      isLikertScore(f.share_willingness_score) &&
+      isLikertScore(f.ai_memory_comfort_score) &&
+      desc.length > 0 &&
+      otherTextOk
+    );
+  }
+
+  function isCrossResponseComplete(ans) {
+    if (!ans) return false;
+    return (
+      isLikertScore(ans.cross_privacy_threat_score) &&
+      isLikertScore(ans.cross_more_severe_score) &&
+      isLikertScore(ans.cross_ai_memory_comfort_score)
+    );
+  }
+
+  const aiRequiredCount = assignment?.mode === "vlm" ? visibleDetections.length : 0;
+  const aiCompletedCount =
+    assignment?.mode === "vlm"
+      ? visibleDetections.filter((d) => isAiResponseComplete(currentAiAnswers[d.det_id])).length
+      : 0;
+
+  const completedManualFindings = currentManualFindings.filter((f) => isFindingComplete(f));
+  const allManualComplete =
+    currentManualFindings.length > 0 && completedManualFindings.length === currentManualFindings.length;
+
+  const crossRequiredCount = unlockedCrossClipThreats.length;
+  const crossCompletedCount = unlockedCrossClipThreats.filter((t) =>
+    isCrossResponseComplete(currentCrossAnswers[t.threat_id || t.title])
+  ).length;
+  const allCrossComplete = crossRequiredCount === 0 || crossCompletedCount === crossRequiredCount;
+
+  const canSaveClip =
+    allManualComplete &&
+    (assignment?.mode !== "vlm" || aiCompletedCount === aiRequiredCount) &&
+    allCrossComplete &&
+    (isTestMode || clipWatched);
+
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
     const m = Math.floor(sec / 60);
@@ -126,6 +269,238 @@ export default function TaskView({
     return list.join(", ");
   }
 
+  function markClipDirty(idx = currentClipIndex) {
+    setClipCompletion((prev) => {
+      const entry = prev[idx] || {};
+      return { ...prev, [idx]: { watched: entry.watched || false, saved: false } };
+    });
+  }
+
+  function updateAiAnswer(detId, key, value) {
+    setAiAnswersByClip((prev) => {
+      const clipMap = { ...(prev[currentClipIndex] || {}) };
+      clipMap[detId] = { ...(clipMap[detId] || {}), [key]: value };
+      return { ...prev, [currentClipIndex]: clipMap };
+    });
+    markClipDirty(currentClipIndex);
+  }
+
+  function toggleDetection(detId) {
+    setOpenDetectionByClip((prev) => ({
+      ...prev,
+      [currentClipIndex]: prev[currentClipIndex] === detId ? null : detId,
+    }));
+    setNewDetectionPrompt((prev) => (prev?.detId === detId ? null : prev));
+  }
+
+  function resetManualDraft() {
+    setManualDraft(createEmptyFinding());
+    setEditingFindingId(null);
+  }
+
+  function addManualFinding(category) {
+    if (category === "none") {
+      const already = (currentManualFindings || []).some((f) => f.categories?.includes("none"));
+      if (already) return;
+    }
+    const newEntry = {
+      finding_id: `manual_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+      categories: [category],
+      other_text: "",
+      description: "",
+      privacy_threat_score: null,
+      share_willingness_score: null,
+      ai_memory_comfort_score: null,
+    };
+    setManualFindingsByClip((prev) => {
+      const list = [...(prev[currentClipIndex] || [])];
+      list.push(newEntry);
+      return { ...prev, [currentClipIndex]: list };
+    });
+    setExpandedManualId(newEntry.finding_id);
+    markClipDirty(currentClipIndex);
+  }
+
+  function updateManualField(findingId, key, value) {
+    setManualFindingsByClip((prev) => {
+      const list = (prev[currentClipIndex] || []).map((f) =>
+        f.finding_id === findingId ? { ...f, [key]: value } : f
+      );
+      return { ...prev, [currentClipIndex]: list };
+    });
+    markClipDirty(currentClipIndex);
+  }
+
+  function toggleManualExpand(findingId) {
+    setExpandedManualId((prev) => (prev === findingId ? null : findingId));
+  }
+
+  function deleteManualFinding(findingId) {
+    setManualFindingsByClip((prev) => {
+      const list = (prev[currentClipIndex] || []).filter((f) => f.finding_id !== findingId);
+      return { ...prev, [currentClipIndex]: list };
+    });
+    if (expandedManualId === findingId) {
+      setExpandedManualId(null);
+    }
+    markClipDirty(currentClipIndex);
+  }
+
+  function updateCrossAnswer(threatId, key, value) {
+    setCrossThreatAnswers((prev) => {
+      const forClip = { ...(prev[currentClipIndex] || {}) };
+      const entry = { ...(forClip[threatId] || {}) };
+      entry[key] = value;
+      forClip[threatId] = entry;
+      return { ...prev, [currentClipIndex]: forClip };
+    });
+    markClipDirty(currentClipIndex);
+  }
+
+  const LikertScale = ({ label, helper, name, value, onChange }) => (
+    <div style={{ marginTop: "8px" }}>
+      <div style={{ fontWeight: 700, color: "#0f172a" }}>{label}</div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginTop: "8px",
+        }}
+        >
+          {LIKERT_OPTIONS.map((n) => (
+            <label
+              key={`${name}-${n}`}
+              style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 8px",
+              borderRadius: "8px",
+              border: value === n ? "2px solid #1d4ed8" : "1px solid #cbd5e1",
+              background: value === n ? "#e0e7ff" : "#fff",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={n}
+              checked={value === n}
+              onChange={() => onChange(n)}
+            />
+            <span style={{ fontWeight: 700 }}>{n}</span>
+          </label>
+        ))}
+        <span style={{ color: "#475569", fontSize: "0.85rem" }}>
+          -3 = Strongly disagree / 3 = Strongly agree
+        </span>
+      </div>
+      {helper && (
+        <div style={{ color: "#475569", fontSize: "0.9rem", marginTop: "4px" }}>
+          {helper}
+        </div>
+      )}
+    </div>
+  );
+
+  function buildAiPayload() {
+    if (assignment?.mode !== "vlm") return [];
+    const detections = currentClipMeta?.detections || [];
+    return detections
+      .map((d) => {
+        const ans = currentAiAnswers[d.det_id] || {};
+        return {
+          det_id: d.det_id,
+          detected_visual: d.detected_visual,
+          time_sec: d.time_sec,
+          information_types: d.information_types,
+          severity: d.severity,
+          confidence: d.confidence,
+          privacy_threat_score: ans.privacy_threat_score,
+          share_willingness_score: ans.share_willingness_score,
+          ai_memory_comfort_score: ans.ai_memory_comfort_score,
+          trust_ai_score: ans.trust_ai_score,
+        };
+      })
+      .filter((entry) => isAiResponseComplete(entry));
+  }
+
+  function buildManualPayload() {
+    return currentManualFindings.map((f) => ({
+      finding_id: f.finding_id,
+      categories: f.categories,
+      other_text: f.other_text,
+      description: f.description,
+      privacy_threat_score: f.privacy_threat_score,
+      share_willingness_score: f.share_willingness_score,
+      ai_memory_comfort_score: f.ai_memory_comfort_score,
+    }));
+  }
+
+  function buildCrossPayload() {
+    return unlockedCrossClipThreats
+      .map((t) => {
+        const ans = currentCrossAnswers[t.threat_id || t.title] || {};
+        return {
+          threat_id: t.threat_id || t.title,
+          title: t.title,
+          clips_involved: t.clips_involved,
+          information_types: t.information_types,
+          severity_overall: t.severity_overall,
+          confidence: t.confidence,
+          cross_privacy_threat_score: ans.cross_privacy_threat_score,
+          cross_more_severe_score: ans.cross_more_severe_score,
+          cross_ai_memory_comfort_score: ans.cross_ai_memory_comfort_score,
+        };
+      })
+      .filter((entry) => isCrossResponseComplete(entry));
+  }
+
+  useEffect(() => {
+    if (!visibleDetections.length) return;
+    const seenSet = new Set(seenDetectionsByClip[currentClipIndex] || []);
+    const firstNew = visibleDetections.find((d) => !seenSet.has(d.det_id));
+    if (!firstNew) return;
+
+    const triggerTime = firstNew.time_sec != null ? firstNew.time_sec : currentTime;
+    if (triggerTime < 10 && currentTime < 10) return;
+
+    seenSet.add(firstNew.det_id);
+    setSeenDetectionsByClip((prev) => ({
+      ...prev,
+      [currentClipIndex]: Array.from(seenSet),
+    }));
+    setNewDetectionPrompt({
+      detId: firstNew.det_id,
+      text: firstNew.detected_visual || "New AI-suggested privacy threat",
+    });
+    if (videoRef?.current) {
+      try {
+        videoRef.current.pause();
+      } catch (err) {
+        console.warn("Failed to pause video on new detection:", err);
+      }
+    }
+  }, [visibleDetections, currentClipIndex, currentTime, seenDetectionsByClip, videoRef]);
+
+  async function handleSaveClip() {
+    if (!canSaveClip) {
+      alert("Please answer all required questions for this scenario before saving.");
+      return;
+    }
+    const clipMeta = storyConfig?.clips?.[currentClipIndex];
+    await onSaveClipResponses({
+      clipIndex: currentClipIndex + 1,
+      clipId: clipMeta?.clip_id || clipMeta?.clip_index || null,
+      aiResponses: buildAiPayload(),
+      participantFindings: buildManualPayload(),
+      crossClipResponses: buildCrossPayload(),
+      videoWatched: clipWatched,
+    });
+  }
+
   useEffect(() => {
     if (!videoWrapRef.current) return undefined;
     const ro = new ResizeObserver((entries) => {
@@ -136,6 +511,15 @@ export default function TaskView({
     ro.observe(videoWrapRef.current);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    setAiAnswersByClip({});
+    setOpenDetectionByClip({});
+    setManualFindingsByClip({});
+    setSeenDetectionsByClip({});
+    setNewDetectionPrompt(null);
+    setCrossThreatAnswers({});
+  }, [assignment?.storyId, storyConfig?.story_id]);
 
   return (
     <>
@@ -260,9 +644,9 @@ export default function TaskView({
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
                 loading ||
-                (!isTestMode && !clipCompletion[currentClipIndex]);
+                (!isTestMode && !clipIsSaved);
               if (blocked) {
-                alert("Finish watching this scenario to unlock Next.");
+                alert("Finish and save this scenario to unlock Next.");
                 return;
               }
               handleNextClip();
@@ -270,7 +654,8 @@ export default function TaskView({
             disabled={
               !storyConfig ||
               currentClipIndex >= storyConfig.clips.length - 1 ||
-              loading
+              loading ||
+              (!isTestMode && !clipIsSaved)
             }
             style={{
               padding: "10px 14px",
@@ -279,25 +664,22 @@ export default function TaskView({
               borderColor:
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading
-                  ? "#cbd5e1"
-                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                loading ||
+                (!isTestMode && !clipIsSaved)
                   ? "#cbd5e1"
                   : "#1d4ed8",
               background:
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading
-                  ? "#e2e8f0"
-                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                loading ||
+                (!isTestMode && !clipIsSaved)
                   ? "#e2e8f0"
                   : "#1d4ed8",
               color:
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading
-                  ? "#475569"
-                  : (!isTestMode && !clipCompletion[currentClipIndex])
+                loading ||
+                (!isTestMode && !clipIsSaved)
                   ? "#475569"
                   : "#fff",
               fontWeight: 700,
@@ -305,18 +687,18 @@ export default function TaskView({
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
                 loading ||
-                (!isTestMode && !clipCompletion[currentClipIndex])
+                (!isTestMode && !clipIsSaved)
                   ? "none"
                   : "0 8px 16px rgba(37, 99, 235, 0.25)",
               cursor:
                 !storyConfig ||
                 currentClipIndex >= storyConfig.clips.length - 1 ||
                 loading ||
-                (!isTestMode && !clipCompletion[currentClipIndex])
+                (!isTestMode && !clipIsSaved)
                   ? "default"
                   : "pointer",
               opacity:
-                !isTestMode && !clipCompletion[currentClipIndex] ? 0.65 : 1,
+                !isTestMode && !clipIsSaved ? 0.65 : 1,
               marginLeft: "12px",
             }}
           >
@@ -328,15 +710,15 @@ export default function TaskView({
               disabled={
                 !storyConfig ||
                 loading ||
-                (!isTestMode && !clipCompletion[currentClipIndex])
+                (!isTestMode && !clipIsSaved)
               }
               onClick={() => {
                 const blocked =
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipCompletion[currentClipIndex]);
+                  (!isTestMode && !clipIsSaved);
                 if (blocked) {
-                  alert("Finish watching this scenario to continue.");
+                  alert("Finish and save this scenario to continue.");
                   return;
                 }
                 handleFinishAnnotations();
@@ -348,26 +730,26 @@ export default function TaskView({
                 background:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipCompletion[currentClipIndex])
+                  (!isTestMode && !clipIsSaved)
                     ? "#a7f3d0"
                     : "#16a34a",
                 color:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipCompletion[currentClipIndex])
+                  (!isTestMode && !clipIsSaved)
                     ? "#065f46"
                     : "#fff",
                 fontWeight: 800,
                 boxShadow:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipCompletion[currentClipIndex])
+                  (!isTestMode && !clipIsSaved)
                     ? "none"
                     : "0 10px 18px rgba(22, 163, 74, 0.35)",
                 cursor:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipCompletion[currentClipIndex])
+                  (!isTestMode && !clipIsSaved)
                     ? "not-allowed"
                     : "pointer",
                 marginLeft: "12px",
@@ -429,7 +811,7 @@ export default function TaskView({
               onEnded={() => {
                 setClipCompletion((prev) => ({
                   ...prev,
-                  [currentClipIndex]: true,
+                  [currentClipIndex]: { ...(prev[currentClipIndex] || {}), watched: true },
                 }));
                 if (!isTestMode) {
                   furthestTimeRef.current =
@@ -470,19 +852,104 @@ export default function TaskView({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
               <h3 style={{ margin: 0 }}>AI-suggested detections on single scenario</h3>
+              <span
+                style={{
+                  fontSize: "0.9rem",
+                  color: aiCompletedCount === aiRequiredCount ? "#065f46" : "#b45309",
+                  fontWeight: 700,
+                }}
+              >
+                {aiRequiredCount > 0
+                  ? `Answered ${aiCompletedCount} / ${aiRequiredCount}`
+                  : "No AI detections visible yet"}
+              </span>
             </div>
+            {newDetectionPrompt && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid #fbbf24",
+                  background: "#fffbeb",
+                  color: "#92400e",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    background: "#f87171",
+                    color: "#fff",
+                    fontWeight: 800,
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  New privacy threat
+                </span>
+                <span style={{ fontWeight: 700 }}>{newDetectionPrompt.text}</span>
+                <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenDetectionByClip((prev) => ({
+                        ...prev,
+                        [currentClipIndex]: newDetectionPrompt.detId,
+                      }));
+                      setNewDetectionPrompt(null);
+                      setTimeout(() => {
+                        const el = document.getElementById(`det-${newDetectionPrompt.detId}`);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 50);
+                    }}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      border: "1px solid #1d4ed8",
+                      background: "#1d4ed8",
+                      color: "#fff",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Annotate now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewDetectionPrompt(null)}
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e1",
+                      background: "#fff",
+                      color: "#0f172a",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
             {visibleDetections.length === 0 ? (
               <p style={{ marginTop: "8px", color: "#475569" }}>
                 Keep watching to see AI detections appear.
               </p>
             ) : (
-              <div style={{ marginTop: "8px" }}>
+              <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "10px" }}>
                 {groupedDetections.map((group) => (
-                  <div key={group.infoType} style={{ marginBottom: "10px" }}>
+                  <div key={group.infoType} style={{ marginBottom: "4px" }}>
                     <div
                       style={{
                         fontWeight: 800,
-                        fontSize: "1.1rem",
+                        fontSize: "1.05rem",
                         color: "#1d4ed8",
                         marginBottom: "6px",
                       }}
@@ -490,54 +957,154 @@ export default function TaskView({
                       {group.infoType}
                     </div>
                     <ul style={{ listStyle: "none", paddingLeft: 0, margin: 0 }}>
-                      {group.list.map((d) => (
-                        <li
-                          key={`${group.infoType}-${d.det_id}`}
-                          style={{
-                            padding: "8px 10px",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: "8px",
-                            marginBottom: "8px",
-                            background: "#fff",
-                          }}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <strong style={{ color: "#0f172a" }}>{d.detected_visual}</strong>
-                            <span style={{ fontSize: "0.85rem", color: "#475569" }}>
-                              {formatTime(d.time_sec || 0)}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
-                            {d.why_privacy_sensitive || "Potentially sensitive moment"}
-                          </div>
-                          <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
-                            Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
-                          </div>
-                        </li>
-                      ))}
+                      {group.list.map((d) => {
+                        const answered = isAiResponseComplete(currentAiAnswers[d.det_id]);
+                        const isOpen = openDetectionId === d.det_id;
+                        return (
+                          <li
+                            key={`${group.infoType}-${d.det_id}`}
+                            id={`det-${d.det_id}`}
+                            style={{
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "8px",
+                              marginBottom: "8px",
+                              background: "#fff",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                padding: "10px 12px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "6px",
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                                <strong style={{ color: "#0f172a", flex: 1 }}>{d.detected_visual}</strong>
+                                <span style={{ fontSize: "0.85rem", color: "#475569" }}>
+                                  {formatTime(d.time_sec || 0)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleDetection(d.det_id)}
+                                  style={{
+                                    padding: "6px 10px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #cbd5e1",
+                                    background: "#fff",
+                                    cursor: "pointer",
+                                    fontWeight: 600,
+                                    color: "#0f172a",
+                                  }}
+                                >
+                                  {isOpen ? "Collapse" : "Expand"}
+                                </button>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                <span
+                                  style={{
+                                    padding: "4px 8px",
+                                    borderRadius: "999px",
+                                    background:
+                                      answered ? "#dcfce7" : newDetectionPrompt?.detId === d.det_id ? "#fef3c7" : "#fee2e2",
+                                    color:
+                                      answered ? "#166534" : newDetectionPrompt?.detId === d.det_id ? "#92400e" : "#b91c1c",
+                                    fontWeight: 700,
+                                    fontSize: "0.85rem",
+                                  }}
+                                >
+                                  {answered
+                                    ? "Answered"
+                                    : newDetectionPrompt?.detId === d.det_id
+                                    ? "New privacy threat"
+                                    : "Needs answers"}
+                                </span>
+                                <span style={{ fontSize: "0.9rem", color: "#475569" }}>
+                                  Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
+                                </span>
+                              </div>
+                            </div>
+                            {isOpen && (
+                              <div
+                                style={{
+                                  padding: "10px 12px",
+                                  borderTop: "1px solid #e2e8f0",
+                                  background: "#f8fafc",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: "10px",
+                                }}
+                              >
+                                <div style={{ fontSize: "0.95rem", color: "#334155" }}>
+                                  {d.why_privacy_sensitive || "Potentially sensitive moment"}
+                                </div>
+                                <LikertScale
+                                  name={`ai-${d.det_id}-threat`}
+                                  label="To what extent do you agree that the highlighted content is privacy-threatening for you, if this were your own video?"
+                                  value={currentAiAnswers[d.det_id]?.privacy_threat_score}
+                                  onChange={(v) => updateAiAnswer(d.det_id, "privacy_threat_score", v)}
+                                />
+                                <LikertScale
+                                  name={`ai-${d.det_id}-share`}
+                                  label="To what extent do you agree that you would be willing to share a video that includes this specific content publicly online?"
+                                  value={currentAiAnswers[d.det_id]?.share_willingness_score}
+                                  onChange={(v) => updateAiAnswer(d.det_id, "share_willingness_score", v)}
+                                />
+                                <LikertScale
+                                  name={`ai-${d.det_id}-remember`}
+                                  label="To what extent do you agree that you would be comfortable if your AI assistant detected, stored, and remembered this specific content about you over time?"
+                                  value={currentAiAnswers[d.det_id]?.ai_memory_comfort_score}
+                                  onChange={(v) => updateAiAnswer(d.det_id, "ai_memory_comfort_score", v)}
+                                />
+                                <LikertScale
+                                  name={`ai-${d.det_id}-trust`}
+                                  label="To what extent do you agree that you trust the AI assistant's judgment in this particular case?"
+                                  value={currentAiAnswers[d.det_id]?.trust_ai_score}
+                                  onChange={(v) => updateAiAnswer(d.det_id, "trust_ai_score", v)}
+                                />
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 ))}
               </div>
             )}
 
-            <div
-              style={{
-                marginTop: "14px",
-                paddingTop: "12px",
-                borderTop: "1px solid #e2e8f0",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                <h3 style={{ margin: 0 }}>AI-suggested detections on multiple scenarios</h3>
-              </div>
-              {unlockedCrossClipThreats.length === 0 ? (
-                <p style={{ marginTop: "8px", color: "#475569" }}>
-                  No multi-scenario AI suggestions available for this story yet.
-                </p>
-              ) : (
-                <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
-                  {unlockedCrossClipThreats.map((threat, idx) => (
+          <div
+            style={{
+              marginTop: "14px",
+              paddingTop: "12px",
+              borderTop: "1px solid #e2e8f0",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <h3 style={{ margin: 0 }}>AI-suggested detections on multiple scenarios</h3>
+              <span
+                style={{
+                  fontSize: "0.9rem",
+                  color: allCrossComplete ? "#065f46" : "#b45309",
+                  fontWeight: 700,
+                }}
+              >
+                {crossRequiredCount > 0
+                  ? `Answered ${crossCompletedCount} / ${crossRequiredCount}`
+                  : "No multi-scenario detections"}
+              </span>
+            </div>
+            {unlockedCrossClipThreats.length === 0 ? (
+              <p style={{ marginTop: "8px", color: "#475569" }}>
+                No multi-scenario AI suggestions available for this story yet.
+              </p>
+            ) : (
+              <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
+                {unlockedCrossClipThreats.map((threat, idx) => {
+                  const ans = currentCrossAnswers[threat.threat_id || threat.title] || {};
+                  const complete = isCrossResponseComplete(ans);
+                  return (
                     <li
                       key={threat.threat_id || threat.title || idx}
                       style={{
@@ -552,6 +1119,18 @@ export default function TaskView({
                         <strong style={{ color: "#0f172a" }}>{threat.title || "Cross-clip threat"}</strong>
                         <span style={{ fontSize: "0.85rem", color: "#475569" }}>
                           Scenarios {Array.isArray(threat.clips_involved) ? threat.clips_involved.join(", ") : "n/a"}
+                        </span>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "999px",
+                            background: complete ? "#dcfce7" : "#fee2e2",
+                            color: complete ? "#166534" : "#b91c1c",
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {complete ? "Answered" : "Needs answers"}
                         </span>
                       </div>
                       {threat.why_amplified_across_clips && (
@@ -570,65 +1149,281 @@ export default function TaskView({
                           Evidence: {threat.evidence_summary}
                         </div>
                       )}
+
+                      <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <LikertScale
+                          name={`cross-${threat.threat_id || idx}-threat`}
+                          label="To what extent do you agree that this content is privacy-threatening for you?"
+                          value={ans.cross_privacy_threat_score}
+                          onChange={(v) =>
+                            updateCrossAnswer(threat.threat_id || threat.title, "cross_privacy_threat_score", v)
+                          }
+                        />
+                        <LikertScale
+                          name={`cross-${threat.threat_id || idx}-severity`}
+                          label="To what extent do you agree that this detection across multiple video clips has more severe privacy threats than detection in single clips?"
+                          value={ans.cross_more_severe_score}
+                          onChange={(v) =>
+                            updateCrossAnswer(threat.threat_id || threat.title, "cross_more_severe_score", v)
+                          }
+                        />
+                        <LikertScale
+                          name={`cross-${threat.threat_id || idx}-ai-memory`}
+                          label="Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered this content about you over its long-term usage?"
+                          value={ans.cross_ai_memory_comfort_score}
+                          onChange={(v) =>
+                            updateCrossAnswer(threat.threat_id || threat.title, "cross_ai_memory_comfort_score", v)
+                          }
+                        />
+                      </div>
                     </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
           </div>
         )}
       </div>
 
-      {/* Annotation placeholder */}
       {renderFeedback({ showStatus: !isTestMode })}
+
       <div
         style={{
-          border: "1px solid #ddd",
+          border: "1px solid #e2e8f0",
           borderRadius: "10px",
           padding: "12px",
+          marginTop: "12px",
         }}
       >
-        <h3
-          style={{
-            fontSize: "1.1rem",
-            marginBottom: "8px",
-          }}
-        >
-          Annotation (placeholder)
+        <h3 style={{ fontSize: "1.15rem", marginBottom: "6px" }}>
+          {assignment?.mode === "vlm"
+            ? "Do you see anything else (not included in the AI detections) that could reveal privacy-related information?"
+            : "Do you see anything in this video that could reveal privacy-related information?"}
         </h3>
-        <p style={{ fontSize: "0.9rem", marginBottom: "8px" }}>
-          Please type anything here to simulate your annotation. In the real
-          study this will be replaced with the privacy-threat questions and
-          S3 upload logic.
+        <p style={{ fontSize: "0.95rem", marginBottom: "10px", color: "#334155" }}>
+          Select all that apply. If nothing seems sensitive, choose “I do not see any privacy-related content.”
+          You can add multiple privacy threats.
         </p>
-        <textarea
-          rows={4}
-          value={annotationText}
-          onChange={(e) => setAnnotationText(e.target.value)}
+        <div
           style={{
-            width: "100%",
-            padding: "8px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            marginBottom: "8px",
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSaveAnnotation}
-          disabled={loading}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "6px",
-            border: "none",
-            background: "#10b981",
-            color: "#fff",
-            fontWeight: 600,
-            cursor: loading ? "default" : "pointer",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+            alignItems: "start",
+            marginBottom: "12px",
           }}
         >
-          Save annotation (placeholder)
-        </button>
+          {CATEGORY_OPTIONS.map((opt) => {
+            const count = manualCategoryCounts[opt.value] || 0;
+            const isNone = opt.value === "none";
+            const cardsForCategory = currentManualFindings.filter((f) =>
+              f.categories?.includes(opt.value)
+            );
+            const canAdd = isNone ? count === 0 : true;
+            return (
+              <div
+                key={opt.value}
+                style={{
+                  padding: "10px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  background: "#fff",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ flex: 1, color: "#0f172a", textAlign: "left" }}>{opt.label}</div>
+                  {!isNone && (
+                    <>
+                      <span
+                        style={{
+                          minWidth: "28px",
+                          textAlign: "center",
+                          padding: "4px 8px",
+                          borderRadius: "8px",
+                          border: "1px solid #cbd5e1",
+                          background: "#f8fafc",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {count}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => canAdd && addManualFinding(opt.value)}
+                        style={{
+                          padding: "8px 10px",
+                          borderRadius: "12px",
+                          border: "1px solid #1d4ed8",
+                          background: "#1d4ed8",
+                          color: "#fff",
+                          cursor: "pointer",
+                          fontWeight: 800,
+                          minWidth: "42px",
+                        }}
+                      >
+                        +
+                      </button>
+                    </>
+                  )}
+                  {isNone && canAdd && (
+                    <button
+                      type="button"
+                      onClick={() => addManualFinding(opt.value)}
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "12px",
+                        border: "1px solid #1d4ed8",
+                        background: "#1d4ed8",
+                        color: "#fff",
+                        cursor: "pointer",
+                        fontWeight: 800,
+                      }}
+                    >
+                      Yes
+                    </button>
+                  )}
+                </div>
+
+                {cardsForCategory.map((f, cardIdx) => {
+                  const complete = isFindingComplete(f);
+                  const expanded = expandedManualId === f.finding_id;
+                  const label = categoryLabelMap[opt.value] || "Privacy threat";
+                  return (
+                    <div
+                      key={f.finding_id}
+                      style={{
+                        padding: "10px",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        background: "#f8fafc",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                        <strong style={{ color: "#0f172a" }}>
+                          {label} #{cardIdx + 1}
+                        </strong>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "999px",
+                            background: complete ? "#dcfce7" : "#fee2e2",
+                            color: complete ? "#166534" : "#b91c1c",
+                            fontSize: "0.85rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {complete ? "Complete" : "Needs answers"}
+                        </span>
+                        <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={() => toggleManualExpand(f.finding_id)}
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #cbd5e1",
+                              background: "#fff",
+                              color: "#0f172a",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {expanded ? "Collapse" : "Expand"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteManualFinding(f.finding_id)}
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #e11d48",
+                              background: "#fff",
+                              color: "#e11d48",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      {!expanded && (
+                        <div style={{ color: "#475569", fontSize: "0.9rem", marginTop: "6px" }}>
+                          {f.description || "No description yet."}
+                        </div>
+                      )}
+                      {expanded && (
+                        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                              <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <span style={{ fontWeight: 700 }}>
+                              {opt.value === "none"
+            ? "Please tell us why you do not see any privacy-related content."
+            : "Please briefly describe what this content is."}
+                            </span>
+                            <textarea
+                              rows={3}
+                              value={f.description}
+                              onChange={(e) => updateManualField(f.finding_id, "description", e.target.value)}
+                              style={{
+                                width: "100%",
+                                padding: "8px",
+                                borderRadius: "8px",
+                                border: "1px solid #cbd5e1",
+                              }}
+                            />
+                          </label>
+                          {opt.value === "other" && (
+                            <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <span style={{ fontWeight: 700 }}>Other (please specify)</span>
+                              <input
+                                type="text"
+                                value={f.other_text || ""}
+                                onChange={(e) => updateManualField(f.finding_id, "other_text", e.target.value)}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  borderRadius: "8px",
+                                  border: "1px solid #cbd5e1",
+                                }}
+                              />
+                            </label>
+                          )}
+
+                          {opt.value !== "none" && (
+                            <>
+                              <LikertScale
+                                name={`manual-${f.finding_id}-threat`}
+                                label="To what extent do you agree that this content is privacy-threatening for you?"
+                                value={f.privacy_threat_score}
+                                onChange={(v) => updateManualField(f.finding_id, "privacy_threat_score", v)}
+                              />
+                              <LikertScale
+                                name={`manual-${f.finding_id}-share`}
+                                label="To what extent do you agree that you would be willing to share a video that includes this content publicly online?"
+                                value={f.share_willingness_score}
+                                onChange={(v) => updateManualField(f.finding_id, "share_willingness_score", v)}
+                              />
+                              <LikertScale
+                                name={`manual-${f.finding_id}-ai`}
+                                label="Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered this content about you over time?"
+                                value={f.ai_memory_comfort_score}
+                                onChange={(v) => updateManualField(f.finding_id, "ai_memory_comfort_score", v)}
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {showHelpModal && (
@@ -667,7 +1462,7 @@ export default function TaskView({
                 }}
                 aria-label="Close instructions"
               >
-                ×
+                X
               </button>
             </div>
             <p style={{ marginTop: "12px", marginBottom: "8px" }}>
@@ -721,13 +1516,13 @@ export default function TaskView({
             </p>
             <p style={{ marginBottom: "8px" }}>Your role is to:</p>
             <ul>
-              <li>Review the AI’s suggestions.</li>
+              <li>Review the AI's suggestions.</li>
               <li>Correct them if needed.</li>
               <li>Add any privacy-sensitive moments the AI may have missed.</li>
             </ul>
             <p>
-              The AI suggestions are not always complete or accurate — your own judgment is essential. Please take your
-              time and provide your own input in addition to reviewing the AI’s output. Your feedback will help us
+              The AI suggestions are not always complete or accurate; your own judgment is essential. Please take your
+              time and provide your own input in addition to reviewing the AI's output. Your feedback will help us
               understand how people interact with automated assistance when reasoning about privacy.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
@@ -772,3 +1567,11 @@ export default function TaskView({
     </>
   );
 }
+
+
+
+
+
+
+
+

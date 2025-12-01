@@ -8,11 +8,11 @@ const tickLabels = {
   21: "Very High",
 };
 
-const AI_LIKERT_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
+const AI_LIKERT_OPTIONS = [-3, -2, -1, 0, 1, 2, 3];
 const aiOptionLabels = {
-  1: "Strongly disagree",
-  4: "Neutral",
-  7: "Strongly agree",
+  "-3": "Strongly disagree",
+  "0": "Neutral",
+  "3": "Strongly agree",
 };
 
 const QUESTION_DEFS = [
@@ -395,13 +395,13 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                         display: "flex",
                         justifyContent: "space-between",
                         marginTop: "8px",
-                        fontSize: "0.9rem",
-                        color: "#475569",
-                      }}
-                    >
-                      <span>1 = Strongly disagree</span>
-                      <span>7 = Strongly agree</span>
-                    </div>
+                    fontSize: "0.9rem",
+                    color: "#475569",
+                  }}
+                >
+                  <span>-3 = Strongly disagree</span>
+                  <span>3 = Strongly agree</span>
+                </div>
                   </div>
                 ))}
               </div>

@@ -37,7 +37,7 @@ function normalizeAnswer(raw, idx) {
   if (!raw) return null;
   const questionId = raw.id || `q${idx + 1}`;
   const scoreNum = Number(raw.score);
-  if (!Number.isFinite(scoreNum) || scoreNum < 1 || scoreNum > 7) return null;
+  if (!Number.isFinite(scoreNum) || scoreNum < -3 || scoreNum > 3) return null;
 
   return {
     M: {

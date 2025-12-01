@@ -81,6 +81,18 @@ export async function submitPostStudy(payload) {
   return res.json();
 }
 
+export async function submitClipAnnotation(payload) {
+  const res = await fetch(buildUrl("/clipAnnotation"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(`Clip annotation submit failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function updateStage(participantId, stage) {
   const res = await fetch(buildUrl("/stage"), {
     method: "POST",
