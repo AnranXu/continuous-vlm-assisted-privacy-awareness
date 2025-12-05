@@ -36,12 +36,12 @@ export default function InstructionsPage({
         <h3>What is this study about?</h3>
         <p>
           You will see several short, first-person video clips that show common daily activities. These videos come from
-          a publicly available research dataset. We are interested in understanding:
+          a publicly available research dataset, recorded by the same person. We are interested in understanding:
         </p>
         <ul>
-          <li>How people recognize sensitive or personal information in everyday visual scenes</li>
-          <li>What kinds of moments or details people consider private</li>
-          <li>How people judge privacy risks based on what appears in a video</li>
+          <li>How people <strong>recognize sensitive or personal information</strong> in everyday visual scenes</li>
+          <li>What kinds of <strong>moments</strong> or <strong>details</strong> people consider <strong>privacy-threatening</strong></li>
+          <li>How people <strong>judge privacy risks</strong> based on what appears in a video</li>
         </ul>
         <p>
           Your responses will help researchers better understand human privacy perception and support the design of
@@ -51,12 +51,12 @@ export default function InstructionsPage({
         <h3>What will I do?</h3>
         <p>The task is simple and takes about 30-45 minutes. You will:</p>
         <ul>
-          <li>Watch several short first-person video clips.</li>
-          <li>Imagine the clips reflect your own everyday activities.</li>
-          <li>Identify parts of each video that you consider private, sensitive, or revealing.</li>
-          <li>Provide short explanations about why those moments feel sensitive.</li>
+          <li>Watch several short <strong>first-person video clips</strong>.</li>
+          <li>Imagine the clips reflect <strong>your own everyday activities</strong>.</li>
+          <li>Identify parts of each video that you consider <strong>privacy-threatening</strong>.</li>
+          <li>Provide short <strong>answers</strong> and <strong>explanations</strong> about why those moments feel sensitive.</li>
           <li>
-            For some participants, additional tools may be provided to assist with the task. (The type of interface you
+            For <strong>some</strong> participants, <strong>additional tools</strong> may be provided to assist with the task. (The type of interface you
             receive will depend on your assignment.)
           </li>
         </ul>
