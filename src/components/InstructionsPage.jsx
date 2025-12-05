@@ -1,6 +1,10 @@
 // src/components/InstructionsPage.jsx
 import React from 'react';
 
+const EmphasisChip = ({ children }) => (
+  <span className="emphasis-chip">{children}</span>
+);
+
 export default function InstructionsPage({
   prolificId,
   loading,
@@ -22,9 +26,9 @@ export default function InstructionsPage({
 
       <div className="card" style={{ fontSize: '1.5rem' }}>
         <p>
-          <strong>Lead Researcher:</strong> Anran Xu, Ph.D., RIKEN (Japan)
+          <strong>Lead Researcher</strong>: Anran Xu, Ph.D., RIKEN (Japan)
           <br />
-          <strong>Contact:</strong> anran.xu@riken.jp
+          <strong>Contact</strong>: anran.xu@riken.jp
         </p>
 
         <h3>Welcome and Overview</h3>
@@ -39,9 +43,12 @@ export default function InstructionsPage({
           a publicly available research dataset, recorded by the same person. We are interested in understanding:
         </p>
         <ul>
-          <li>How people <strong>recognize sensitive or personal information</strong> in everyday visual scenes</li>
-          <li>What kinds of <strong>moments</strong> or <strong>details</strong> people consider <strong>privacy-threatening</strong></li>
-          <li>How people <strong>judge privacy risks</strong> based on what appears in a video</li>
+          <li>How people <EmphasisChip>recognize sensitive or personal information</EmphasisChip> in everyday visual scenes</li>
+          <li>
+            What kinds of <EmphasisChip>moments</EmphasisChip> or <EmphasisChip>details</EmphasisChip> people consider{' '}
+            <EmphasisChip>privacy-threatening</EmphasisChip>
+          </li>
+          <li>How people <EmphasisChip>judge privacy risks</EmphasisChip> based on what appears in a video</li>
         </ul>
         <p>
           Your responses will help researchers better understand human privacy perception and support the design of
@@ -51,16 +58,18 @@ export default function InstructionsPage({
         <h3>What will I do?</h3>
         <p>The task is simple and takes about 30-45 minutes. You will:</p>
         <ul>
-          <li>Watch several short <strong>first-person video clips</strong>.</li>
-          <li>Imagine the clips reflect <strong>your own everyday activities</strong>.</li>
-          <li>Identify parts of each video that you consider <strong>privacy-threatening</strong>.</li>
-          <li>Provide short <strong>answers</strong> and <strong>explanations</strong> about why those moments feel sensitive.</li>
+          <li>Watch several short <EmphasisChip>first-person video clips</EmphasisChip>.</li>
+          <li><EmphasisChip>Imagine</EmphasisChip> the clips reflect <EmphasisChip>your own everyday activities</EmphasisChip>.</li>
+          <li>Identify parts of each video that you consider <EmphasisChip>privacy-threatening</EmphasisChip>.</li>
           <li>
-            For <strong>some</strong> participants, <strong>additional tools</strong> may be provided to assist with the task. (The type of interface you
+            Provide short <EmphasisChip>answers</EmphasisChip> and <EmphasisChip>explanations</EmphasisChip> about why those moments feel sensitive.
+          </li>
+          <li>
+            For <EmphasisChip>some</EmphasisChip> participants, <EmphasisChip>additional tools</EmphasisChip> may be provided to assist with the task. (The type of interface you
             receive will depend on your assignment.)
           </li>
         </ul>
-        <p>There are no right or wrong answers — we are interested in your personal judgment.</p>
+        <p>There are no right or wrong answers - we are interested in your personal judgment.</p>
 
         <h3>Are there any risks?</h3>
         <p>
@@ -78,10 +87,6 @@ export default function InstructionsPage({
         <ul>
           <li>We do not receive your name or personal Prolific information.</li>
           <li>We only receive your Prolific ID so we can process your payment.</li>
-          <li>
-            We may ask general demographic information (age, gender, nationality), which is stored separately for
-            statistical purposes.
-          </li>
           <li>Your annotations may be used for research purposes and may be shared in an anonymized dataset.</li>
           <li>All your responses remain fully anonymous.</li>
           <li>Participation is voluntary. You can stop at any time.</li>
@@ -92,17 +97,15 @@ export default function InstructionsPage({
           Feel free to message the research team through Prolific or contact Anran Xu (<a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>) through Email.
         </p>
         <p>
-          <strong>For concerns or complaints:</strong>
-          <br />
+        <h3>For concerns or complaints</h3>
           RIKEN Safety Management Division Bioethics Section
-          <br />
           Email: human@riken.jp
         </p>
       </div>
 
       <div className="card">
         <form onSubmit={handleSubmit}>
-          <label htmlFor="prolificId">Prolific ID</label>
+          <label htmlFor="prolificId">Prolific ID (Enter your Prolific ID and start to indicate your agreement to participate in this study.)</label>
           <input
             id="prolificId"
             value={prolificId}
