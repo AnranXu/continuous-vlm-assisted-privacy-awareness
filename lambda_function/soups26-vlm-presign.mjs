@@ -37,6 +37,10 @@ export const handler = async (event) => {
     const bucket = cfg.bucketName;
     const storiesPrefix = cfg.storiesPrefix || "stories/";
     const participantsPrefix = cfg.participantsPrefix || "participants/";
+    const allowedRootDocs = new Set([
+      "Consent Form.docx",
+      "Consent Withdrawal Form.docx"
+    ]);
 
     const body = event.body ? JSON.parse(event.body) : {};
     const operation = body.operation; // "get" | "put"
@@ -53,13 +57,14 @@ export const handler = async (event) => {
 
     // simple safety checks
     if (operation === "get") {
-      if (!key.startsWith(storiesPrefix) && !key.startsWith(participantsPrefix)) {
-        return respond(403, { error: "GET only allowed for stories/ or participants/ keys" });
+      const isStory = key.startsWith(storiesPrefix);
+      const isParticipant = key.startsWith(participantsPrefix);
+      const isWhitelistedDoc = allowedRootDocs.has(key);
+      if (!isStory && !isParticipant && !isWhitelistedDoc) {
+        return respond(403, { error: "GET only allowed for stories/, participants/, or approved root docs" });
       }
-    } else {
-      if (!key.startsWith(participantsPrefix)) {
-        return respond(403, { error: "PUT only allowed under participants/ prefix" });
-      }
+    } else if (!key.startsWith(participantsPrefix)) {
+      return respond(403, { error: "PUT only allowed under participants/ prefix" });
     }
 
     let command;

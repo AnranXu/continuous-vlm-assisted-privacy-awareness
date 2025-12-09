@@ -1,5 +1,6 @@
 // src/components/InstructionsPage.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { presignGet } from '../api';
 
 const EmphasisChip = ({ children }) => (
   <span className="emphasis-chip">{children}</span>
@@ -17,6 +18,25 @@ export default function InstructionsPage({
     e.preventDefault();
     if (onSubmit) onSubmit(e);
   };
+
+  const [consentUrl, setConsentUrl] = useState(null);
+  const [withdrawalUrl, setWithdrawalUrl] = useState(null);
+
+  useEffect(() => {
+    async function loadLinks() {
+      try {
+        const [consent, withdrawal] = await Promise.all([
+          presignGet('Consent Form.docx'),
+          presignGet('Consent Withdrawal Form.docx'),
+        ]);
+        setConsentUrl(consent || null);
+        setWithdrawalUrl(withdrawal || null);
+      } catch (err) {
+        console.warn('Failed to presign consent docs', err);
+      }
+    }
+    loadLinks();
+  }, []);
 
   return (
     <div className="container">
@@ -96,16 +116,28 @@ export default function InstructionsPage({
         <p>
           Feel free to message the research team through Prolific or contact Anran Xu (<a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>) through Email.
         </p>
-        <p>
         <h3>For concerns or complaints</h3>
-          RIKEN Safety Management Division Bioethics Section
-          Email: human@riken.jp
+        <p>
+          RIKEN Safety Management Division Bioethics Section<br />
+          Email: <a href="mailto:human@riken.jp">human@riken.jp</a>
         </p>
       </div>
 
       <div className="card">
         <form onSubmit={handleSubmit}>
-          <label htmlFor="prolificId">Prolific ID (Enter your Prolific ID and start to indicate your agreement to participate in this study.)</label>
+          <label htmlFor="prolificId">
+            Prolific ID (Enter your Prolific ID and start to indicate your consent to participate in this study (you do not need to fill the form). For details, See the{' '}
+            <a
+              href={consentUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              aria-disabled={!consentUrl}
+              style={{ pointerEvents: consentUrl ? 'auto' : 'none', color: consentUrl ? undefined : '#94a3b8' }}
+            >
+              consent form
+            </a>
+            .)
+          </label>
           <input
             id="prolificId"
             value={prolificId}
@@ -121,6 +153,23 @@ export default function InstructionsPage({
           </button>
         </form>
         {feedback}
+
+        <div style={{ marginTop: '16px' }}>
+          <h3>Consent withdrawal</h3>
+          <p style={{ marginBottom: '4px' }}>
+            If you wish to stop after providing consent, please fill out this{' '}
+            <a
+              href={withdrawalUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              aria-disabled={!withdrawalUrl}
+              style={{ pointerEvents: withdrawalUrl ? 'auto' : 'none', color: withdrawalUrl ? undefined : '#94a3b8' }}
+            >
+              withdrawal form
+            </a>{' '}
+            and email it to <a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>.
+          </p>
+        </div>
       </div>
     </div>
   );
