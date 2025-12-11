@@ -1020,9 +1020,6 @@ export default function TaskView({
                                     ? "New privacy threat"
                                     : "Needs answers"}
                                 </span>
-                                <span style={{ fontSize: "0.9rem", color: "#475569" }}>
-                                  Severity: {d.severity ?? "n/a"} | Confidence: {d.confidence ?? "n/a"}
-                                </span>
                               </div>
                             </div>
                             {isOpen && (
@@ -1140,9 +1137,6 @@ export default function TaskView({
                       )}
                       <div style={{ fontSize: "0.9rem", color: "#475569", marginTop: "6px" }}>
                         Info types: {formatList(threat.information_types) || "n/a"}
-                      </div>
-                      <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
-                        Severity: {threat.severity_overall ?? "n/a"} | Confidence: {threat.confidence ?? "n/a"}
                       </div>
                       {threat.evidence_summary && (
                         <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: "4px" }}>
@@ -1567,8 +1561,6 @@ export default function TaskView({
     </>
   );
 }
-
-
 
 
 
