@@ -86,7 +86,7 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
       <div className="card" style={{ fontSize: "1.05rem", lineHeight: 1.55 }}>
         <h2 style={{ marginTop: 0, marginBottom: "10px" }}>Pre-study: your view on AI assistants</h2>
         <p style={{ marginBottom: "12px" }}>
-          In this study, we first ask you to think about a possible future AI assistant that can continuously see what
+          In this study, we first ask you to think about a possible future <strong>AI assistant</strong> that can <strong>continuously see</strong> what
           you see through a wearable camera (for example in smart glasses) and provide helps. It can recognize objects,
           locations, and people, and keep a memory of what it has seen to offer reminders and suggestions. It does not
           read your mind or hear private thoughts, but it could help you sort receipts, remember where you left things,
