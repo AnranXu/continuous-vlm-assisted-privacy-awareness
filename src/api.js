@@ -10,11 +10,11 @@ function buildUrl(path) {
   return `${API_BASE}${path}`;
 }
 
-export async function assignParticipant(participantId) {
+export async function assignParticipant(participantId, study) {
   const res = await fetch(buildUrl("/assign"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId }),
+    body: JSON.stringify({ participantId, study }),
   });
   if (!res.ok) {
     throw new Error(`Assign failed: ${res.status}`);
@@ -22,11 +22,11 @@ export async function assignParticipant(participantId) {
   return res.json();
 }
 
-export async function assignTestParticipant({ participantId, storyIndex, mode }) {
+export async function assignTestParticipant({ participantId, storyIndex, mode, study }) {
   const res = await fetch(buildUrl("/assignTest"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId, storyIndex, mode }),
+    body: JSON.stringify({ participantId, storyIndex, mode, study }),
   });
   if (!res.ok) {
     throw new Error(`AssignTest failed: ${res.status}`);
@@ -57,11 +57,11 @@ export async function submitPreStudy(payload) {
   return res.json();
 }
 
-export async function fetchStudyStatus(participantId) {
+export async function fetchStudyStatus(participantId, study) {
   const res = await fetch(buildUrl("/status"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId }),
+    body: JSON.stringify({ participantId, study }),
   });
   if (!res.ok) {
     throw new Error(`Status fetch failed: ${res.status}`);
@@ -93,11 +93,11 @@ export async function submitClipAnnotation(payload) {
   return res.json();
 }
 
-export async function updateStage(participantId, stage) {
+export async function updateStage(participantId, stage, study) {
   const res = await fetch(buildUrl("/stage"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId, stage }),
+    body: JSON.stringify({ participantId, stage, study }),
   });
   if (!res.ok) {
     throw new Error(`Stage update failed: ${res.status}`);
@@ -105,11 +105,11 @@ export async function updateStage(participantId, stage) {
   return res.json();
 }
 
-export async function markFinished(participantId) {
+export async function markFinished(participantId, study) {
   const res = await fetch(buildUrl("/markFinished"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId }),
+    body: JSON.stringify({ participantId, study }),
   });
   if (!res.ok) {
     throw new Error(`Mark finished failed: ${res.status}`);

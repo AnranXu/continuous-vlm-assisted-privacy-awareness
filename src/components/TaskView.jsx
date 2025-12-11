@@ -330,6 +330,10 @@ export default function TaskView({
     ? crossThreatsForUi.length
     : vlmAnalysis?.story?.cross_clip_threats?.length || 0;
 
+  const currentClipStatus = clipCompletion?.[currentClipIndex] || { watched: false, saved: false };
+  const clipIsSaved = hintMode ? true : Boolean(currentClipStatus.saved);
+  const clipWatched = hintMode ? true : Boolean(currentClipStatus.watched);
+
   const clipsViewedCount = hintMode
     ? hintClipCount
     : Math.max(seenClipIndices.size, currentClipIndex + 1);
@@ -342,9 +346,6 @@ export default function TaskView({
         loading ||
         (!isTestMode && !clipIsSaved);
 
-  const currentClipStatus = clipCompletion?.[currentClipIndex] || { watched: false, saved: false };
-  const clipIsSaved = hintMode ? true : Boolean(currentClipStatus.saved);
-  const clipWatched = hintMode ? true : Boolean(currentClipStatus.watched);
   const currentAiAnswers = activeAiAnswersByClip[currentClipIndex] || {};
   const currentManualFindings = activeManualFindingsByClip[currentClipIndex] || [];
   const openDetectionId = activeOpenDetectionByClip[currentClipIndex] || null;

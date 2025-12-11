@@ -10,6 +10,7 @@ const s3 = new S3Client({});
 const TABLE = process.env.ASSIGN_TABLE;
 const CONFIG_BUCKET = process.env.CONFIG_BUCKET;
 const CONFIG_KEY = process.env.CONFIG_KEY || "study_config.json";
+const DEFAULT_FORMAL_STUDY = process.env.DEFAULT_FORMAL_STUDY || "formal_1";
 
 let cachedConfig = null;
 
@@ -162,10 +163,11 @@ function normalizeCrossResponse(raw, idx) {
 export const handler = async (event) => {
   try {
     const cfg = await getStudyConfig();
-    const STUDY_ID = cfg.studyId;
-
     const body = event.body ? JSON.parse(event.body) : {};
     const participantId = (body.participantId || "").trim();
+    const requestedStudy = (body.study || "").trim().toLowerCase();
+    const studyLabel = requestedStudy === "pilot" ? "pilot" : DEFAULT_FORMAL_STUDY;
+    const STUDY_ID = `${cfg.studyId}:${studyLabel}`;
     const storyId = body.storyId || null;
     const mode = body.mode || null;
     const clipIndex = Number(body.clipIndex);
@@ -199,6 +201,7 @@ export const handler = async (event) => {
       sk: { S: `${STUDY_ID}#participant_${participantId}#story_${storyId}#clip_${clipIndex}` },
       item_type: { S: "clip_annotation" },
       study_id: { S: STUDY_ID },
+      study_label: { S: studyLabel },
       story_id: { S: String(storyId) },
       participant_id: { S: participantId },
       clip_index: { N: `${clipIndex}` },
@@ -223,6 +226,7 @@ export const handler = async (event) => {
     return respond(200, {
       participantId,
       studyId: STUDY_ID,
+      study_label: studyLabel,
       storyId,
       clipIndex,
       clipId,

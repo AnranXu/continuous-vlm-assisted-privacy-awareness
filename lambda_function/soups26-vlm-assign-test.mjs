@@ -18,6 +18,8 @@ export const handler = async (event) => {
     const body = event.body ? JSON.parse(event.body) : {};
 
     const participantId = body.participantId || "TEST_USER";
+    const requestedStudy = (body.study || "").toString().toLowerCase();
+    const studyLabel = requestedStudy === "pilot" ? "pilot" : (process.env.DEFAULT_FORMAL_STUDY || "formal_1");
 
     // storyIndex is 1-based; default 1
     const storyIndex = parseInt(body.storyIndex ?? 1, 10);
@@ -62,7 +64,8 @@ export const handler = async (event) => {
 
     const result = {
       participantId,
-      studyId: studyConfig.studyId || process.env.STUDY_ID || "soups26_vlma_01",
+      studyId: `${studyConfig.studyId || process.env.STUDY_ID || "soups26_vlma_01"}:${studyLabel}`,
+      study_label: studyLabel,
       storyId,
       mode,          // "human" or "vlm" (your experimental condition)
       storyIndex,

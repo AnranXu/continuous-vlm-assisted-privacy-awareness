@@ -10,6 +10,7 @@ const s3 = new S3Client({});
 const TABLE = process.env.ASSIGN_TABLE;
 const CONFIG_BUCKET = process.env.CONFIG_BUCKET;
 const CONFIG_KEY = process.env.CONFIG_KEY || "study_config.json";
+const DEFAULT_FORMAL_STUDY = process.env.DEFAULT_FORMAL_STUDY || "formal_1";
 
 let cachedConfig = null;
 
@@ -35,10 +36,11 @@ async function getStudyConfig() {
 export const handler = async (event) => {
   try {
     const cfg = await getStudyConfig();
-    const STUDY_ID = cfg.studyId;
-
     const body = event.body ? JSON.parse(event.body) : {};
     const participantId = (body.participantId || "").trim();
+    const requestedStudy = (body.study || "").trim().toLowerCase();
+    const studyLabel = requestedStudy === "pilot" ? "pilot" : DEFAULT_FORMAL_STUDY;
+    const STUDY_ID = `${cfg.studyId}:${studyLabel}`;
     const stageVal = Number(body.stage);
 
     if (!participantId) {
@@ -67,7 +69,7 @@ export const handler = async (event) => {
     );
 
     console.info("Stage updated", { participantId, stage: stageVal });
-    return respond(200, { participantId, studyId: STUDY_ID, stage: stageVal });
+    return respond(200, { participantId, studyId: STUDY_ID, study_label: studyLabel, stage: stageVal });
   } catch (err) {
     console.error("stage lambda error:", err);
     return respond(500, { error: err.message || "Internal server error" });

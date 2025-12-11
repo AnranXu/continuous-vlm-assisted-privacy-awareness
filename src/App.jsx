@@ -26,6 +26,10 @@ const params = new URLSearchParams(window.location.search);
 
 const urlMode = (params.get("mode") || "").toLowerCase(); // "test" or ""
 const IS_TEST_MODE = urlMode === "test";
+const DEFAULT_FORMAL_STUDY = "formal_1";
+const rawPilotFlag = (params.get("pilot") || "").toLowerCase();
+const IS_PILOT_STUDY = rawPilotFlag === "true";
+const ACTIVE_STUDY = IS_PILOT_STUDY ? "pilot" : DEFAULT_FORMAL_STUDY;
 
 // "study" = which experimental condition we’re testing in test mode
 //   ?study=human  → test human-only condition
@@ -193,10 +197,11 @@ function App() {
           participantId: pid,
           storyIndex: TEST_STORY_INDEX,
           mode: TEST_STUDY_MODE, // "human" or "vlm"
+          study: ACTIVE_STUDY,
         });
       } else {
         // ---------- NORMAL STUDY MODE ----------
-        assignRes = await assignParticipant(pid);
+        assignRes = await assignParticipant(pid, ACTIVE_STUDY);
       }
 
       setAssignment(assignRes);
@@ -272,6 +277,7 @@ function App() {
         studyId: assignment.studyId,
         storyId: assignment.storyId,
         mode: assignment.mode || assignment.assigned_mode,
+        study: ACTIVE_STUDY,
         clipIndex: clipIndexValue,
         clipId: payload?.clipId || clipCfg?.clip_id || clipCfg?.clip_index || null,
         aiResponses: payload?.aiResponses || [],
@@ -317,6 +323,7 @@ function App() {
         studyId: assignment.studyId,
         storyId: assignment.storyId,
         mode: assignment.mode || assignment.assigned_mode,
+        study: ACTIVE_STUDY,
         answers: responses,
       });
       setPreStudyComplete(true);
@@ -354,13 +361,14 @@ function App() {
         studyId: assignment.studyId,
         storyId: assignment.storyId,
         mode: assignment.mode || assignment.assigned_mode,
+        study: ACTIVE_STUDY,
         ...payload,
       });
       setPostStudyComplete(true);
       setParticipantStage(3);
       console.info("Stage advanced to 3 (post-study complete).");
       setStatus("Post-study responses saved. Thank you!");
-      await markFinished(pid);
+      await markFinished(pid, ACTIVE_STUDY);
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to save post-study responses.");
@@ -371,7 +379,7 @@ function App() {
 
   async function maybeMarkPreStudyComplete(assignRes, pid) {
     try {
-      const statusRes = await fetchStudyStatus(pid);
+      const statusRes = await fetchStudyStatus(pid, ACTIVE_STUDY);
       if (statusRes?.stage != null) {
         setParticipantStage(statusRes.stage);
         console.info("Restored participant stage", statusRes.stage);
@@ -408,7 +416,7 @@ function App() {
     console.info("Stage advanced to 2 (annotation complete).");
     try {
       if (pid) {
-        await updateStage(pid, 2);
+        await updateStage(pid, 2, ACTIVE_STUDY);
         console.info("Stage update persisted (2) for participant", pid);
       }
     } catch (err) {

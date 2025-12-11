@@ -11,6 +11,7 @@ const s3 = new S3Client({});
 const TABLE = process.env.ASSIGN_TABLE;
 const CONFIG_BUCKET = process.env.CONFIG_BUCKET;
 const CONFIG_KEY = process.env.CONFIG_KEY || "study_config.json";
+const DEFAULT_FORMAL_STUDY = process.env.DEFAULT_FORMAL_STUDY || "formal_1";
 
 let cachedConfig = null;
 
@@ -53,10 +54,11 @@ function normalizeAnswer(raw, idx) {
 export const handler = async (event) => {
   try {
     const cfg = await getStudyConfig();
-    const STUDY_ID = cfg.studyId;
-
     const body = event.body ? JSON.parse(event.body) : {};
     const participantId = (body.participantId || "").trim();
+    const requestedStudy = (body.study || "").trim().toLowerCase();
+    const studyLabel = requestedStudy === "pilot" ? "pilot" : DEFAULT_FORMAL_STUDY;
+    const STUDY_ID = `${cfg.studyId}:${studyLabel}`;
     const answers = Array.isArray(body.answers) ? body.answers : [];
     const storyId = body.storyId || null;
     const mode = body.mode || null;
@@ -82,6 +84,7 @@ export const handler = async (event) => {
       sk: { S: `${STUDY_ID}#participant_${participantId}#prestudy` },
       item_type: { S: "prestudy_result" },
       study_id: { S: STUDY_ID },
+      study_label: { S: studyLabel },
       participant_id: { S: participantId },
       created_at: { S: now },
       updated_at: { S: now },
@@ -108,12 +111,12 @@ export const handler = async (event) => {
         new UpdateItemCommand({
           TableName: TABLE,
           Key: participantKey,
-          UpdateExpression: "SET stage = :stage, updated_at = :ts",
-          ConditionExpression: "attribute_not_exists(stage) OR stage < :stage",
-          ExpressionAttributeValues: {
-            ":stage": { N: "1" },
-            ":ts": { S: now }
-          }
+      UpdateExpression: "SET stage = :stage, updated_at = :ts",
+      ConditionExpression: "attribute_not_exists(stage) OR stage < :stage",
+      ExpressionAttributeValues: {
+        ":stage": { N: "1" },
+        ":ts": { S: now }
+      }
         })
       );
       console.info("Stage updated to 1 (prestudy) for", participantId);
@@ -126,6 +129,7 @@ export const handler = async (event) => {
     return respond(200, {
       participantId,
       studyId: STUDY_ID,
+      study_label: studyLabel,
       stored: true,
       answerCount: normalizedAnswers.length,
       stage: 1

@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { assignParticipant } from '../api';
 
+const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+const DEFAULT_FORMAL_STUDY = 'formal_1';
+const rawPilotFlag = (params.get('pilot') || '').toLowerCase();
+const ACTIVE_STUDY = rawPilotFlag === 'true' ? 'pilot' : DEFAULT_FORMAL_STUDY;
+
 export default function InstructionsPage() {
   const navigate = useNavigate();
   const { storyId, setState } = useStore();
@@ -17,7 +22,7 @@ export default function InstructionsPage() {
     }
     try {
       setLoading(true);
-      const { assignment, assets } = await assignParticipant(pid.trim(), storyId);
+      const { assignment, assets } = await assignParticipant(pid.trim(), ACTIVE_STUDY);
       setState({
         participantId: pid.trim(),
         assignedMode: assignment.assigned_mode,
