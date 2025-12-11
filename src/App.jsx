@@ -73,6 +73,9 @@ function App() {
   const [postStudyComplete, setPostStudyComplete] = useState(false);
   const [postStudySaving, setPostStudySaving] = useState(false);
   const [vlmCountdown, setVlmCountdown] = useState(15);
+  const [showAnnotationHint, setShowAnnotationHint] = useState(false);
+  const [annotationHintSeen, setAnnotationHintSeen] = useState(false);
+  const hintDimOpacity = Number(import.meta.env.VITE_HINT_DIM_ALPHA ?? 0.45);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
@@ -168,6 +171,8 @@ function App() {
     setPreStudyComplete(false);
     setShowPostStudyPage(false);
     setPostStudyComplete(false);
+    setShowAnnotationHint(false);
+    setAnnotationHintSeen(false);
 
     const pid = resolvedParticipantId();
     if (!pid) {
@@ -438,6 +443,14 @@ function App() {
     return "Privacy Perception in Visual Content Understanding (30-45 minutes)";
   })();
 
+  useEffect(() => {
+    if (hasActiveTask && !annotationHintSeen) {
+      setShowAnnotationHint(true);
+    } else if (!hasActiveTask) {
+      setShowAnnotationHint(false);
+    }
+  }, [hasActiveTask, annotationHintSeen]);
+
   const renderFeedback = (opts = { showStatus: true }) => (
     <>
       {error && <div style={{ color: "red", marginTop: "12px" }}>{error}</div>}
@@ -635,6 +648,18 @@ function App() {
           clampToFurthest={clampToFurthest}
           furthestTimeRef={furthestTimeRef}
           vlmAnalysis={vlmAnalysis}
+          hintMode={showAnnotationHint}
+          onFinishHint={() => {
+            setAnnotationHintSeen(true);
+            setShowAnnotationHint(false);
+          }}
+          onCloseHint={() => {
+            setAnnotationHintSeen(true);
+            setShowAnnotationHint(false);
+          }}
+          onOpenHint={() => setShowAnnotationHint(true)}
+          hintDimOpacity={hintDimOpacity}
+          hintWasSeen={annotationHintSeen}
         />
       )}
 

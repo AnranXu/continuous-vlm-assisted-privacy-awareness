@@ -73,6 +73,12 @@ export default function TaskView({
   clampToFurthest,
   furthestTimeRef,
   vlmAnalysis,
+  hintMode = false,
+  onFinishHint = () => {},
+  onCloseHint = () => {},
+  onOpenHint,
+  hintDimOpacity = 0.45,
+  hintWasSeen = false,
 }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [maxSeenTimeByClip, setMaxSeenTimeByClip] = useState({});
@@ -84,8 +90,71 @@ export default function TaskView({
   const [seenDetectionsByClip, setSeenDetectionsByClip] = useState({});
   const [newDetectionPrompt, setNewDetectionPrompt] = useState(null);
   const [crossThreatAnswers, setCrossThreatAnswers] = useState({});
+  const [hintAiAnswersByClip, setHintAiAnswersByClip] = useState({});
+  const [hintOpenDetectionByClip, setHintOpenDetectionByClip] = useState({});
+  const [hintManualFindingsByClip, setHintManualFindingsByClip] = useState({});
+  const [hintExpandedManualId, setHintExpandedManualId] = useState(null);
+  const [hintCrossThreatAnswers, setHintCrossThreatAnswers] = useState({});
+  const [hintSeenDetectionsByClip, setHintSeenDetectionsByClip] = useState({});
+  const [hintClipCount, setHintClipCount] = useState(1);
+  const [hintStepIndex, setHintStepIndex] = useState(0);
   const videoWrapRef = useRef(null);
+  const totalClips = storyConfig?.clips?.length || 1;
   const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
+  const dimLevel = Number.isFinite(Number(hintDimOpacity)) ? Number(hintDimOpacity) : 0.5;
+  const resolvedMode = (assignment?.mode || assignment?.assigned_mode || "human").toLowerCase();
+  const isVlmMode = resolvedMode === "vlm";
+  const hintSteps = isVlmMode
+    ? ["ai-intro", "ai-expand", "next-clip", "cross", "manual", "finish"]
+    : ["next-clip", "manual", "finish"];
+  const hintStepKey = hintSteps[Math.min(hintStepIndex, hintSteps.length - 1)];
+  const focusMap = {
+    "ai-intro": "ai",
+    "ai-expand": "ai",
+    "next-clip": "nav",
+    cross: "ai",
+    manual: "manual",
+    finish: "manual",
+  };
+  const focusedSection = hintMode ? focusMap[hintStepKey] || "ai" : null;
+  const sectionHintStyle = (key) =>
+    !hintMode
+      ? {}
+      : {
+          opacity: focusedSection === key ? 1 : dimLevel,
+          pointerEvents: focusedSection === key ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+        };
+  const hintBoxStyle = {
+    marginTop: "10px",
+    padding: "10px 12px",
+    borderRadius: "10px",
+    border: "1px solid #1d4ed8",
+    background: "#eef2ff",
+    color: "#0f172a",
+    boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
+  };
+  const hintActionStyle = {
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "1px solid #1d4ed8",
+    background: "#1d4ed8",
+    color: "#fff",
+    cursor: "pointer",
+    fontWeight: 700,
+  };
+  useEffect(() => {
+    if (!hintMode) return;
+    const safeCount = Math.min(totalClips, Math.max(currentClipIndex + 1, 1));
+    setHintStepIndex(0);
+    setHintClipCount(safeCount);
+    setHintAiAnswersByClip({});
+    setHintOpenDetectionByClip({});
+    setHintManualFindingsByClip({});
+    setHintExpandedManualId(null);
+    setHintCrossThreatAnswers({});
+    setHintSeenDetectionsByClip({});
+  }, [hintMode, currentClipIndex, resolvedMode, totalClips]);
 
   const currentClipMeta = useMemo(() => {
     if (!vlmAnalysis || !vlmAnalysis.clips || !storyConfig?.clips?.[currentClipIndex]) return null;
@@ -104,6 +173,21 @@ export default function TaskView({
     }
     return found;
   }, [vlmAnalysis, storyConfig, currentClipIndex]);
+
+  const activeAiAnswersByClip = hintMode ? hintAiAnswersByClip : aiAnswersByClip;
+  const activeOpenDetectionByClip = hintMode ? hintOpenDetectionByClip : openDetectionByClip;
+  const activeManualFindingsByClip = hintMode ? hintManualFindingsByClip : manualFindingsByClip;
+  const activeCrossThreatAnswers = hintMode ? hintCrossThreatAnswers : crossThreatAnswers;
+  const activeSeenDetectionsByClip = hintMode ? hintSeenDetectionsByClip : seenDetectionsByClip;
+  const activeExpandedManualId = hintMode ? hintExpandedManualId : expandedManualId;
+  const setActiveExpandedManualId = hintMode ? setHintExpandedManualId : setExpandedManualId;
+  const setActiveAiAnswersByClip = hintMode ? setHintAiAnswersByClip : setAiAnswersByClip;
+  const setActiveOpenDetectionByClip = hintMode ? setHintOpenDetectionByClip : setOpenDetectionByClip;
+  const setActiveManualFindingsByClip = hintMode ? setHintManualFindingsByClip : setManualFindingsByClip;
+  const setActiveCrossThreatAnswers = hintMode ? setHintCrossThreatAnswers : setCrossThreatAnswers;
+  const setActiveSeenDetectionsByClip = hintMode ? setHintSeenDetectionsByClip : setSeenDetectionsByClip;
+  const displayNewDetectionPrompt = hintMode ? null : newDetectionPrompt;
+  const setDisplayNewDetectionPrompt = hintMode ? () => {} : setNewDetectionPrompt;
 
   const visibleDetections = useMemo(() => {
     if (!currentClipMeta || !currentClipMeta.detections) return [];
@@ -124,9 +208,51 @@ export default function TaskView({
     return vis;
   }, [currentClipMeta, currentTime, maxSeenTimeByClip, currentClipIndex]);
 
+  const hintSingleDetections = useMemo(
+    () => [
+      {
+        det_id: "hint_det_1",
+        detected_visual: "Laptop screen showing private messages",
+        time_sec: 12,
+        information_types: ["Other type of sensitive content"],
+        why_privacy_sensitive: "Screens can expose personal conversations.",
+        severity: "medium",
+        confidence: "medium",
+      },
+      {
+        det_id: "hint_det_2",
+        detected_visual: "House number visible at doorway",
+        time_sec: 28,
+        information_types: ["Location of shooting"],
+        why_privacy_sensitive: "Addresses can reveal where you live.",
+        severity: "medium",
+        confidence: "medium",
+      },
+    ],
+    []
+  );
+
+  const hintCrossThreats = useMemo(
+    () => [
+      {
+        threat_id: "hint_cross_1",
+        title: "Same workplace badge appears in two clips",
+        clips_involved: [1, 2],
+        information_types: ["personal information"],
+        severity_overall: "medium",
+        confidence: "medium",
+        why_amplified_across_clips: "Seeing the badge in multiple clips makes it easier to identify you.",
+        evidence_summary: "Badge is visible when entering the building and again while sitting at a desk.",
+      },
+    ],
+    []
+  );
+
+  const displayDetections = hintMode && isVlmMode ? hintSingleDetections : visibleDetections;
+
   const groupedDetections = useMemo(() => {
     const groups = {};
-    visibleDetections.forEach((d) => {
+    displayDetections.forEach((d) => {
       const types = Array.isArray(d.information_types) && d.information_types.length
         ? d.information_types
         : ["Other"];
@@ -136,9 +262,17 @@ export default function TaskView({
       });
     });
     return Object.entries(groups).map(([infoType, list]) => ({ infoType, list }));
-  }, [visibleDetections]);
+  }, [displayDetections]);
 
   const seenClipIndices = useMemo(() => {
+    if (hintMode) {
+      const seen = new Set();
+      const viewed = Math.max(1, hintClipCount);
+      for (let i = 0; i < viewed; i += 1) {
+        seen.add(i);
+      }
+      return seen;
+    }
     const seen = new Set();
     Object.entries(maxSeenTimeByClip || {}).forEach(([idx, t]) => {
       if (t != null) seen.add(Number(idx));
@@ -148,7 +282,7 @@ export default function TaskView({
       if (entry.watched || entry.saved) seen.add(Number(idx));
     });
     return seen;
-  }, [maxSeenTimeByClip, clipCompletion]);
+  }, [hintMode, hintClipCount, maxSeenTimeByClip, clipCompletion]);
 
   const unlockedCrossClipThreats = useMemo(() => {
     if (!vlmAnalysis?.story?.cross_clip_threats) return [];
@@ -162,16 +296,37 @@ export default function TaskView({
     });
   }, [vlmAnalysis, seenClipIndices]);
 
-  const crossClipThreatCount = vlmAnalysis?.story?.cross_clip_threats?.length || 0;
+  const crossThreatsForUi =
+    hintMode && isVlmMode
+      ? hintClipCount > 1 || hintStepIndex >= hintSteps.indexOf("cross")
+        ? hintCrossThreats
+        : []
+      : unlockedCrossClipThreats;
+
+  const crossClipThreatCount = hintMode && isVlmMode
+    ? crossThreatsForUi.length
+    : vlmAnalysis?.story?.cross_clip_threats?.length || 0;
+
+  const clipsViewedCount = hintMode
+    ? hintClipCount
+    : Math.max(seenClipIndices.size, currentClipIndex + 1);
+  const clipProgressLabel = `${Math.min(clipsViewedCount, totalClips)}/${totalClips} clips have been viewed`;
+  const nextButtonDisabled =
+    hintMode
+      ? false
+      : !storyConfig ||
+        currentClipIndex >= totalClips - 1 ||
+        loading ||
+        (!isTestMode && !clipIsSaved);
 
   const currentClipStatus = clipCompletion?.[currentClipIndex] || { watched: false, saved: false };
-  const clipIsSaved = Boolean(currentClipStatus.saved);
-  const clipWatched = Boolean(currentClipStatus.watched);
-  const currentAiAnswers = aiAnswersByClip[currentClipIndex] || {};
-  const currentManualFindings = manualFindingsByClip[currentClipIndex] || [];
-  const openDetectionId = openDetectionByClip[currentClipIndex] || null;
-  const seenDetections = new Set(seenDetectionsByClip[currentClipIndex] || []);
-  const currentCrossAnswers = crossThreatAnswers[currentClipIndex] || {};
+  const clipIsSaved = hintMode ? true : Boolean(currentClipStatus.saved);
+  const clipWatched = hintMode ? true : Boolean(currentClipStatus.watched);
+  const currentAiAnswers = activeAiAnswersByClip[currentClipIndex] || {};
+  const currentManualFindings = activeManualFindingsByClip[currentClipIndex] || [];
+  const openDetectionId = activeOpenDetectionByClip[currentClipIndex] || null;
+  const seenDetections = new Set(activeSeenDetectionsByClip[currentClipIndex] || []);
+  const currentCrossAnswers = activeCrossThreatAnswers[currentClipIndex] || {};
   const manualCategoryCounts = useMemo(() => {
     const counts = {};
     currentManualFindings.forEach((f) => {
@@ -233,27 +388,28 @@ export default function TaskView({
     );
   }
 
-  const aiRequiredCount = assignment?.mode === "vlm" ? visibleDetections.length : 0;
+  const aiRequiredCount = isVlmMode ? displayDetections.length : 0;
   const aiCompletedCount =
-    assignment?.mode === "vlm"
-      ? visibleDetections.filter((d) => isAiResponseComplete(currentAiAnswers[d.det_id])).length
+    isVlmMode
+      ? displayDetections.filter((d) => isAiResponseComplete(currentAiAnswers[d.det_id])).length
       : 0;
 
   const completedManualFindings = currentManualFindings.filter((f) => isFindingComplete(f));
   const allManualComplete =
     currentManualFindings.length > 0 && completedManualFindings.length === currentManualFindings.length;
 
-  const crossRequiredCount = unlockedCrossClipThreats.length;
-  const crossCompletedCount = unlockedCrossClipThreats.filter((t) =>
+  const crossRequiredCount = crossThreatsForUi.length;
+  const crossCompletedCount = crossThreatsForUi.filter((t) =>
     isCrossResponseComplete(currentCrossAnswers[t.threat_id || t.title])
   ).length;
   const allCrossComplete = crossRequiredCount === 0 || crossCompletedCount === crossRequiredCount;
 
   const canSaveClip =
-    allManualComplete &&
-    (assignment?.mode !== "vlm" || aiCompletedCount === aiRequiredCount) &&
-    allCrossComplete &&
-    (isTestMode || clipWatched);
+    hintMode ||
+    (allManualComplete &&
+      (!isVlmMode || aiCompletedCount === aiRequiredCount) &&
+      allCrossComplete &&
+      (isTestMode || clipWatched));
 
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
@@ -270,6 +426,7 @@ export default function TaskView({
   }
 
   function markClipDirty(idx = currentClipIndex) {
+    if (hintMode) return;
     setClipCompletion((prev) => {
       const entry = prev[idx] || {};
       return { ...prev, [idx]: { watched: entry.watched || false, saved: false } };
@@ -277,7 +434,7 @@ export default function TaskView({
   }
 
   function updateAiAnswer(detId, key, value) {
-    setAiAnswersByClip((prev) => {
+    setActiveAiAnswersByClip((prev) => {
       const clipMap = { ...(prev[currentClipIndex] || {}) };
       clipMap[detId] = { ...(clipMap[detId] || {}), [key]: value };
       return { ...prev, [currentClipIndex]: clipMap };
@@ -286,11 +443,11 @@ export default function TaskView({
   }
 
   function toggleDetection(detId) {
-    setOpenDetectionByClip((prev) => ({
+    setActiveOpenDetectionByClip((prev) => ({
       ...prev,
       [currentClipIndex]: prev[currentClipIndex] === detId ? null : detId,
     }));
-    setNewDetectionPrompt((prev) => (prev?.detId === detId ? null : prev));
+    setDisplayNewDetectionPrompt((prev) => (prev?.detId === detId ? null : prev));
   }
 
   function resetManualDraft() {
@@ -312,17 +469,17 @@ export default function TaskView({
       share_willingness_score: null,
       ai_memory_comfort_score: null,
     };
-    setManualFindingsByClip((prev) => {
+    setActiveManualFindingsByClip((prev) => {
       const list = [...(prev[currentClipIndex] || [])];
       list.push(newEntry);
       return { ...prev, [currentClipIndex]: list };
     });
-    setExpandedManualId(newEntry.finding_id);
+    setActiveExpandedManualId(newEntry.finding_id);
     markClipDirty(currentClipIndex);
   }
 
   function updateManualField(findingId, key, value) {
-    setManualFindingsByClip((prev) => {
+    setActiveManualFindingsByClip((prev) => {
       const list = (prev[currentClipIndex] || []).map((f) =>
         f.finding_id === findingId ? { ...f, [key]: value } : f
       );
@@ -332,22 +489,22 @@ export default function TaskView({
   }
 
   function toggleManualExpand(findingId) {
-    setExpandedManualId((prev) => (prev === findingId ? null : findingId));
+    setActiveExpandedManualId((prev) => (prev === findingId ? null : findingId));
   }
 
   function deleteManualFinding(findingId) {
-    setManualFindingsByClip((prev) => {
+    setActiveManualFindingsByClip((prev) => {
       const list = (prev[currentClipIndex] || []).filter((f) => f.finding_id !== findingId);
       return { ...prev, [currentClipIndex]: list };
     });
-    if (expandedManualId === findingId) {
-      setExpandedManualId(null);
+    if (activeExpandedManualId === findingId) {
+      setActiveExpandedManualId(null);
     }
     markClipDirty(currentClipIndex);
   }
 
   function updateCrossAnswer(threatId, key, value) {
-    setCrossThreatAnswers((prev) => {
+    setActiveCrossThreatAnswers((prev) => {
       const forClip = { ...(prev[currentClipIndex] || {}) };
       const entry = { ...(forClip[threatId] || {}) };
       entry[key] = value;
@@ -406,7 +563,7 @@ export default function TaskView({
   );
 
   function buildAiPayload() {
-    if (assignment?.mode !== "vlm") return [];
+    if (hintMode || assignment?.mode !== "vlm") return [];
     const detections = currentClipMeta?.detections || [];
     return detections
       .map((d) => {
@@ -440,7 +597,8 @@ export default function TaskView({
   }
 
   function buildCrossPayload() {
-    return unlockedCrossClipThreats
+    if (hintMode) return [];
+    return crossThreatsForUi
       .map((t) => {
         const ans = currentCrossAnswers[t.threat_id || t.title] || {};
         return {
@@ -459,8 +617,8 @@ export default function TaskView({
   }
 
   useEffect(() => {
-    if (!visibleDetections.length) return;
-    const seenSet = new Set(seenDetectionsByClip[currentClipIndex] || []);
+    if (hintMode || !visibleDetections.length) return;
+    const seenSet = new Set(activeSeenDetectionsByClip[currentClipIndex] || []);
     const firstNew = visibleDetections.find((d) => !seenSet.has(d.det_id));
     if (!firstNew) return;
 
@@ -468,11 +626,11 @@ export default function TaskView({
     if (triggerTime < 10 && currentTime < 10) return;
 
     seenSet.add(firstNew.det_id);
-    setSeenDetectionsByClip((prev) => ({
+    setActiveSeenDetectionsByClip((prev) => ({
       ...prev,
       [currentClipIndex]: Array.from(seenSet),
     }));
-    setNewDetectionPrompt({
+    setDisplayNewDetectionPrompt({
       detId: firstNew.det_id,
       text: firstNew.detected_visual || "New AI-suggested privacy threat",
     });
@@ -483,9 +641,13 @@ export default function TaskView({
         console.warn("Failed to pause video on new detection:", err);
       }
     }
-  }, [visibleDetections, currentClipIndex, currentTime, seenDetectionsByClip, videoRef]);
+  }, [visibleDetections, currentClipIndex, currentTime, activeSeenDetectionsByClip, videoRef, hintMode]);
 
   async function handleSaveClip() {
+    if (hintMode) {
+      setHintStepIndex((prev) => Math.min(prev + 1, hintSteps.length - 1));
+      return;
+    }
     if (!canSaveClip) {
       alert("Please answer all required questions for this scenario before saving.");
       return;
@@ -500,6 +662,36 @@ export default function TaskView({
       videoWatched: clipWatched,
     });
   }
+
+  function handleNextButton() {
+    if (hintMode) {
+      setHintClipCount((prev) => Math.min(prev + 1, totalClips));
+      setHintStepIndex((prev) => Math.min(prev + 1, hintSteps.length - 1));
+      return;
+    }
+    const blocked =
+      !storyConfig ||
+      currentClipIndex >= totalClips - 1 ||
+      loading ||
+      (!isTestMode && !clipIsSaved);
+    if (blocked) {
+      alert("Finish and save this scenario to unlock Next.");
+      return;
+    }
+    handleNextClip();
+  }
+
+  function handlePrevButton() {
+    if (hintMode) return;
+    handlePrevClip();
+  }
+
+  const advanceHint = () => setHintStepIndex((prev) => Math.min(prev + 1, hintSteps.length - 1));
+
+  const finishHintFlow = () => {
+    setHintStepIndex(0);
+    if (onFinishHint) onFinishHint();
+  };
 
   useEffect(() => {
     if (!videoWrapRef.current) return undefined;
@@ -519,11 +711,19 @@ export default function TaskView({
     setSeenDetectionsByClip({});
     setNewDetectionPrompt(null);
     setCrossThreatAnswers({});
+    setHintAiAnswersByClip({});
+    setHintOpenDetectionByClip({});
+    setHintManualFindingsByClip({});
+    setHintExpandedManualId(null);
+    setHintCrossThreatAnswers({});
+    setHintSeenDetectionsByClip({});
+    setHintClipCount(1);
+    setHintStepIndex(0);
   }, [assignment?.storyId, storyConfig?.story_id]);
 
   return (
     <>
-      <div style={{ marginBottom: "10px" }}>
+      <div style={{ marginBottom: "10px", ...sectionHintStyle("header") }}>
         <h2
           style={{
             fontSize: "2rem",
@@ -550,7 +750,7 @@ export default function TaskView({
               Now Viewing Scenario{" "}
               <span style={{ color: "#1d4ed8" }}>{currentClipIndex + 1}</span>{" "}
               of{" "}
-              <span style={{ color: "#0ea5e9" }}>{storyConfig.clips.length}</span>
+              <span style={{ color: "#0ea5e9" }}>{totalClips}</span>
             </>
           )}
         </h2>
@@ -558,6 +758,7 @@ export default function TaskView({
 
       <div
         style={{
+          ...sectionHintStyle("nav"),
           marginBottom: "12px",
           display: "flex",
           alignItems: "center",
@@ -582,9 +783,41 @@ export default function TaskView({
               color: "#0f172a",
             }}
           >
-            View instructions
+            View task requirements
           </button>
-          {assignment?.mode === "vlm" && (
+          {typeof onOpenHint === "function" && !hintMode && (
+            <button
+              type="button"
+              onClick={() => onOpenHint()}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid #1d4ed8",
+                background: "#e0f2fe",
+                cursor: "pointer",
+                color: "#0f172a",
+              }}
+            >
+              {hintWasSeen ? "View annotation hint again" : "View annotation hint"}
+            </button>
+          )}
+          {hintMode && (
+            <button
+              type="button"
+              onClick={() => (onCloseHint ? onCloseHint() : null)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                background: "#fff",
+                cursor: "pointer",
+                color: "#0f172a",
+              }}
+            >
+              Exit hint
+            </button>
+          )}
+          {isVlmMode && (
             <button
               type="button"
               onClick={() => {
@@ -615,105 +848,65 @@ export default function TaskView({
         >
           <button
             type="button"
-            onClick={handlePrevClip}
-            disabled={currentClipIndex === 0 || loading}
+            onClick={handlePrevButton}
+            disabled={hintMode || currentClipIndex === 0 || loading}
             style={{
               padding: "10px 14px",
               borderRadius: "10px",
               border: "1px solid",
               borderColor:
-                currentClipIndex === 0 || loading ? "#cbd5e1" : "#1d4ed8",
+                hintMode || currentClipIndex === 0 || loading ? "#cbd5e1" : "#1d4ed8",
               background:
-                currentClipIndex === 0 || loading ? "#e2e8f0" : "#1d4ed8",
-              color: currentClipIndex === 0 || loading ? "#475569" : "#fff",
+                hintMode || currentClipIndex === 0 || loading ? "#e2e8f0" : "#1d4ed8",
+              color: hintMode || currentClipIndex === 0 || loading ? "#475569" : "#fff",
               fontWeight: 700,
               boxShadow:
-                currentClipIndex === 0 || loading
+                hintMode || currentClipIndex === 0 || loading
                   ? "none"
                   : "0 8px 16px rgba(37, 99, 235, 0.25)",
               cursor:
-                currentClipIndex === 0 || loading ? "default" : "pointer",
+                hintMode || currentClipIndex === 0 || loading ? "default" : "pointer",
             }}
           >
             Previous clip
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              const blocked =
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved);
-              if (blocked) {
-                alert("Finish and save this scenario to unlock Next.");
-                return;
-              }
-              handleNextClip();
-            }}
-            disabled={
-              !storyConfig ||
-              currentClipIndex >= storyConfig.clips.length - 1 ||
-              loading ||
-              (!isTestMode && !clipIsSaved)
-            }
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: "1px solid",
-              borderColor:
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved)
-                  ? "#cbd5e1"
-                  : "#1d4ed8",
-              background:
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved)
-                  ? "#e2e8f0"
-                  : "#1d4ed8",
-              color:
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved)
-                  ? "#475569"
-                  : "#fff",
-              fontWeight: 700,
-              boxShadow:
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved)
-                  ? "none"
-                  : "0 8px 16px rgba(37, 99, 235, 0.25)",
-              cursor:
-                !storyConfig ||
-                currentClipIndex >= storyConfig.clips.length - 1 ||
-                loading ||
-                (!isTestMode && !clipIsSaved)
-                  ? "default"
-                  : "pointer",
-              opacity:
-                !isTestMode && !clipIsSaved ? 0.65 : 1,
-              marginLeft: "12px",
-            }}
-          >
-            Next clip
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={handleNextButton}
+              disabled={nextButtonDisabled}
+              style={{
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: "1px solid",
+                borderColor: nextButtonDisabled ? "#cbd5e1" : "#1d4ed8",
+                background: nextButtonDisabled ? "#e2e8f0" : "#1d4ed8",
+                color: nextButtonDisabled ? "#475569" : "#fff",
+                fontWeight: 700,
+                boxShadow: nextButtonDisabled ? "none" : "0 8px 16px rgba(37, 99, 235, 0.25)",
+                cursor: nextButtonDisabled ? "default" : "pointer",
+                opacity: nextButtonDisabled && !hintMode ? 0.65 : 1,
+                marginLeft: "12px",
+              }}
+            >
+              Next clip
+            </button>
+            <span style={{ fontSize: "0.9rem", color: "#475569", fontWeight: 600 }}>
+              {clipProgressLabel}
+            </span>
+          </div>
           {isLastClip && (
             <button
               type="button"
               disabled={
+                hintMode ||
                 !storyConfig ||
                 loading ||
                 (!isTestMode && !clipIsSaved)
               }
               onClick={() => {
                 const blocked =
+                  hintMode ||
                   !storyConfig ||
                   loading ||
                   (!isTestMode && !clipIsSaved);
@@ -759,12 +952,20 @@ export default function TaskView({
             </button>
           )}
         </div>
+        {hintMode && hintStepKey === "next-clip" && (
+          <div style={{ ...hintBoxStyle, width: "100%" }}>
+            <strong>Advance when you are ready</strong>
+            <p style={{ margin: "6px 0" }}>
+              Click “Next clip” to move on. The counter shows your progress ({clipProgressLabel}).
+            </p>
+          </div>
+        )}
       </div>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: assignment?.mode === "vlm" ? "7fr 5fr" : "1fr",
+          gridTemplateColumns: isVlmMode ? "7fr 5fr" : "1fr",
           gap: "20px",
           alignItems: "start",
           marginBottom: "12px",
@@ -773,6 +974,7 @@ export default function TaskView({
         <div
           ref={videoWrapRef}
           style={{
+            ...sectionHintStyle("video"),
             background: "#000",
             borderRadius: "8px",
             overflow: "visible",
@@ -793,6 +995,7 @@ export default function TaskView({
                   const currentMax = prev[currentClipIndex] || 0;
                   return t > currentMax ? { ...prev, [currentClipIndex]: t } : prev;
                 });
+                if (hintMode) return;
                 if (isTestMode) return;
                 const allowed = furthestTimeRef.current + 0.8;
                 if (t > allowed) {
@@ -804,11 +1007,16 @@ export default function TaskView({
                 }
               }}
               onSeeking={(e) => {
+                if (hintMode) return;
                 if (isTestMode) return;
                 clampToFurthest(e.target);
               }}
-              onPlay={(e) => clampToFurthest(e.target)}
+              onPlay={(e) => {
+                if (hintMode) return;
+                clampToFurthest(e.target);
+              }}
               onEnded={() => {
+                if (hintMode) return;
                 setClipCompletion((prev) => ({
                   ...prev,
                   [currentClipIndex]: { ...(prev[currentClipIndex] || {}), watched: true },
@@ -839,9 +1047,10 @@ export default function TaskView({
           )}
         </div>
 
-        {assignment?.mode === "vlm" && currentClipMeta && (
+        {isVlmMode && (currentClipMeta || hintMode) && (
           <div
             style={{
+              ...sectionHintStyle("ai"),
               border: "1px solid #e2e8f0",
               borderRadius: "10px",
               padding: "12px",
@@ -864,7 +1073,36 @@ export default function TaskView({
                   : "No AI detections visible yet"}
               </span>
             </div>
-            {newDetectionPrompt && (
+            {hintMode && hintStepKey === "ai-intro" && (
+              <div style={hintBoxStyle}>
+                <strong>AI assistant is watching with you</strong>
+                <p style={{ margin: "6px 0" }}>
+                  As you watch videos, an AI assistant will also detect privacy risks for you. Once the AI assistant
+                  detects privacy risks, you will be asked related questions.
+                </p>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button type="button" style={hintActionStyle} onClick={advanceHint}>
+                    Next hint
+                  </button>
+                </div>
+              </div>
+            )}
+            {hintMode && hintStepKey === "ai-expand" && (
+              <div style={hintBoxStyle}>
+                <strong>Review each AI detection</strong>
+                <p style={{ margin: "6px 0" }}>
+                  This is a sample AI-suggested detection for one scenario. Click “Expand” to see the detailed questions
+                  for you to answer, and “Collapse” to fold the questions. <strong>You need to answer every question for each
+                  detected result.</strong>
+                </p>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button type="button" style={hintActionStyle} onClick={advanceHint}>
+                    Next hint
+                  </button>
+                </div>
+              </div>
+            )}
+            {displayNewDetectionPrompt && (
               <div
                 style={{
                   marginTop: "8px",
@@ -891,18 +1129,18 @@ export default function TaskView({
                 >
                   New privacy threat
                 </span>
-                <span style={{ fontWeight: 700 }}>{newDetectionPrompt.text}</span>
+                <span style={{ fontWeight: 700 }}>{displayNewDetectionPrompt.text}</span>
                 <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
                   <button
                     type="button"
                     onClick={() => {
-                      setOpenDetectionByClip((prev) => ({
+                      setActiveOpenDetectionByClip((prev) => ({
                         ...prev,
-                        [currentClipIndex]: newDetectionPrompt.detId,
+                        [currentClipIndex]: displayNewDetectionPrompt.detId,
                       }));
-                      setNewDetectionPrompt(null);
+                      setDisplayNewDetectionPrompt(null);
                       setTimeout(() => {
-                        const el = document.getElementById(`det-${newDetectionPrompt.detId}`);
+                        const el = document.getElementById(`det-${displayNewDetectionPrompt.detId}`);
                         if (el) {
                           el.scrollIntoView({ behavior: "smooth", block: "center" });
                         }
@@ -922,7 +1160,7 @@ export default function TaskView({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setNewDetectionPrompt(null)}
+                    onClick={() => setDisplayNewDetectionPrompt(null)}
                     style={{
                       padding: "6px 10px",
                       borderRadius: "8px",
@@ -938,7 +1176,7 @@ export default function TaskView({
                 </div>
               </div>
             )}
-            {visibleDetections.length === 0 ? (
+            {displayDetections.length === 0 ? (
               <p style={{ marginTop: "8px", color: "#475569" }}>
                 Keep watching to see AI detections appear.
               </p>
@@ -1007,16 +1245,24 @@ export default function TaskView({
                                     padding: "4px 8px",
                                     borderRadius: "999px",
                                     background:
-                                      answered ? "#dcfce7" : newDetectionPrompt?.detId === d.det_id ? "#fef3c7" : "#fee2e2",
+                                      answered
+                                        ? "#dcfce7"
+                                        : displayNewDetectionPrompt?.detId === d.det_id
+                                        ? "#fef3c7"
+                                        : "#fee2e2",
                                     color:
-                                      answered ? "#166534" : newDetectionPrompt?.detId === d.det_id ? "#92400e" : "#b91c1c",
+                                      answered
+                                        ? "#166534"
+                                        : displayNewDetectionPrompt?.detId === d.det_id
+                                        ? "#92400e"
+                                        : "#b91c1c",
                                     fontWeight: 700,
                                     fontSize: "0.85rem",
                                   }}
                                 >
                                   {answered
                                     ? "Answered"
-                                    : newDetectionPrompt?.detId === d.det_id
+                                    : displayNewDetectionPrompt?.detId === d.det_id
                                     ? "New privacy threat"
                                     : "Needs answers"}
                                 </span>
@@ -1050,7 +1296,7 @@ export default function TaskView({
                                 />
                                 <LikertScale
                                   name={`ai-${d.det_id}-remember`}
-                                  label="To what extent do you agree that you would be comfortable if your AI assistant detected, stored, and remembered this specific content about you over time?"
+                                  label="To what extent do you agree that you would be comfortable if an AI assistant detected, stored, and remembered this specific content about you over time?"
                                   value={currentAiAnswers[d.det_id]?.ai_memory_comfort_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "ai_memory_comfort_score", v)}
                                 />
@@ -1092,13 +1338,27 @@ export default function TaskView({
                   : "No multi-scenario detections"}
               </span>
             </div>
-            {unlockedCrossClipThreats.length === 0 ? (
+            {hintMode && hintStepKey === "cross" && (
+              <div style={hintBoxStyle}>
+                <strong>Cross-clip AI detections</strong>
+                <p style={{ margin: "6px 0" }}>
+                  When multiple videos are watched, you may also see privacy detections that span across clips.
+                  This is a sample of how those results look.
+                </p>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button type="button" style={hintActionStyle} onClick={advanceHint}>
+                    Next hint
+                  </button>
+                </div>
+              </div>
+            )}
+            {crossThreatsForUi.length === 0 ? (
               <p style={{ marginTop: "8px", color: "#475569" }}>
                 No multi-scenario AI suggestions available for this story yet.
               </p>
             ) : (
               <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
-                {unlockedCrossClipThreats.map((threat, idx) => {
+                {crossThreatsForUi.map((threat, idx) => {
                   const ans = currentCrossAnswers[threat.threat_id || threat.title] || {};
                   const complete = isCrossResponseComplete(ans);
                   return (
@@ -1184,14 +1444,43 @@ export default function TaskView({
 
       <div
         style={{
+          ...sectionHintStyle("manual"),
           border: "1px solid #e2e8f0",
           borderRadius: "10px",
           padding: "12px",
           marginTop: "12px",
         }}
       >
+        {hintMode && hintStepKey === "manual" && (
+          <div style={hintBoxStyle}>
+            <strong>Create your own annotations</strong>
+            <p style={{ margin: "6px 0" }}>
+              You can add privacy-related content that the AI did not detect. Use these cards to capture anything else
+              you notice.
+            </p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button type="button" style={hintActionStyle} onClick={advanceHint}>
+                Next hint
+              </button>
+            </div>
+          </div>
+        )}
+        {hintMode && hintStepKey === "finish" && (
+          <div style={hintBoxStyle}>
+            <strong>Ready for the real annotation task</strong>
+            <p style={{ margin: "6px 0" }}>
+              You can return to this hint page anytime using “View annotation hint.” Click below when you’re ready to
+              start the real annotation task.
+            </p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button type="button" style={hintActionStyle} onClick={finishHintFlow}>
+                Start real annotation
+              </button>
+            </div>
+          </div>
+        )}
         <h3 style={{ fontSize: "1.15rem", marginBottom: "6px" }}>
-          {assignment?.mode === "vlm"
+          {isVlmMode
             ? "Do you see anything else (not included in the AI detections) that could reveal privacy-related information?"
             : "Do you see anything in this video that could reveal privacy-related information?"}
         </h3>
@@ -1561,9 +1850,3 @@ export default function TaskView({
     </>
   );
 }
-
-
-
-
-
-
