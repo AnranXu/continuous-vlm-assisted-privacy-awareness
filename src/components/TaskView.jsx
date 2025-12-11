@@ -77,7 +77,7 @@ export default function TaskView({
   onFinishHint = () => {},
   onCloseHint = () => {},
   onOpenHint,
-  hintDimOpacity = 0.45,
+  hintDimOpacity = 0.4,
   hintWasSeen = false,
 }) {
   const [currentTime, setCurrentTime] = useState(0);
@@ -99,6 +99,10 @@ export default function TaskView({
   const [hintClipCount, setHintClipCount] = useState(1);
   const [hintStepIndex, setHintStepIndex] = useState(0);
   const videoWrapRef = useRef(null);
+  const hintNavRef = useRef(null);
+  const hintAiRef = useRef(null);
+  const hintCrossRef = useRef(null);
+  const hintManualRef = useRef(null);
   const totalClips = storyConfig?.clips?.length || 1;
   const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
   const dimLevel = Number.isFinite(Number(hintDimOpacity)) ? Number(hintDimOpacity) : 0.5;
@@ -125,6 +129,25 @@ export default function TaskView({
           pointerEvents: focusedSection === key ? "auto" : "none",
           transition: "opacity 0.25s ease",
         };
+  useEffect(() => {
+    if (!hintMode) return;
+    const targetMap = {
+      "ai-intro": hintAiRef,
+      "ai-expand": hintAiRef,
+      "next-clip": hintNavRef,
+      cross: hintCrossRef,
+      manual: hintManualRef,
+      finish: hintManualRef,
+    };
+    const ref = targetMap[hintStepKey];
+    if (ref?.current) {
+      try {
+        ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      } catch (err) {
+        console.warn("Hint scroll failed", err);
+      }
+    }
+  }, [hintMode, hintStepKey]);
   const hintBoxStyle = {
     marginTop: "10px",
     padding: "10px 12px",
@@ -690,6 +713,13 @@ export default function TaskView({
 
   const finishHintFlow = () => {
     setHintStepIndex(0);
+    if (typeof window !== "undefined") {
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        window.scrollTo(0, 0);
+      }
+    }
     if (onFinishHint) onFinishHint();
   };
 
@@ -766,6 +796,7 @@ export default function TaskView({
           gap: "12px",
           flexWrap: "wrap",
         }}
+        ref={hintNavRef}
       >
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button
@@ -954,27 +985,27 @@ export default function TaskView({
         </div>
         {hintMode && hintStepKey === "next-clip" && (
           <div style={{ ...hintBoxStyle, width: "100%" }}>
-            <strong>Advance when you are ready</strong>
+            <strong>Forward when you are ready</strong>
             <p style={{ margin: "6px 0" }}>
-              Click “Next clip” to move on. The counter shows your progress ({clipProgressLabel}).
+              Click “<strong>Next clip</strong>” to move on. The counter shows your progress ({clipProgressLabel}).
             </p>
           </div>
         )}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: isVlmMode ? "7fr 5fr" : "1fr",
-          gap: "20px",
-          alignItems: "start",
-          marginBottom: "12px",
-        }}
-      >
         <div
-          ref={videoWrapRef}
           style={{
-            ...sectionHintStyle("video"),
+            display: "grid",
+            gridTemplateColumns: isVlmMode ? "7fr 5fr" : "1fr",
+            gap: "20px",
+            alignItems: "start",
+            marginBottom: "12px",
+          }}
+        >
+          <div
+            ref={videoWrapRef}
+            style={{
+              ...sectionHintStyle("video"),
             background: "#000",
             borderRadius: "8px",
             overflow: "visible",
@@ -1058,6 +1089,7 @@ export default function TaskView({
               height: videoHeight ? `${videoHeight}px` : "auto",
               overflowY: videoHeight ? "auto" : "visible",
             }}
+            ref={hintAiRef}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
               <h3 style={{ margin: 0 }}>AI-suggested detections on single scenario</h3>
@@ -1338,11 +1370,12 @@ export default function TaskView({
                   : "No multi-scenario detections"}
               </span>
             </div>
+            <div ref={hintCrossRef} />
             {hintMode && hintStepKey === "cross" && (
               <div style={hintBoxStyle}>
                 <strong>Cross-clip AI detections</strong>
                 <p style={{ margin: "6px 0" }}>
-                  When multiple videos are watched, you may also see privacy detections that span across clips.
+                  When multiple videos are watched, you may also see privacy detections that span <strong>across clips</strong>.
                   This is a sample of how those results look.
                 </p>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -1450,12 +1483,13 @@ export default function TaskView({
           padding: "12px",
           marginTop: "12px",
         }}
+        ref={hintManualRef}
       >
         {hintMode && hintStepKey === "manual" && (
           <div style={hintBoxStyle}>
             <strong>Create your own annotations</strong>
             <p style={{ margin: "6px 0" }}>
-              You can add privacy-related content that the AI did not detect. Use these cards to capture anything else
+              You are also required to add privacy-related content that <strong>the AI did not detect</strong>. Use these cards to capture anything else
               you notice.
             </p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

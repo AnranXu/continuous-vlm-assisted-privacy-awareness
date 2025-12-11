@@ -75,7 +75,7 @@ function App() {
   const [vlmCountdown, setVlmCountdown] = useState(15);
   const [showAnnotationHint, setShowAnnotationHint] = useState(false);
   const [annotationHintSeen, setAnnotationHintSeen] = useState(false);
-  const hintDimOpacity = Number(import.meta.env.VITE_HINT_DIM_ALPHA ?? 0.45);
+  const hintDimOpacity = Number(import.meta.env.VITE_HINT_DIM_ALPHA ?? 0.4);
 
   const videoRef = useRef(null);
   const furthestTimeRef = useRef(0);
@@ -768,16 +768,16 @@ function App() {
                   setShowVlmInfoModal(false);
                   setAwaitingVlmInstruction(false);
                 }}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: "8px",
-                  border: "1px solid #1d4ed8",
-                  background: "#1d4ed8",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-                disabled={vlmCountdown > 0}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "8px",
+                border: "1px solid #1d4ed8",
+                background: "#1d4ed8",
+                color: "#fff",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+                disabled={!IS_TEST_MODE && vlmCountdown > 0}
                 aria-label="Close AI assistance info"
               >
                 Got it{vlmCountdown > 0 ? ` (${vlmCountdown}s)` : ""}
