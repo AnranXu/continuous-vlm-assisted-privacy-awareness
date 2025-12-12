@@ -454,12 +454,19 @@ function App() {
   })();
 
   useEffect(() => {
-    if (hasActiveTask && !annotationHintSeen) {
-      setShowAnnotationHint(true);
-    } else if (!hasActiveTask) {
+    if (!hasActiveTask || annotationHintSeen) {
       setShowAnnotationHint(false);
+      return;
     }
-  }, [hasActiveTask, annotationHintSeen]);
+    const assignedMode = (assignment?.mode || assignment?.assigned_mode || "").toLowerCase();
+    const isVlmAssigned = assignedMode === "vlm";
+    if (isVlmAssigned && showVlmInfoModal) {
+      // Delay hint + pre-hint prompt until participant closes the VLM info modal.
+      setShowAnnotationHint(false);
+      return;
+    }
+    setShowAnnotationHint(true);
+  }, [hasActiveTask, annotationHintSeen, assignment, showVlmInfoModal]);
 
   const renderFeedback = (opts = { showStatus: true }) => (
     <>
