@@ -258,11 +258,11 @@ function App() {
     const pid = resolvedParticipantId();
     if (!pid) {
       setError("Please enter your Prolific ID.");
-      return;
+      return false;
     }
     if (!assignment || !storyConfig) {
       setError("No assignment found. Please restart the study.");
-      return;
+      return false;
     }
 
     const clipCfg = storyConfig.clips?.[currentClipIndex];
@@ -295,9 +295,11 @@ function App() {
           },
         };
       });
+      return true;
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to save responses for this scenario.");
+      return false;
     } finally {
       setClipSaving(false);
     }

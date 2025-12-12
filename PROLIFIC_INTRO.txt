@@ -1,5 +1,8 @@
 Welcome to our study!
 
+Requirement: 
+- Have experiences in knowing or using AI tools, such as ChatGPT, Gemini, DeepSeek, etc.
+
 What you will do
 - Watch short, first-person video clips.
 - Spot moments that feel private or sensitive.

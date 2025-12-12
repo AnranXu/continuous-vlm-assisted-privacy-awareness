@@ -195,31 +195,12 @@ export const handler = async (event) => {
           TableName: TABLE,
           Key: chosen.storyKey,
           ConditionExpression: "attribute_exists(pk)",
-          UpdateExpression:
-            "SET #ac = :newCount, " +
-            "#max = if_not_exists(#max, :max), " +
-            "#type = if_not_exists(#type, :storyType), " +
-            "#sid = :sid, " +
-            "#slabel = :slabel, " +
-            "#storyId = :storyId, " +
-            "#mode = :modeVal",
+          UpdateExpression: "SET #ac = :newCount",
           ExpressionAttributeNames: {
-            "#ac": "assigned_count",
-            "#max": "max_assignments",
-            "#type": "item_type",
-            "#sid": "study_id",
-            "#slabel": "study_label",
-            "#storyId": "story_id",
-            "#mode": "mode"
+            "#ac": "assigned_count"
           },
           ExpressionAttributeValues: {
-            ":newCount": { N: `${newCount}` },
-            ":max": { N: `${chosen.maxAssignments}` },
-            ":storyType": { S: "story_assignment" },
-            ":sid": { S: STUDY_ID },
-            ":slabel": { S: studyLabel },
-            ":storyId": { S: chosen.storyId },
-            ":modeVal": { S: chosen.mode }
+            ":newCount": { N: `${newCount}` }
           }
         })
       );

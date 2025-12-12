@@ -93,8 +93,8 @@ export default function InstructionsPage({
 
         <h3>Are there any risks?</h3>
         <p>
-          There are no major risks. Some people may feel slightly uncomfortable thinking about privacy-related issues.
-          You may skip any question at any time.
+          There are no major risks. Some videos may exhibit shaking. Some people may feel slightly uncomfortable thinking about privacy-related issues.
+          You may stop the task at any time.
         </p>
 
         <h3>Benefits</h3>
@@ -111,7 +111,11 @@ export default function InstructionsPage({
           <li>All your responses remain fully anonymous.</li>
           <li>Participation is voluntary. You can stop at any time.</li>
         </ul>
-
+        
+        <h3>Note</h3>
+        <ul>
+          <li>The video you are watching may contain <strong>mosaics</strong>, please make your judgment on privacy by assuming these mosaics <strong>do not exist</strong> (pretending you can see the detailed content under the mosaics).</li>
+        </ul>
         <h3>Questions?</h3>
         <p>
           Feel free to message the research team through Prolific or contact Anran Xu (<a href="mailto:anran.xu@riken.jp">anran.xu@riken.jp</a>) through Email.

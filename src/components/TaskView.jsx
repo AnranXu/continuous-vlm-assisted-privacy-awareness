@@ -40,6 +40,7 @@ function createEmptyFinding() {
     categories: [],
     other_text: "",
     description: "",
+    time_sec: null,
     privacy_threat_score: null,
     share_willingness_score: null,
     ai_memory_comfort_score: null,
@@ -83,6 +84,7 @@ export default function TaskView({
   const [currentTime, setCurrentTime] = useState(0);
   const [maxSeenTimeByClip, setMaxSeenTimeByClip] = useState({});
   const [videoHeight, setVideoHeight] = useState(null);
+  const [videoBuffering, setVideoBuffering] = useState(false);
   const [aiAnswersByClip, setAiAnswersByClip] = useState({});
   const [openDetectionByClip, setOpenDetectionByClip] = useState({});
   const [manualFindingsByClip, setManualFindingsByClip] = useState({});
@@ -98,11 +100,13 @@ export default function TaskView({
   const [hintSeenDetectionsByClip, setHintSeenDetectionsByClip] = useState({});
   const [hintClipCount, setHintClipCount] = useState(1);
   const [hintStepIndex, setHintStepIndex] = useState(0);
+  const [showHintInstructionPrompt, setShowHintInstructionPrompt] = useState(hintMode);
   const videoWrapRef = useRef(null);
   const hintNavRef = useRef(null);
   const hintAiRef = useRef(null);
   const hintCrossRef = useRef(null);
   const hintManualRef = useRef(null);
+  const prevHintModeRef = useRef(hintMode);
   const totalClips = storyConfig?.clips?.length || 1;
   const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
   const dimLevel = Number.isFinite(Number(hintDimOpacity)) ? Number(hintDimOpacity) : 0.5;
@@ -120,6 +124,9 @@ export default function TaskView({
     manual: "manual",
     finish: "manual",
   };
+  const shouldShowHintInstructionPrompt =
+    hintMode && (showHintInstructionPrompt || !prevHintModeRef.current);
+  const showHintBoxes = hintMode && !shouldShowHintInstructionPrompt;
   const focusedSection = hintMode ? focusMap[hintStepKey] || "ai" : null;
   const sectionHintStyle = (key) =>
     !hintMode
@@ -129,6 +136,17 @@ export default function TaskView({
           pointerEvents: focusedSection === key ? "auto" : "none",
           transition: "opacity 0.25s ease",
         };
+
+  useEffect(() => {
+    if (hintMode && !prevHintModeRef.current) {
+      setShowHintInstructionPrompt(true);
+    }
+    if (!hintMode && prevHintModeRef.current) {
+      setShowHintInstructionPrompt(false);
+    }
+    prevHintModeRef.current = hintMode;
+  }, [hintMode]);
+
   useEffect(() => {
     if (!hintMode) return;
     const targetMap = {
@@ -338,13 +356,6 @@ export default function TaskView({
     ? hintClipCount
     : Math.max(seenClipIndices.size, currentClipIndex + 1);
   const clipProgressLabel = `${Math.min(clipsViewedCount, totalClips)}/${totalClips} clips have been viewed`;
-  const nextButtonDisabled =
-    hintMode
-      ? false
-      : !storyConfig ||
-        currentClipIndex >= totalClips - 1 ||
-        loading ||
-        (!isTestMode && !clipIsSaved);
 
   const currentAiAnswers = activeAiAnswersByClip[currentClipIndex] || {};
   const currentManualFindings = activeManualFindingsByClip[currentClipIndex] || [];
@@ -369,6 +380,7 @@ export default function TaskView({
   }, []);
 
   function isLikertScore(val) {
+    if (val == null || val === "") return false;
     const n = Number(val);
     return Number.isFinite(n) && n >= -3 && n <= 3;
   }
@@ -383,18 +395,27 @@ export default function TaskView({
     );
   }
 
+  function countWords(text) {
+    return String(text || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+  }
+
   function isFindingComplete(f) {
     if (!f) return false;
     const hasCategories = Array.isArray(f.categories) && f.categories.length > 0;
     const desc = (f.description || "").trim();
     const needsOther = f.categories?.includes("other");
     const otherTextOk = !needsOther || (f.other_text || "").trim().length > 0;
+    const hasTimestamp = f.time_sec != null && Number.isFinite(Number(f.time_sec));
     const isNone = f.categories?.includes("none");
     if (isNone) {
-      return hasCategories && desc.length > 0;
+      return hasCategories && countWords(desc) >= 30;
     }
     return (
       hasCategories &&
+      hasTimestamp &&
       isLikertScore(f.privacy_threat_score) &&
       isLikertScore(f.share_willingness_score) &&
       isLikertScore(f.ai_memory_comfort_score) &&
@@ -435,6 +456,14 @@ export default function TaskView({
       allCrossComplete &&
       (isTestMode || clipWatched));
 
+  const nextButtonDisabled =
+    hintMode
+      ? false
+      : !storyConfig ||
+        currentClipIndex >= totalClips - 1 ||
+        loading ||
+        (!isTestMode && !clipWatched);
+
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
     const m = Math.floor(sec / 60);
@@ -442,6 +471,25 @@ export default function TaskView({
       .toString()
       .padStart(2, "0");
     return `${m}:${s}`;
+  }
+
+  function clampTimeSec(sec) {
+    const n = Math.max(0, Math.round(Number(sec) || 0));
+    const dur = videoRef?.current?.duration;
+    if (Number.isFinite(dur) && dur > 0) {
+      return Math.min(n, Math.floor(dur));
+    }
+    return n;
+  }
+
+  function timePartsFromSeconds(sec) {
+    const hasValue = sec != null && Number.isFinite(Number(sec));
+    const total = hasValue ? clampTimeSec(sec) : 0;
+    return {
+      total,
+      mins: Math.floor(total / 60),
+      secs: total % 60,
+    };
   }
 
   function formatList(list) {
@@ -489,6 +537,7 @@ export default function TaskView({
       categories: [category],
       other_text: "",
       description: "",
+      time_sec: null,
       privacy_threat_score: null,
       share_willingness_score: null,
       ai_memory_comfort_score: null,
@@ -540,7 +589,7 @@ export default function TaskView({
 
   const LikertScale = ({ label, helper, name, value, onChange }) => (
     <div style={{ marginTop: "8px" }}>
-      <div style={{ fontWeight: 700, color: "#0f172a" }}>{label}</div>
+      <div style={{ fontWeight: 400, color: "#0f172a" }}>{label}</div>
       <div
         style={{
           display: "flex",
@@ -609,15 +658,25 @@ export default function TaskView({
   }
 
   function buildManualPayload() {
-    return currentManualFindings.map((f) => ({
-      finding_id: f.finding_id,
-      categories: f.categories,
-      other_text: f.other_text,
-      description: f.description,
-      privacy_threat_score: f.privacy_threat_score,
-      share_willingness_score: f.share_willingness_score,
-      ai_memory_comfort_score: f.ai_memory_comfort_score,
-    }));
+    return currentManualFindings.map((f) => {
+      const payload = {
+        finding_id: f.finding_id,
+        categories: f.categories,
+        other_text: f.other_text,
+        description: f.description,
+        privacy_threat_score: f.privacy_threat_score,
+        share_willingness_score: f.share_willingness_score,
+        ai_memory_comfort_score: f.ai_memory_comfort_score,
+      };
+      if (
+        f.time_sec != null &&
+        Number.isFinite(Number(f.time_sec)) &&
+        !(f.categories || []).includes("none")
+      ) {
+        payload.time_sec = Number(f.time_sec);
+      }
+      return payload;
+    });
   }
 
   function buildCrossPayload() {
@@ -670,14 +729,28 @@ export default function TaskView({
   async function handleSaveClip() {
     if (hintMode) {
       setHintStepIndex((prev) => Math.min(prev + 1, hintSteps.length - 1));
-      return;
+      return true;
     }
     if (!canSaveClip) {
-      alert("Please answer all required questions for this scenario before saving.");
-      return;
+      if (!clipWatched && !isTestMode) {
+        alert("Please watch the full scenario before finishing.");
+      } else if (currentManualFindings.length === 0) {
+        alert(
+          "Please provide at least one answer in the questions below. If you did not see any privacy-related content, select “I do not see any privacy-related content in this video clip.”"
+        );
+      } else if (!allManualComplete) {
+        alert("Please complete all manual annotation questions below before finishing.");
+      } else if (isVlmMode && aiCompletedCount !== aiRequiredCount) {
+        alert("Please answer all AI detection questions before finishing.");
+      } else if (!allCrossComplete) {
+        alert("Please answer all multi-scenario questions before finishing.");
+      } else {
+        alert("Please answer all required questions for this scenario before saving.");
+      }
+      return false;
     }
     const clipMeta = storyConfig?.clips?.[currentClipIndex];
-    await onSaveClipResponses({
+    const res = await onSaveClipResponses({
       clipIndex: currentClipIndex + 1,
       clipId: clipMeta?.clip_id || clipMeta?.clip_index || null,
       aiResponses: buildAiPayload(),
@@ -685,22 +758,24 @@ export default function TaskView({
       crossClipResponses: buildCrossPayload(),
       videoWatched: clipWatched,
     });
+    return res !== false;
   }
 
-  function handleNextButton() {
+  async function handleNextButton() {
     if (hintMode) {
       setHintClipCount((prev) => Math.min(prev + 1, totalClips));
       setHintStepIndex((prev) => Math.min(prev + 1, hintSteps.length - 1));
       return;
     }
-    const blocked =
-      !storyConfig ||
-      currentClipIndex >= totalClips - 1 ||
-      loading ||
-      (!isTestMode && !clipIsSaved);
-    if (blocked) {
+    const baseBlocked =
+      !storyConfig || currentClipIndex >= totalClips - 1 || loading;
+    if (baseBlocked) {
       alert("Finish and save this scenario to unlock Next.");
       return;
+    }
+    if (!isTestMode && !clipIsSaved) {
+      const saved = await handleSaveClip();
+      if (!saved) return;
     }
     handleNextClip();
   }
@@ -736,6 +811,38 @@ export default function TaskView({
   }, []);
 
   useEffect(() => {
+    if (!videoRef?.current) return undefined;
+    const pauseVideo = () => {
+      try {
+        if (videoRef.current && !videoRef.current.paused) {
+          videoRef.current.pause();
+        }
+      } catch (err) {
+        console.warn("Auto-pause failed:", err);
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") {
+        pauseVideo();
+      }
+    };
+    const onBlur = () => pauseVideo();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [videoRef, currentClipIndex, videoUrl]);
+
+  useEffect(() => {
+    if (hintMode) return;
+    if (loading) {
+      setVideoBuffering(true);
+    }
+  }, [loading, hintMode, currentClipIndex]);
+
+  useEffect(() => {
     setAiAnswersByClip({});
     setOpenDetectionByClip({});
     setManualFindingsByClip({});
@@ -754,6 +861,56 @@ export default function TaskView({
 
   return (
     <>
+      {shouldShowHintInstructionPrompt && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 60,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "18px",
+              width: "min(520px, 94vw)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+              lineHeight: 1.5,
+              color: "#0f172a",
+              textAlign: "center",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Before you start</h3>
+            <p style={{ margin: "10px 0 14px" }}>
+              Please carefully read the instructions on how to operate this interface.
+            </p>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() => setShowHintInstructionPrompt(false)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  border: "1px solid #1d4ed8",
+                  background: "#1d4ed8",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: "10px", ...sectionHintStyle("header") }}>
         <h2
           style={{
@@ -934,17 +1091,17 @@ export default function TaskView({
                 hintMode ||
                 !storyConfig ||
                 loading ||
-                (!isTestMode && !clipIsSaved)
+                (!isTestMode && !clipWatched)
               }
-              onClick={() => {
-                const blocked =
-                  hintMode ||
-                  !storyConfig ||
-                  loading ||
-                  (!isTestMode && !clipIsSaved);
-                if (blocked) {
+              onClick={async () => {
+                const baseBlocked = hintMode || !storyConfig || loading;
+                if (baseBlocked) {
                   alert("Finish and save this scenario to continue.");
                   return;
+                }
+                if (!isTestMode && !clipIsSaved) {
+                  const saved = await handleSaveClip();
+                  if (!saved) return;
                 }
                 handleFinishAnnotations();
               }}
@@ -955,26 +1112,26 @@ export default function TaskView({
                 background:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipIsSaved)
+                  (!isTestMode && !clipWatched)
                     ? "#a7f3d0"
                     : "#16a34a",
                 color:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipIsSaved)
+                  (!isTestMode && !clipWatched)
                     ? "#065f46"
                     : "#fff",
                 fontWeight: 800,
                 boxShadow:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipIsSaved)
+                  (!isTestMode && !clipWatched)
                     ? "none"
                     : "0 10px 18px rgba(22, 163, 74, 0.35)",
                 cursor:
                   !storyConfig ||
                   loading ||
-                  (!isTestMode && !clipIsSaved)
+                  (!isTestMode && !clipWatched)
                     ? "not-allowed"
                     : "pointer",
                 marginLeft: "12px",
@@ -984,7 +1141,7 @@ export default function TaskView({
             </button>
           )}
         </div>
-        {hintMode && hintStepKey === "next-clip" && (
+        {showHintBoxes && hintStepKey === "next-clip" && (
           <div style={{ ...hintBoxStyle, width: "100%" }}>
             <strong>Forward when you are ready</strong>
             <p style={{ margin: "6px 0" }}>
@@ -1007,6 +1164,7 @@ export default function TaskView({
             ref={videoWrapRef}
             style={{
               ...sectionHintStyle("video"),
+              position: "relative",
             background: "#000",
             borderRadius: "8px",
             overflow: "visible",
@@ -1020,6 +1178,12 @@ export default function TaskView({
               ref={videoRef}
               src={videoUrl}
               controls
+              onWaiting={() => {
+                if (hintMode) return;
+                setVideoBuffering(true);
+              }}
+              onCanPlay={() => setVideoBuffering(false)}
+              onCanPlayThrough={() => setVideoBuffering(false)}
               onTimeUpdate={(e) => {
                 const t = e.target.currentTime;
                 setCurrentTime(t);
@@ -1027,6 +1191,20 @@ export default function TaskView({
                   const currentMax = prev[currentClipIndex] || 0;
                   return t > currentMax ? { ...prev, [currentClipIndex]: t } : prev;
                 });
+                if (!hintMode && !isTestMode) {
+                  const duration = e.target.duration;
+                  if (Number.isFinite(duration) && duration > 0 && t >= duration - 0.25) {
+                    setClipCompletion((prev) => {
+                      const entry = prev[currentClipIndex] || {};
+                      if (entry.watched) return prev;
+                      return {
+                        ...prev,
+                        [currentClipIndex]: { ...entry, watched: true },
+                      };
+                    });
+                    furthestTimeRef.current = duration;
+                  }
+                }
                 if (hintMode) return;
                 if (isTestMode) return;
                 const allowed = furthestTimeRef.current + 0.8;
@@ -1060,9 +1238,11 @@ export default function TaskView({
               }}
               onLoadedMetadata={() => {
                 if (videoRef?.current) setVideoHeight(videoRef.current.clientHeight || null);
+                setVideoBuffering(false);
               }}
               onLoadedData={() => {
                 if (videoRef?.current) setVideoHeight(videoRef.current.clientHeight || null);
+                setVideoBuffering(false);
               }}
               style={{ width: "100%", display: "block", height: "auto", maxHeight: "70vh" }}
             />
@@ -1075,6 +1255,38 @@ export default function TaskView({
               }}
             >
               Loading video...
+            </div>
+          )}
+          {!hintMode && (loading || videoBuffering) && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.45)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "10px",
+                color: "#fff",
+                fontWeight: 700,
+                zIndex: 10,
+                cursor: "wait",
+              }}
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "999px",
+                  border: "4px solid rgba(255,255,255,0.45)",
+                  borderTopColor: "#fff",
+                  animation: "logo-spin 1s linear infinite",
+                }}
+              />
+              <div>Loading next clip...</div>
             </div>
           )}
         </div>
@@ -1106,7 +1318,7 @@ export default function TaskView({
                   : "No AI detections visible yet"}
               </span>
             </div>
-            {hintMode && hintStepKey === "ai-intro" && (
+            {showHintBoxes && hintStepKey === "ai-intro" && (
               <div style={hintBoxStyle}>
                 <strong>AI assistant is watching with you</strong>
                 <p style={{ margin: "6px 0" }}>
@@ -1120,7 +1332,7 @@ export default function TaskView({
                 </div>
               </div>
             )}
-            {hintMode && hintStepKey === "ai-expand" && (
+            {showHintBoxes && hintStepKey === "ai-expand" && (
               <div style={hintBoxStyle}>
                 <strong>Review each AI detection</strong>
                 <p style={{ margin: "6px 0" }}>
@@ -1317,19 +1529,34 @@ export default function TaskView({
                                 </div>
                                 <LikertScale
                                   name={`ai-${d.det_id}-threat`}
-                                  label="To what extent do you agree that the highlighted content is privacy-threatening for you, if this were your own video?"
+                                  label={
+                                    <span>
+                                      To what extent do you agree that the highlighted content is{" "}
+                                      <strong>privacy-threatening</strong> for you, if this were your own video?
+                                    </span>
+                                  }
                                   value={currentAiAnswers[d.det_id]?.privacy_threat_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "privacy_threat_score", v)}
                                 />
                                 <LikertScale
                                   name={`ai-${d.det_id}-share`}
-                                  label="To what extent do you agree that you would be willing to share a video that includes this specific content publicly online?"
+                                  label={
+                                    <span>
+                                      To what extent do you agree that you would be willing to share a video that includes{" "}
+                                      <strong>this content</strong> publicly online?
+                                    </span>
+                                  }
                                   value={currentAiAnswers[d.det_id]?.share_willingness_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "share_willingness_score", v)}
                                 />
                                 <LikertScale
                                   name={`ai-${d.det_id}-remember`}
-                                  label="To what extent do you agree that you would be comfortable if an AI assistant detected, stored, and remembered this specific content about you over time?"
+                                  label={
+                                    <span>
+                                      To what extent do you agree that you would be comfortable if an AI assistant detected, stored, and remembered{" "}
+                                      <strong>this content</strong> about you over time?
+                                    </span>
+                                  }
                                   value={currentAiAnswers[d.det_id]?.ai_memory_comfort_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "ai_memory_comfort_score", v)}
                                 />
@@ -1372,7 +1599,7 @@ export default function TaskView({
               </span>
             </div>
             <div ref={hintCrossRef} />
-            {hintMode && hintStepKey === "cross" && (
+            {showHintBoxes && hintStepKey === "cross" && (
               <div style={hintBoxStyle}>
                 <strong>Cross-clip AI detections</strong>
                 <p style={{ margin: "6px 0" }}>
@@ -1441,7 +1668,12 @@ export default function TaskView({
                       <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
                         <LikertScale
                           name={`cross-${threat.threat_id || idx}-threat`}
-                          label="To what extent do you agree that this content is privacy-threatening for you?"
+                          label={
+                            <span>
+                              To what extent do you agree that this content is{" "}
+                              <strong>privacy-threatening</strong> for you?
+                            </span>
+                          }
                           value={ans.cross_privacy_threat_score}
                           onChange={(v) =>
                             updateCrossAnswer(threat.threat_id || threat.title, "cross_privacy_threat_score", v)
@@ -1457,7 +1689,12 @@ export default function TaskView({
                         />
                         <LikertScale
                           name={`cross-${threat.threat_id || idx}-ai-memory`}
-                          label="Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered this content about you over its long-term usage?"
+                          label={
+                            <span>
+                              Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
+                              <strong>this content</strong> about you over its long-term usage?
+                            </span>
+                          }
                           value={ans.cross_ai_memory_comfort_score}
                           onChange={(v) =>
                             updateCrossAnswer(threat.threat_id || threat.title, "cross_ai_memory_comfort_score", v)
@@ -1486,7 +1723,7 @@ export default function TaskView({
         }}
         ref={hintManualRef}
       >
-        {hintMode && hintStepKey === "manual" && (
+        {showHintBoxes && hintStepKey === "manual" && (
           <div style={hintBoxStyle}>
             <strong>Create your own annotations</strong>
             <p style={{ margin: "6px 0" }}>
@@ -1500,7 +1737,7 @@ export default function TaskView({
             </div>
           </div>
         )}
-        {hintMode && hintStepKey === "finish" && (
+        {showHintBoxes && hintStepKey === "finish" && (
           <div style={hintBoxStyle}>
             <strong>Ready for the real annotation task</strong>
             <p style={{ margin: "6px 0" }}>
@@ -1610,6 +1847,8 @@ export default function TaskView({
                   const complete = isFindingComplete(f);
                   const expanded = expandedManualId === f.finding_id;
                   const label = categoryLabelMap[opt.value] || "Privacy threat";
+                  const timeParts = timePartsFromSeconds(f.time_sec);
+                  const descWordCount = countWords(f.description);
                   return (
                     <div
                       key={f.finding_id}
@@ -1693,6 +1932,18 @@ export default function TaskView({
                                 border: "1px solid #cbd5e1",
                               }}
                             />
+                            {opt.value === "none" && (
+                              <div
+                                style={{
+                                  marginTop: "6px",
+                                  fontSize: "0.85rem",
+                                  color: descWordCount >= 30 ? "#065f46" : "#b45309",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Minimum 30 words required. Current: {descWordCount}.
+                              </div>
+                            )}
                           </label>
                           {opt.value === "other" && (
                             <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -1713,21 +1964,140 @@ export default function TaskView({
 
                           {opt.value !== "none" && (
                             <>
+                              <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                <span style={{ fontWeight: 600 }}>
+                                  Time stamp of the privacy-threatening content
+                                </span>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      padding: "4px 6px",
+                                      borderRadius: "8px",
+                                      border: "1px solid #cbd5e1",
+                                      background: "#fff",
+                                    }}
+                                  >
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      step={1}
+                                      value={timeParts.mins}
+                                      onChange={(e) => {
+                                        const mins = Math.max(0, Number(e.target.value) || 0);
+                                        updateManualField(
+                                          f.finding_id,
+                                          "time_sec",
+                                          clampTimeSec(mins * 60 + timeParts.secs)
+                                        );
+                                      }}
+                                      style={{
+                                        width: "60px",
+                                        padding: "4px 6px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #cbd5e1",
+                                        textAlign: "center",
+                                      }}
+                                      aria-label="Minutes"
+                                    />
+                                    <span style={{ fontWeight: 700 }}>:</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={59}
+                                      step={1}
+                                      value={timeParts.secs}
+                                      onChange={(e) => {
+                                        let secs = Number(e.target.value);
+                                        secs = Number.isFinite(secs) ? Math.min(59, Math.max(0, secs)) : 0;
+                                        updateManualField(
+                                          f.finding_id,
+                                          "time_sec",
+                                          clampTimeSec(timeParts.mins * 60 + secs)
+                                        );
+                                      }}
+                                      style={{
+                                        width: "60px",
+                                        padding: "4px 6px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #cbd5e1",
+                                        textAlign: "center",
+                                      }}
+                                      aria-label="Seconds"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateManualField(
+                                        f.finding_id,
+                                        "time_sec",
+                                        clampTimeSec(currentTime)
+                                      )
+                                    }
+                                    style={{
+                                      padding: "6px 10px",
+                                      borderRadius: "8px",
+                                      border: "1px solid #1d4ed8",
+                                      background: "#e0f2fe",
+                                      cursor: "pointer",
+                                      fontWeight: 600,
+                                      color: "#0f172a",
+                                    }}
+                                  >
+                                    Use current time ({formatTime(currentTime)})
+                                  </button>
+                                  {f.time_sec != null && (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateManualField(f.finding_id, "time_sec", null)}
+                                      style={{
+                                        padding: "6px 10px",
+                                        borderRadius: "8px",
+                                        border: "1px solid #cbd5e1",
+                                        background: "#fff",
+                                        cursor: "pointer",
+                                        fontWeight: 600,
+                                        color: "#0f172a",
+                                      }}
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
+                              </label>
                               <LikertScale
                                 name={`manual-${f.finding_id}-threat`}
-                                label="To what extent do you agree that this content is privacy-threatening for you?"
+                                label={
+                                  <span>
+                                    To what extent do you agree that this content is{" "}
+                                    <strong>privacy-threatening</strong> for you?
+                                  </span>
+                                }
                                 value={f.privacy_threat_score}
                                 onChange={(v) => updateManualField(f.finding_id, "privacy_threat_score", v)}
                               />
                               <LikertScale
                                 name={`manual-${f.finding_id}-share`}
-                                label="To what extent do you agree that you would be willing to share a video that includes this content publicly online?"
+                                label={
+                                  <span>
+                                    To what extent do you agree that you would be willing to share a video that includes{" "}
+                                    <strong>this content</strong> publicly online?
+                                  </span>
+                                }
                                 value={f.share_willingness_score}
                                 onChange={(v) => updateManualField(f.finding_id, "share_willingness_score", v)}
                               />
                               <LikertScale
                                 name={`manual-${f.finding_id}-ai`}
-                                label="Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered this content about you over time?"
+                                label={
+                                  <span>
+                                    Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
+                                    <strong>this content</strong> about you over time?
+                                  </span>
+                                }
                                 value={f.ai_memory_comfort_score}
                                 onChange={(v) => updateManualField(f.finding_id, "ai_memory_comfort_score", v)}
                               />

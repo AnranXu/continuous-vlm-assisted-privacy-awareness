@@ -38,7 +38,9 @@ function normalizeAnswer(raw, idx) {
   if (!raw) return null;
   const questionId = raw.id || `q${idx + 1}`;
   const scoreNum = Number(raw.score);
-  if (!Number.isFinite(scoreNum) || scoreNum < -3 || scoreNum > 3) return null;
+  const validAiScale = Number.isFinite(scoreNum) && scoreNum >= -3 && scoreNum <= 3;
+  const validNasaScale = Number.isFinite(scoreNum) && scoreNum >= 1 && scoreNum <= 21;
+  if (!validAiScale && !validNasaScale) return null;
 
   return {
     M: {
@@ -60,6 +62,8 @@ export const handler = async (event) => {
     const studyLabel = requestedStudy === "pilot" ? "pilot" : DEFAULT_FORMAL_STUDY;
     const STUDY_ID = `${cfg.studyId}:${studyLabel}`;
     const answers = Array.isArray(body.answers) ? body.answers : [];
+    const aiAnswers = Array.isArray(body.aiAnswers) ? body.aiAnswers : [];
+    const allAnswers = [...answers, ...aiAnswers];
     const storyId = body.storyId || null;
     const mode = body.mode || null;
     const freeText = body.freeText || "";
@@ -67,11 +71,11 @@ export const handler = async (event) => {
     if (!participantId) {
       return respond(400, { error: "participantId is required" });
     }
-    if (!answers.length) {
+    if (!allAnswers.length) {
       return respond(400, { error: "answers array is required" });
     }
 
-    const normalizedAnswers = answers
+    const normalizedAnswers = allAnswers
       .map((ans, idx) => normalizeAnswer(ans, idx))
       .filter(Boolean);
 

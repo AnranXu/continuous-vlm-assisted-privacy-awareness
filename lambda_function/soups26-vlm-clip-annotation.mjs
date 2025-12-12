@@ -116,6 +116,10 @@ function normalizeFinding(raw) {
     ai_memory_comfort_score: { N: `${comfort}` }
   };
 
+  if (raw.time_sec != null && Number.isFinite(Number(raw.time_sec))) {
+    out.time_sec = { N: `${Number(raw.time_sec)}` };
+  }
+
   if (desc.length > 0) {
     out.description = { S: desc };
   }

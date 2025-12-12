@@ -1,0 +1,14 @@
+mode,study_label,phase,question_id,n,mean,std,count_0,count_1
+human,formal,in,manual_ai_memory_comfort_score,7,0.42857142857142855,0.5345224838248488,4.0,3.0
+human,formal,in,manual_privacy_threat_score,7,0.14285714285714285,0.37796447300922725,6.0,1.0
+human,formal,in,manual_share_willingness_score,7,0.42857142857142855,0.5345224838248488,4.0,3.0
+human,formal,pre,q1,1,0.0,,1.0,0.0
+human,formal,pre,q10,1,0.0,,1.0,0.0
+human,formal,pre,q2,1,0.0,,1.0,0.0
+human,formal,pre,q3,1,0.0,,1.0,0.0
+human,formal,pre,q4,1,0.0,,1.0,0.0
+human,formal,pre,q5,1,0.0,,1.0,0.0
+human,formal,pre,q6,1,0.0,,1.0,0.0
+human,formal,pre,q7,1,0.0,,1.0,0.0
+human,formal,pre,q8,1,0.0,,1.0,0.0
+human,formal,pre,q9,1,0.0,,1.0,0.0
