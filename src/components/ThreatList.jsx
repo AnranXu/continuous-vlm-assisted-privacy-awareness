@@ -20,7 +20,10 @@ export default function ThreatList({ detections, accepted, onToggle }) {
                 {d.information_types && d.information_types.join(', ')}
               </small>
             </label>
-            <div className="muted">{d.why_privacy_sensitive}</div>
+            <div className="muted">
+              <strong>Rationale:</strong>{" "}
+              {d.why_privacy_sensitive || "Potentially sensitive moment"}
+            </div>
           </li>
         ))}
       </ul>

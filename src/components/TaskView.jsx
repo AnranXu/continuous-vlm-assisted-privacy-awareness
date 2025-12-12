@@ -92,6 +92,7 @@ export default function TaskView({
   const [seenDetectionsByClip, setSeenDetectionsByClip] = useState({});
   const [newDetectionPrompt, setNewDetectionPrompt] = useState(null);
   const [crossThreatAnswers, setCrossThreatAnswers] = useState({});
+  const [collapsedCrossThreatIds, setCollapsedCrossThreatIds] = useState({});
   const [hintAiAnswersByClip, setHintAiAnswersByClip] = useState({});
   const [hintOpenDetectionByClip, setHintOpenDetectionByClip] = useState({});
   const [hintManualFindingsByClip, setHintManualFindingsByClip] = useState({});
@@ -112,6 +113,9 @@ export default function TaskView({
   const dimLevel = Number.isFinite(Number(hintDimOpacity)) ? Number(hintDimOpacity) : 0.5;
   const resolvedMode = (assignment?.mode || assignment?.assigned_mode || "human").toLowerCase();
   const isVlmMode = resolvedMode === "vlm";
+  const noneCategoryLabel = isVlmMode
+    ? "I do not see any other privacy-related content in this video clip that the AI have not detected"
+    : "I do not see any privacy-related content in this video clip";
   const hintSteps = isVlmMode
     ? ["ai-intro", "ai-expand", "next-clip", "cross", "manual", "finish"]
     : ["next-clip", "manual", "finish"];
@@ -361,7 +365,7 @@ export default function TaskView({
   const currentManualFindings = activeManualFindingsByClip[currentClipIndex] || [];
   const openDetectionId = activeOpenDetectionByClip[currentClipIndex] || null;
   const seenDetections = new Set(activeSeenDetectionsByClip[currentClipIndex] || []);
-  const currentCrossAnswers = activeCrossThreatAnswers[currentClipIndex] || {};
+  const currentCrossAnswers = activeCrossThreatAnswers || {};
   const manualCategoryCounts = useMemo(() => {
     const counts = {};
     currentManualFindings.forEach((f) => {
@@ -374,10 +378,10 @@ export default function TaskView({
   const categoryLabelMap = useMemo(() => {
     const map = {};
     CATEGORY_OPTIONS.forEach((opt) => {
-      map[opt.value] = opt.label;
+      map[opt.value] = opt.value === "none" ? noneCategoryLabel : opt.label;
     });
     return map;
-  }, []);
+  }, [noneCategoryLabel]);
 
   function isLikertScore(val) {
     if (val == null || val === "") return false;
@@ -388,6 +392,7 @@ export default function TaskView({
   function isAiResponseComplete(ans) {
     if (!ans) return false;
     return (
+      isLikertScore(ans.visual_match_score) &&
       isLikertScore(ans.privacy_threat_score) &&
       isLikertScore(ans.share_willingness_score) &&
       isLikertScore(ans.ai_memory_comfort_score) &&
@@ -411,6 +416,9 @@ export default function TaskView({
     const hasTimestamp = f.time_sec != null && Number.isFinite(Number(f.time_sec));
     const isNone = f.categories?.includes("none");
     if (isNone) {
+      if (isVlmMode) {
+        return hasCategories && desc.length > 0;
+      }
       return hasCategories && countWords(desc) >= 30;
     }
     return (
@@ -427,6 +435,7 @@ export default function TaskView({
   function isCrossResponseComplete(ans) {
     if (!ans) return false;
     return (
+      isLikertScore(ans.cross_visual_match_score) &&
       isLikertScore(ans.cross_privacy_threat_score) &&
       isLikertScore(ans.cross_more_severe_score) &&
       isLikertScore(ans.cross_ai_memory_comfort_score)
@@ -578,11 +587,9 @@ export default function TaskView({
 
   function updateCrossAnswer(threatId, key, value) {
     setActiveCrossThreatAnswers((prev) => {
-      const forClip = { ...(prev[currentClipIndex] || {}) };
-      const entry = { ...(forClip[threatId] || {}) };
+      const entry = { ...(prev[threatId] || {}) };
       entry[key] = value;
-      forClip[threatId] = entry;
-      return { ...prev, [currentClipIndex]: forClip };
+      return { ...prev, [threatId]: entry };
     });
     markClipDirty(currentClipIndex);
   }
@@ -648,6 +655,7 @@ export default function TaskView({
           information_types: d.information_types,
           severity: d.severity,
           confidence: d.confidence,
+          visual_match_score: ans.visual_match_score,
           privacy_threat_score: ans.privacy_threat_score,
           share_willingness_score: ans.share_willingness_score,
           ai_memory_comfort_score: ans.ai_memory_comfort_score,
@@ -691,6 +699,7 @@ export default function TaskView({
           information_types: t.information_types,
           severity_overall: t.severity_overall,
           confidence: t.confidence,
+          cross_visual_match_score: ans.cross_visual_match_score,
           cross_privacy_threat_score: ans.cross_privacy_threat_score,
           cross_more_severe_score: ans.cross_more_severe_score,
           cross_ai_memory_comfort_score: ans.cross_ai_memory_comfort_score,
@@ -717,6 +726,13 @@ export default function TaskView({
       detId: firstNew.det_id,
       text: firstNew.detected_visual || "New AI-suggested privacy threat",
     });
+    if (hintAiRef.current && typeof hintAiRef.current.scrollTo === "function") {
+      try {
+        hintAiRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        // ignore scroll failures
+      }
+    }
     if (videoRef?.current) {
       try {
         videoRef.current.pause();
@@ -735,9 +751,10 @@ export default function TaskView({
       if (!clipWatched && !isTestMode) {
         alert("Please watch the full scenario before finishing.");
       } else if (currentManualFindings.length === 0) {
-        alert(
-          "Please provide at least one answer in the questions below. If you did not see any privacy-related content, select “I do not see any privacy-related content in this video clip.”"
-        );
+        const noneInstruction = isVlmMode
+          ? `Please provide at least one answer in the questions below. If you did not see any other privacy-related content that the AI have not detected, select “${noneCategoryLabel}.”`
+          : `Please provide at least one answer in the questions below. If you did not see any privacy-related content, select “${noneCategoryLabel}.”`;
+        alert(noneInstruction);
       } else if (!allManualComplete) {
         alert("Please complete all manual annotation questions below before finishing.");
       } else if (isVlmMode && aiCompletedCount !== aiRequiredCount) {
@@ -843,12 +860,21 @@ export default function TaskView({
   }, [loading, hintMode, currentClipIndex]);
 
   useEffect(() => {
+    if (hintMode) return;
+    // Reset playback time and any active AI prompt when switching clips
+    // to avoid carrying over previous clip time into the new clip.
+    setCurrentTime(0);
+    setNewDetectionPrompt(null);
+  }, [currentClipIndex, videoUrl, hintMode]);
+
+  useEffect(() => {
     setAiAnswersByClip({});
     setOpenDetectionByClip({});
     setManualFindingsByClip({});
     setSeenDetectionsByClip({});
     setNewDetectionPrompt(null);
     setCrossThreatAnswers({});
+    setCollapsedCrossThreatIds({});
     setHintAiAnswersByClip({});
     setHintOpenDetectionByClip({});
     setHintManualFindingsByClip({});
@@ -1322,9 +1348,53 @@ export default function TaskView({
               <div style={hintBoxStyle}>
                 <strong>AI assistant is watching with you</strong>
                 <p style={{ margin: "6px 0" }}>
-                  As you watch videos, an AI assistant will also detect privacy risks for you. Once the AI assistant
-                  detects privacy risks, you will be asked related questions.
+                  As you watch videos, an AI assistant will also detect privacy risks for you. When a new risk is detected
+                  during playback, the video will pause and a new detection will appear. You can directly answer the questions
+                  or continue watching the video.
                 </p>
+                <div
+                  style={{
+                    marginTop: "6px",
+                    padding: "8px 10px",
+                    borderRadius: "10px",
+                    border: "1px solid #fbbf24",
+                    background: "#fffbeb",
+                    color: "#92400e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      padding: "3px 7px",
+                      borderRadius: "999px",
+                      background: "#f87171",
+                      color: "#fff",
+                      fontWeight: 800,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    New privacy threat
+                  </span>
+                  <span style={{ fontWeight: 700 }}>
+                    (Example) Distinctive interior design (blue tiles) can serve as a fingerprint for the specific residential unit.
+                  </span>
+                  <span
+                    style={{
+                      padding: "3px 7px",
+                      borderRadius: "999px",
+                      background: "#e2e8f0",
+                      color: "#0f172a",
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    Video paused
+                  </span>
+                </div>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   <button type="button" style={hintActionStyle} onClick={advanceHint}>
                     Next hint
@@ -1387,7 +1457,7 @@ export default function TaskView({
                       setTimeout(() => {
                         const el = document.getElementById(`det-${displayNewDetectionPrompt.detId}`);
                         if (el) {
-                          el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
                         }
                       }, 50);
                     }}
@@ -1525,8 +1595,16 @@ export default function TaskView({
                                 }}
                               >
                                 <div style={{ fontSize: "0.95rem", color: "#334155" }}>
-                                  {d.why_privacy_sensitive || "Potentially sensitive moment"}
+                                  <div style={{ fontWeight: 700 }}>Rationale:</div>
+                                  <div>{d.why_privacy_sensitive || "Potentially sensitive moment"}</div>
                                 </div>
+                                <div style={{ fontWeight: 700 }}>Questions:</div>
+                                <LikertScale
+                                  name={`ai-${d.det_id}-match`}
+                                  label="To what extent do you agree that this AI detection result successfully matches the real visual contents in the video clip?"
+                                  value={currentAiAnswers[d.det_id]?.visual_match_score}
+                                  onChange={(v) => updateAiAnswer(d.det_id, "visual_match_score", v)}
+                                />
                                 <LikertScale
                                   name={`ai-${d.det_id}-threat`}
                                   label={
@@ -1542,7 +1620,7 @@ export default function TaskView({
                                   name={`ai-${d.det_id}-share`}
                                   label={
                                     <span>
-                                      To what extent do you agree that you would be willing to share a video that includes{" "}
+                                      To what extent do you agree that you would be willing to <strong>share</strong> a video that includes{" "}
                                       <strong>this content</strong> publicly online?
                                     </span>
                                   }
@@ -1553,7 +1631,7 @@ export default function TaskView({
                                   name={`ai-${d.det_id}-remember`}
                                   label={
                                     <span>
-                                      To what extent do you agree that you would be comfortable if an AI assistant detected, stored, and remembered{" "}
+                                      To what extent do you agree that you would be <strong>comfortable</strong> if an AI assistant <strong>detected</strong> and <strong>remembered</strong>{" "}
                                       <strong>this content</strong> about you over time?
                                     </span>
                                   }
@@ -1562,7 +1640,11 @@ export default function TaskView({
                                 />
                                 <LikertScale
                                   name={`ai-${d.det_id}-trust`}
-                                  label="To what extent do you agree that you trust the AI assistant's judgment in this particular case?"
+                                  label={
+                                    <span>
+                                      To what extent do you agree that you <strong>trust</strong> the AI assistant's judgment in this particular case?
+                                    </span>
+                                  }
                                   value={currentAiAnswers[d.det_id]?.trust_ai_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "trust_ai_score", v)}
                                 />
@@ -1620,11 +1702,19 @@ export default function TaskView({
             ) : (
               <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
                 {crossThreatsForUi.map((threat, idx) => {
-                  const ans = currentCrossAnswers[threat.threat_id || threat.title] || {};
+                  const threatKey = threat.threat_id || threat.title || `${idx}`;
+                  const ans = currentCrossAnswers[threatKey] || {};
                   const complete = isCrossResponseComplete(ans);
+                  const expanded = !collapsedCrossThreatIds[threatKey];
+                  const toggleExpand = () =>
+                    setCollapsedCrossThreatIds((prev) => ({
+                      ...prev,
+                      [threatKey]: !prev[threatKey],
+                    }));
+
                   return (
                     <li
-                      key={threat.threat_id || threat.title || idx}
+                      key={threatKey}
                       style={{
                         padding: "10px 10px",
                         border: "1px solid #e2e8f0",
@@ -1633,11 +1723,29 @@ export default function TaskView({
                         background: "#fff",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                        <strong style={{ color: "#0f172a" }}>{threat.title || "Cross-clip threat"}</strong>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                        <strong style={{ color: "#0f172a", flex: 1 }}>
+                          {threat.title || "Cross-clip threat"}
+                        </strong>
                         <span style={{ fontSize: "0.85rem", color: "#475569" }}>
                           Scenarios {Array.isArray(threat.clips_involved) ? threat.clips_involved.join(", ") : "n/a"}
                         </span>
+                        <button
+                          type="button"
+                          onClick={toggleExpand}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: "8px",
+                            border: "1px solid #cbd5e1",
+                            background: "#fff",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            color: "#0f172a",
+                          }}
+                          aria-expanded={expanded}
+                        >
+                          {expanded ? "Collapse" : "Expand"}
+                        </button>
                         <span
                           style={{
                             padding: "4px 8px",
@@ -1653,6 +1761,7 @@ export default function TaskView({
                       </div>
                       {threat.why_amplified_across_clips && (
                         <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
+                          <strong>Rationale:</strong>{" "}
                           {threat.why_amplified_across_clips}
                         </div>
                       )}
@@ -1665,42 +1774,52 @@ export default function TaskView({
                         </div>
                       )}
 
-                      <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                        <LikertScale
-                          name={`cross-${threat.threat_id || idx}-threat`}
-                          label={
-                            <span>
-                              To what extent do you agree that this content is{" "}
-                              <strong>privacy-threatening</strong> for you?
-                            </span>
-                          }
-                          value={ans.cross_privacy_threat_score}
-                          onChange={(v) =>
-                            updateCrossAnswer(threat.threat_id || threat.title, "cross_privacy_threat_score", v)
-                          }
-                        />
-                        <LikertScale
-                          name={`cross-${threat.threat_id || idx}-severity`}
-                          label="To what extent do you agree that this detection across multiple video clips has more severe privacy threats than detection in single clips?"
-                          value={ans.cross_more_severe_score}
-                          onChange={(v) =>
-                            updateCrossAnswer(threat.threat_id || threat.title, "cross_more_severe_score", v)
-                          }
-                        />
-                        <LikertScale
-                          name={`cross-${threat.threat_id || idx}-ai-memory`}
-                          label={
-                            <span>
-                              Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
-                              <strong>this content</strong> about you over its long-term usage?
-                            </span>
-                          }
-                          value={ans.cross_ai_memory_comfort_score}
-                          onChange={(v) =>
-                            updateCrossAnswer(threat.threat_id || threat.title, "cross_ai_memory_comfort_score", v)
-                          }
-                        />
-                      </div>
+                      {expanded && (
+                        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <LikertScale
+                            name={`cross-${threat.threat_id || idx}-match`}
+                            label="To what extent do you agree that this AI detection result successfully matches the real visual contents across the video clips?"
+                            value={ans.cross_visual_match_score}
+                            onChange={(v) =>
+                              updateCrossAnswer(threatKey, "cross_visual_match_score", v)
+                            }
+                          />
+                          <LikertScale
+                            name={`cross-${threat.threat_id || idx}-threat`}
+                            label={
+                              <span>
+                                To what extent do you agree that this content is{" "}
+                                <strong>privacy-threatening</strong> for you?
+                              </span>
+                            }
+                            value={ans.cross_privacy_threat_score}
+                            onChange={(v) =>
+                              updateCrossAnswer(threatKey, "cross_privacy_threat_score", v)
+                            }
+                          />
+                          <LikertScale
+                            name={`cross-${threat.threat_id || idx}-severity`}
+                            label="To what extent do you agree that this detection across multiple video clips has more severe privacy threats than detection in single clips?"
+                            value={ans.cross_more_severe_score}
+                            onChange={(v) =>
+                              updateCrossAnswer(threatKey, "cross_more_severe_score", v)
+                            }
+                          />
+                          <LikertScale
+                            name={`cross-${threat.threat_id || idx}-ai-memory`}
+                            label={
+                              <span>
+                                Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
+                                <strong>this content</strong> about you over its long-term usage?
+                              </span>
+                            }
+                            value={ans.cross_ai_memory_comfort_score}
+                            onChange={(v) =>
+                              updateCrossAnswer(threatKey, "cross_ai_memory_comfort_score", v)
+                            }
+                          />
+                        </div>
+                      )}
                     </li>
                   );
                 })}
@@ -1757,7 +1876,7 @@ export default function TaskView({
             : "Do you see anything in this video that could reveal privacy-related information?"}
         </h3>
         <p style={{ fontSize: "0.95rem", marginBottom: "10px", color: "#334155" }}>
-          Select all that apply. If nothing seems sensitive, choose “I do not see any privacy-related content.”
+          Select all that apply. If nothing seems sensitive, choose “{noneCategoryLabel}”.
           You can add multiple privacy threats.
         </p>
         <div
@@ -1790,7 +1909,9 @@ export default function TaskView({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div style={{ flex: 1, color: "#0f172a", textAlign: "left" }}>{opt.label}</div>
+                  <div style={{ flex: 1, color: "#0f172a", textAlign: "left" }}>
+                    {isNone ? noneCategoryLabel : opt.label}
+                  </div>
                   {!isNone && (
                     <>
                       <span
@@ -1845,7 +1966,8 @@ export default function TaskView({
 
                 {cardsForCategory.map((f, cardIdx) => {
                   const complete = isFindingComplete(f);
-                  const expanded = expandedManualId === f.finding_id;
+                  const isNoneVlmFinding = isVlmMode && opt.value === "none";
+                  const expanded = isNoneVlmFinding ? true : expandedManualId === f.finding_id;
                   const label = categoryLabelMap[opt.value] || "Privacy threat";
                   const timeParts = timePartsFromSeconds(f.time_sec);
                   const descWordCount = countWords(f.description);
@@ -1876,21 +1998,23 @@ export default function TaskView({
                           {complete ? "Complete" : "Needs answers"}
                         </span>
                         <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => toggleManualExpand(f.finding_id)}
-                            style={{
-                              padding: "6px 10px",
-                              borderRadius: "8px",
-                              border: "1px solid #cbd5e1",
-                              background: "#fff",
-                              color: "#0f172a",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {expanded ? "Collapse" : "Expand"}
-                          </button>
+                          {!isNoneVlmFinding && (
+                            <button
+                              type="button"
+                              onClick={() => toggleManualExpand(f.finding_id)}
+                              style={{
+                                padding: "6px 10px",
+                                borderRadius: "8px",
+                                border: "1px solid #cbd5e1",
+                                background: "#fff",
+                                color: "#0f172a",
+                                cursor: "pointer",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {expanded ? "Collapse" : "Expand"}
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => deleteManualFinding(f.finding_id)}
@@ -1915,36 +2039,65 @@ export default function TaskView({
                       )}
                       {expanded && (
                         <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                              <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                            <span style={{ fontWeight: 700 }}>
-                              {opt.value === "none"
-            ? "Please tell us why you do not see any privacy-related content."
-            : "Please briefly describe what this content is."}
-                            </span>
-                            <textarea
-                              rows={3}
-                              value={f.description}
-                              onChange={(e) => updateManualField(f.finding_id, "description", e.target.value)}
-                              style={{
-                                width: "100%",
-                                padding: "8px",
-                                borderRadius: "8px",
-                                border: "1px solid #cbd5e1",
-                              }}
-                            />
-                            {opt.value === "none" && (
-                              <div
+                          {opt.value === "none" && isVlmMode ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if ((f.description || "").trim().length > 0) return;
+                                  updateManualField(
+                                    f.finding_id,
+                                    "description",
+                                    "Confirmed no other privacy-related content beyond the AI detections."
+                                  );
+                                }}
+                                disabled={(f.description || "").trim().length > 0}
                                 style={{
-                                  marginTop: "6px",
-                                  fontSize: "0.85rem",
-                                  color: descWordCount >= 30 ? "#065f46" : "#b45309",
-                                  fontWeight: 600,
+                                  padding: "8px 12px",
+                                  borderRadius: "10px",
+                                  border: "1px solid #1d4ed8",
+                                  background: (f.description || "").trim().length > 0 ? "#94a3b8" : "#1d4ed8",
+                                  color: "#fff",
+                                  cursor: (f.description || "").trim().length > 0 ? "default" : "pointer",
+                                  fontWeight: 700,
+                                  alignSelf: "flex-start",
                                 }}
                               >
-                                Minimum 30 words required. Current: {descWordCount}.
-                              </div>
-                            )}
-                          </label>
+                                {(f.description || "").trim().length > 0 ? "Confirmed" : "Confirm"}
+                              </button>
+                            </div>
+                          ) : (
+                            <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <span style={{ fontWeight: 700 }}>
+                                {opt.value === "none"
+                                  ? "Please tell us why you do not see any privacy-related content."
+                                  : "Please briefly describe what this content is."}
+                              </span>
+                              <textarea
+                                rows={3}
+                                value={f.description}
+                                onChange={(e) => updateManualField(f.finding_id, "description", e.target.value)}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  borderRadius: "8px",
+                                  border: "1px solid #cbd5e1",
+                                }}
+                              />
+                              {opt.value === "none" && (
+                                <div
+                                  style={{
+                                    marginTop: "6px",
+                                    fontSize: "0.85rem",
+                                    color: descWordCount >= 30 ? "#065f46" : "#b45309",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Minimum 30 words required. Current: {descWordCount}.
+                                </div>
+                              )}
+                            </label>
+                          )}
                           {opt.value === "other" && (
                             <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                               <span style={{ fontWeight: 700 }}>Other (please specify)</span>
@@ -2205,7 +2358,7 @@ export default function TaskView({
             <p style={{ marginBottom: "8px" }}>Your role is to:</p>
             <ul>
               <li>Review the AI's suggestions.</li>
-              <li>Correct them if needed.</li>
+              <li>Judge if they are correct.</li>
               <li>Add any privacy-sensitive moments the AI may have missed.</li>
             </ul>
             <p>

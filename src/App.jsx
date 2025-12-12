@@ -279,11 +279,12 @@ function App() {
         mode: assignment.mode || assignment.assigned_mode,
         study: ACTIVE_STUDY,
         clipIndex: clipIndexValue,
-        clipId: payload?.clipId || clipCfg?.clip_id || clipCfg?.clip_index || null,
-        aiResponses: payload?.aiResponses || [],
-        participantFindings: payload?.participantFindings || [],
-        videoWatched: payload?.videoWatched ?? Boolean(clipCompletion[currentClipIndex]?.watched),
-      });
+         clipId: payload?.clipId || clipCfg?.clip_id || clipCfg?.clip_index || null,
+         aiResponses: payload?.aiResponses || [],
+         participantFindings: payload?.participantFindings || [],
+         crossClipResponses: payload?.crossClipResponses || [],
+         videoWatched: payload?.videoWatched ?? Boolean(clipCompletion[currentClipIndex]?.watched),
+       });
       setStatus("Responses saved for this scenario.");
       setClipCompletion((prev) => {
         const prevEntry = prev[currentClipIndex] || {};
@@ -553,6 +554,14 @@ function App() {
 
   useEffect(() => {
     if (!showVlmInfoModal) return undefined;
+
+    // Only enforce the 15s countdown the first time participants enter VLM mode.
+    // When they reopen the AI assistance info later, do not reset the timer.
+    if (!awaitingVlmInstruction) {
+      setVlmCountdown(0);
+      return undefined;
+    }
+
     setVlmCountdown(15);
     const interval = setInterval(() => {
       setVlmCountdown((prev) => {
@@ -564,7 +573,7 @@ function App() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [showVlmInfoModal]);
+  }, [showVlmInfoModal, awaitingVlmInstruction]);
 
   return (
     <div
@@ -771,7 +780,7 @@ function App() {
             <p style={{ marginBottom: "8px" }}>Your role is to:</p>
             <ul>
               <li>Review the AI’s suggestions.</li>
-              <li>Correct them if needed.</li>
+              <li>Judge if they are correct.</li>
               <li>Add any privacy-sensitive moments the AI may have missed.</li>
             </ul>
             <p>

@@ -50,6 +50,7 @@ function stringList(raw) {
 function normalizeAiResponse(raw) {
   if (!raw || !raw.det_id) return null;
 
+  const match = normalizeLikert(raw.visual_match_score);
   const threat = normalizeLikert(raw.privacy_threat_score);
   const share = normalizeLikert(raw.share_willingness_score);
   const comfort = normalizeLikert(raw.ai_memory_comfort_score);
@@ -67,6 +68,10 @@ function normalizeAiResponse(raw) {
     ai_memory_comfort_score: { N: `${comfort}` },
     trust_ai_score: { N: `${trust}` }
   };
+
+  if (match != null) {
+    out.visual_match_score = { N: `${match}` };
+  }
 
   if (raw.time_sec != null && Number.isFinite(Number(raw.time_sec))) {
     out.time_sec = { N: `${Number(raw.time_sec)}` };
@@ -140,6 +145,7 @@ function normalizeCrossResponse(raw, idx) {
   const threat = normalizeLikert(raw.cross_privacy_threat_score);
   const moreSevere = normalizeLikert(raw.cross_more_severe_score);
   const comfort = normalizeLikert(raw.cross_ai_memory_comfort_score);
+  const match = normalizeLikert(raw.cross_visual_match_score);
   if (threat == null || moreSevere == null || comfort == null) return null;
 
   const out = {
@@ -148,6 +154,10 @@ function normalizeCrossResponse(raw, idx) {
     cross_more_severe_score: { N: `${moreSevere}` },
     cross_ai_memory_comfort_score: { N: `${comfort}` }
   };
+
+  if (match != null) {
+    out.cross_visual_match_score = { N: `${match}` };
+  }
 
   if (raw.title) out.title = { S: String(raw.title) };
   const clips = stringList(raw.clips_involved);
