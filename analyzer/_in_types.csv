@@ -1,0 +1,7 @@
+mode,study_label,source,privacy_type,question_id,n,mean,std,count_0,count_1
+human,formal,manual,individual preferences/pastimes,manual_ai_memory_comfort_score,2,1.0,0.0,0.0,2.0
+human,formal,manual,individual preferences/pastimes,manual_privacy_threat_score,2,0.5,0.7071067811865476,1.0,1.0
+human,formal,manual,individual preferences/pastimes,manual_share_willingness_score,2,1.0,0.0,0.0,2.0
+human,formal,manual,personal information,manual_ai_memory_comfort_score,1,1.0,,0.0,1.0
+human,formal,manual,personal information,manual_privacy_threat_score,1,0.0,,1.0,0.0
+human,formal,manual,personal information,manual_share_willingness_score,1,1.0,,0.0,1.0

@@ -1,38 +1,38 @@
-participant_id,mode,study_label,phase,question_id,score,source,item_id
-anran,human,formal,post,mental_demand,12.0,answers,
-anran,human,formal,post,physical_demand,11.0,answers,
-anran,human,formal,post,time_pressure,12.0,answers,
-anran,human,formal,post,performance,13.0,answers,
-anran,human,formal,post,effort,9.0,answers,
-anran,human,formal,post,frustration,15.0,answers,
-anran,human,formal,pre,q1,0.0,answers,
-anran,human,formal,pre,q2,0.0,answers,
-anran,human,formal,pre,q3,0.0,answers,
-anran,human,formal,pre,q4,0.0,answers,
-anran,human,formal,pre,q5,0.0,answers,
-anran,human,formal,pre,q6,0.0,answers,
-anran,human,formal,pre,q7,0.0,answers,
-anran,human,formal,pre,q8,0.0,answers,
-anran,human,formal,pre,q9,0.0,answers,
-anran,human,formal,pre,q10,0.0,answers,
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765504295401_9706
-anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765504295401_9706
-anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765504295401_9706
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765505585970_9896
-anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765505585970_9896
-anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765505585970_9896
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765505606872_3073
-anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765505606872_3073
-anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765505606872_3073
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506422820_2689
-anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765506422820_2689
-anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765506422820_2689
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506530295_351
-anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506530295_351
-anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506530295_351
-anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506536440_5153
-anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506536440_5153
-anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506536440_5153
-anran,human,formal,in,manual_privacy_threat_score,1.0,manual,manual_1765506544713_1972
-anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506544713_1972
-anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506544713_1972
+participant_id,mode,study_label,phase,question_id,score,source,item_id,privacy_type
+anran,human,formal,post,mental_demand,12.0,answers,,
+anran,human,formal,post,physical_demand,11.0,answers,,
+anran,human,formal,post,time_pressure,12.0,answers,,
+anran,human,formal,post,performance,13.0,answers,,
+anran,human,formal,post,effort,9.0,answers,,
+anran,human,formal,post,frustration,15.0,answers,,
+anran,human,formal,pre,q1,0.0,answers,,
+anran,human,formal,pre,q2,0.0,answers,,
+anran,human,formal,pre,q3,0.0,answers,,
+anran,human,formal,pre,q4,0.0,answers,,
+anran,human,formal,pre,q5,0.0,answers,,
+anran,human,formal,pre,q6,0.0,answers,,
+anran,human,formal,pre,q7,0.0,answers,,
+anran,human,formal,pre,q8,0.0,answers,,
+anran,human,formal,pre,q9,0.0,answers,,
+anran,human,formal,pre,q10,0.0,answers,,
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765504295401_9706,none
+anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765504295401_9706,none
+anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765504295401_9706,none
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765505585970_9896,none
+anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765505585970_9896,none
+anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765505585970_9896,none
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765505606872_3073,none
+anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765505606872_3073,none
+anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765505606872_3073,none
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506422820_2689,none
+anran,human,formal,in,manual_share_willingness_score,0.0,manual,manual_1765506422820_2689,none
+anran,human,formal,in,manual_ai_memory_comfort_score,0.0,manual,manual_1765506422820_2689,none
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506530295_351,personal information
+anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506530295_351,personal information
+anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506530295_351,personal information
+anran,human,formal,in,manual_privacy_threat_score,0.0,manual,manual_1765506536440_5153,individual preferences/pastimes
+anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506536440_5153,individual preferences/pastimes
+anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506536440_5153,individual preferences/pastimes
+anran,human,formal,in,manual_privacy_threat_score,1.0,manual,manual_1765506544713_1972,individual preferences/pastimes
+anran,human,formal,in,manual_share_willingness_score,1.0,manual,manual_1765506544713_1972,individual preferences/pastimes
+anran,human,formal,in,manual_ai_memory_comfort_score,1.0,manual,manual_1765506544713_1972,individual preferences/pastimes

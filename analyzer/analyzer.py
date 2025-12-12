@@ -155,7 +155,9 @@ IN_CROSS_KEYS = {
 def normalize_to_long(df):
     """
     Return a long-format DataFrame with columns:
-      participant_id, mode, study_label, phase, question_id, score, source, item_id
+      participant_id, mode, study_label, phase, question_id, score, source, item_id, privacy_type
+    privacy_type is only populated for in-study items (manual/ai/cross), based on
+    manual categories or AI information_types.
     """
     pd = _require("pandas")
     import numpy as np  # noqa
@@ -189,6 +191,7 @@ def normalize_to_long(df):
         out = out.dropna(subset=["score"])
         out["source"] = out.get("source", "long")
         out["item_id"] = out.get("item_id", None)
+        out["privacy_type"] = out.get("privacy_type", None)
         return out[
             [
                 "participant_id",
@@ -199,6 +202,7 @@ def normalize_to_long(df):
                 "score",
                 "source",
                 "item_id",
+                "privacy_type",
             ]
         ]
 
@@ -211,7 +215,13 @@ def normalize_to_long(df):
         study_label = derive_study_label(row_dict)
         phase = derive_phase(row_dict) or "unknown"
 
-        def add_record(qid: str, score: Any, source: str, item_id: Optional[str] = None):
+        def add_record(
+            qid: str,
+            score: Any,
+            source: str,
+            item_id: Optional[str] = None,
+            privacy_type: Optional[str] = None,
+        ):
             try:
                 s = float(score)
             except Exception:
@@ -226,6 +236,7 @@ def normalize_to_long(df):
                     "score": s,
                     "source": source,
                     "item_id": item_id,
+                    "privacy_type": privacy_type,
                 }
             )
 
@@ -255,15 +266,30 @@ def normalize_to_long(df):
             continue
 
         # In-study participant findings (manual)
-        findings = parse_maybe_json(_get(row, "participant_findings") or _get(row, "participantFindings"))
+        findings = parse_maybe_json(
+            _get(row, "participant_findings") or _get(row, "participantFindings")
+        )
         if isinstance(findings, list):
             for f in findings:
                 if not isinstance(f, dict):
                     continue
                 fid = f.get("finding_id") or f.get("findingId")
+                cats = f.get("categories") or []
+                if isinstance(cats, str):
+                    cats = [cats]
+                cats = [str(c).strip() for c in cats if c is not None and str(c).strip()]
+                if not cats:
+                    cats = [None]
                 for raw_key, qid in IN_MANUAL_KEYS.items():
                     if raw_key in f:
-                        add_record(qid, f.get(raw_key), source="manual", item_id=str(fid) if fid else None)
+                        for cat in cats:
+                            add_record(
+                                qid,
+                                f.get(raw_key),
+                                source="manual",
+                                item_id=str(fid) if fid else None,
+                                privacy_type=cat,
+                            )
 
         # AI single-clip responses
         ai_responses = parse_maybe_json(_get(row, "ai_responses") or _get(row, "aiResponses"))
@@ -272,9 +298,22 @@ def normalize_to_long(df):
                 if not isinstance(a, dict):
                     continue
                 det_id = a.get("det_id") or a.get("detId")
+                types = a.get("information_types") or a.get("informationTypes") or []
+                if isinstance(types, str):
+                    types = [types]
+                types = [str(t).strip() for t in types if t is not None and str(t).strip()]
+                if not types:
+                    types = [None]
                 for raw_key, qid in IN_AI_KEYS.items():
                     if raw_key in a:
-                        add_record(qid, a.get(raw_key), source="ai", item_id=str(det_id) if det_id else None)
+                        for t in types:
+                            add_record(
+                                qid,
+                                a.get(raw_key),
+                                source="ai",
+                                item_id=str(det_id) if det_id else None,
+                                privacy_type=t,
+                            )
 
         # Cross-clip responses
         cross = parse_maybe_json(_get(row, "cross_clip_responses") or _get(row, "crossClipResponses"))
@@ -283,9 +322,22 @@ def normalize_to_long(df):
                 if not isinstance(c, dict):
                     continue
                 tid = c.get("threat_id") or c.get("threatId")
+                types = c.get("information_types") or c.get("informationTypes") or []
+                if isinstance(types, str):
+                    types = [types]
+                types = [str(t).strip() for t in types if t is not None and str(t).strip()]
+                if not types:
+                    types = [None]
                 for raw_key, qid in IN_CROSS_KEYS.items():
                     if raw_key in c:
-                        add_record(qid, c.get(raw_key), source="cross", item_id=str(tid) if tid else None)
+                        for t in types:
+                            add_record(
+                                qid,
+                                c.get(raw_key),
+                                source="cross",
+                                item_id=str(tid) if tid else None,
+                                privacy_type=t,
+                            )
 
     out = pd.DataFrame.from_records(records)
     if out.empty:
@@ -293,6 +345,66 @@ def normalize_to_long(df):
     out["score"] = pd.to_numeric(out["score"], errors="coerce")
     out = out.dropna(subset=["score"])
     return out
+
+
+def summarize_in_study_types(
+    long_df,
+    scale: Tuple[int, int] = (-3, 3),
+    group_cols: Sequence[str] = ("mode", "study_label"),
+    sources: Sequence[str] = ("manual", "ai", "cross"),
+    drop_none: bool = True,
+):
+    """
+    In-study summary by privacy type/category.
+
+    Returns a DataFrame with:
+      group_cols + source + privacy_type + question_id + n + mean + std + count_-3..count_3
+    Scores are filtered to the 7-point Likert range.
+    """
+    pd = _require("pandas")
+
+    if long_df is None or long_df.empty:
+        return pd.DataFrame()
+
+    df = long_df.copy()
+    df = df[df["phase"] == "in"]
+    df = df[df["source"].isin(list(sources))]
+    df["score"] = pd.to_numeric(df["score"], errors="coerce")
+    df = df.dropna(subset=["score"])
+    df = df[(df["score"] >= scale[0]) & (df["score"] <= scale[1])]
+
+    if "privacy_type" not in df.columns:
+        df["privacy_type"] = None
+    if drop_none:
+        df = df[df["privacy_type"].notna()]
+        df = df[df["privacy_type"].str.lower() != "none"]
+
+    if df.empty:
+        return pd.DataFrame()
+
+    stats = (
+        df.groupby([*group_cols, "source", "privacy_type", "question_id"])["score"]
+        .agg(n="count", mean="mean", std="std")
+        .reset_index()
+    )
+
+    dist = (
+        df.groupby([*group_cols, "source", "privacy_type", "question_id", "score"])
+        .size()
+        .reset_index(name="count")
+    )
+    pivot = dist.pivot_table(
+        index=[*group_cols, "source", "privacy_type", "question_id"],
+        columns="score",
+        values="count",
+        fill_value=0,
+    )
+    pivot.columns = [f"count_{int(c)}" for c in pivot.columns]
+    pivot = pivot.reset_index()
+
+    return stats.merge(
+        pivot, on=[*group_cols, "source", "privacy_type", "question_id"], how="left"
+    )
 
 
 def summarize_likert(
@@ -504,6 +616,7 @@ def analyze_csv(
         compare_df = compare_groups(long_df)
     except ImportError:
         compare_df = pd.DataFrame()
+    in_type_summary_df = summarize_in_study_types(long_df)
 
     plot_paths = []
     if out_dir is not None:
@@ -512,7 +625,7 @@ def analyze_csv(
         except ImportError:
             plot_paths = []
 
-    return long_df, summary_df, compare_df, plot_paths
+    return long_df, summary_df, compare_df, in_type_summary_df, plot_paths
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -523,10 +636,13 @@ if __name__ == "__main__":  # pragma: no cover
     ap.add_argument("--out-dir", help="Directory to write plots (optional)")
     ap.add_argument("--summary-csv", help="Write summary table to CSV")
     ap.add_argument("--compare-csv", help="Write group comparison table to CSV")
+    ap.add_argument("--in-types-csv", help="Write in-study type summary to CSV")
     ap.add_argument("--long-csv", help="Write normalized long table to CSV")
     args = ap.parse_args()
 
-    long_df, summary_df, compare_df, plots = analyze_csv(args.csv, out_dir=args.out_dir)
+    long_df, summary_df, compare_df, in_type_summary_df, plots = analyze_csv(
+        args.csv, out_dir=args.out_dir
+    )
 
     if args.long_csv:
         long_df.to_csv(args.long_csv, index=False)
@@ -534,10 +650,13 @@ if __name__ == "__main__":  # pragma: no cover
         summary_df.to_csv(args.summary_csv, index=False)
     if args.compare_csv:
         compare_df.to_csv(args.compare_csv, index=False)
+    if args.in_types_csv:
+        in_type_summary_df.to_csv(args.in_types_csv, index=False)
 
     print(f"Rows normalized: {len(long_df)}")
     print(f"Summary rows: {len(summary_df)}")
     print(f"Comparison rows: {len(compare_df)}")
+    print(f"In-study type summary rows: {len(in_type_summary_df)}")
     if plots:
         print("Plots saved:")
         for p in plots:
