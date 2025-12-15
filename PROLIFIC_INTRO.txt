@@ -2,6 +2,7 @@ Welcome to our study!
 
 Requirement: 
 - Have experiences in knowing or using AI tools, such as ChatGPT, Gemini, DeepSeek, etc.
+- A laptop or desktop computer with at least 1920x1080 resolution. (Please do not use a tablet or a smartphone for this task)
 
 What you will do
 - Watch short, first-person video clips.

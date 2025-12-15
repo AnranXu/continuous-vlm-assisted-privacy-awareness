@@ -10,7 +10,7 @@ const tickLabels = {
 
 const AI_LIKERT_OPTIONS = [-3, -2, -1, 0, 1, 2, 3];
 const aiOptionLabels = {
-  "-3": "Strongly disagree (-3)",
+  "-3": "strongly disagree (-3)",
   "0": "neutral (0)",
   "3": "strongly agree (3)",
 };
@@ -57,17 +57,22 @@ const AI_QUESTION_DEFS = [
   {
     id: "ai_highlights_distracting",
     title: "AI highlights were distracting",
-    text: "To what extent do you agree that the AI highlights sometimes distracted you from what you considered important?",
+    text: "To what extent do you agree that the AI highlights sometimes distracted you from what you considered privacy-related?",
   },
   {
     id: "ai_trust_assistant",
     title: "Trust AI to protect privacy",
-    text: "To what extent do you agree that, in general, you would trust an AI system to help you protect your privacy in everyday life?",
+    text: "To what extent do you agree that, in general, you would trust an AI system to help you understand your privacy in everyday life?",
   },
   {
     id: "ai_feel_in_control",
     title: "Control with constant AI analysis",
     text: "To what extent do you agree that you would still feel in control of what is shared, even if an AI assistant is constantly analyzing your video?",
+  },
+  {
+    id: "ai_comfort_others_use",
+    title: "Comfort seeing others use AI assistant",
+    text: "To what extent do you agree that you will feel comfortable if you see others using such an AI assistant to detect privacy-related information?",
   },
 ];
 
@@ -353,10 +358,10 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(7, minmax(110px, 1fr))",
+                        gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
                         gap: "8px",
                         width: "100%",
-                        overflowX: "auto",
+                        overflowX: "hidden",
                       }}
                     >
                       {AI_LIKERT_OPTIONS.map((value) => {
@@ -365,16 +370,22 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                           <label
                             key={`${q.id}_${value}`}
                             style={{
-                              border: selected ? "2px solid #7c3aed" : "1px solid #cbd5e1",
+                              border: "2px solid",
+                              borderColor: selected ? "#7c3aed" : "#cbd5e1",
                               borderRadius: "10px",
-                              padding: "10px 6px",
-                              textAlign: "center",
+                              padding: "10px 4px",
                               cursor: "pointer",
                               background: selected ? "#f3e8ff" : "#f8fafc",
                               fontWeight: selected ? 700 : 600,
                               color: "#0f172a",
-                              minWidth: "70px",
+                              minWidth: 0,
                               boxShadow: selected ? "0 1px 4px rgba(124,58,237,0.25)" : "none",
+                              boxSizing: "border-box",
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
                             }}
                           >
                             <input
@@ -385,26 +396,20 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                               onChange={() => handleChoice(q.id, value, true)}
                               style={{ display: "none" }}
                             />
-                            <div style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>
+                            <div
+                              style={{
+                                fontSize: "clamp(0.6rem, 0.9vw, 0.95rem)",
+                                whiteSpace: "nowrap",
+                                maxWidth: "100%",
+                                overflow: "hidden",
+                              }}
+                            >
                               {aiOptionLabels[value] || value}
                             </div>
                           </label>
                         );
                       })}
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginTop: "8px",
-                    fontSize: "0.9rem",
-                    color: "#475569",
-                  }}
-                >
-                  <span>Strongly disagree (-3)</span>
-                  <span>neutral (0)</span>
-                  <span>strongly agree (3)</span>
-                </div>
                   </div>
                 ))}
               </div>

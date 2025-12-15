@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 
 const likertOptions = [-3, -2, -1, 0, 1, 2, 3];
 const optionLabels = {
-  "-3": "Strongly disagree (-3)",
+  "-3": "strongly disagree (-3)",
   "0": "neutral (0)",
   "3": "strongly agree (3)",
 };
@@ -120,7 +120,7 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
               }}
             >
               <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
-                Strongly disagree (-3)
+                strongly disagree (-3)
               </span>
               <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
                 neutral (0)
@@ -165,24 +165,31 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(7, minmax(110px, 1fr))",
+                    gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
                     gap: "6px",
                     width: "100%",
-                    overflowX: "auto",
+                    overflowX: "hidden",
                   }}
                 >
                   {likertOptions.map((value) => (
                     <label
                       key={`${q.id}_${value}`}
                       style={{
-                        border: answers[q.id] === value ? "2px solid #1d4ed8" : "1px solid #cbd5e1",
+                        border: "2px solid",
+                        borderColor: answers[q.id] === value ? "#1d4ed8" : "#cbd5e1",
                         borderRadius: "10px",
-                        padding: "8px 6px",
-                        textAlign: "center",
+                        padding: "8px 4px",
                         cursor: "pointer",
                         background: answers[q.id] === value ? "#eef2ff" : "#f8fafc",
                         fontWeight: answers[q.id] === value ? 700 : 500,
                         color: "#0f172a",
+                        minWidth: 0,
+                        boxSizing: "border-box",
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
                     >
                       <input
@@ -193,7 +200,14 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
                         onChange={() => handleChoice(q.id, value)}
                         style={{ display: "none" }}
                       />
-                      <div style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>
+                      <div
+                        style={{
+                          fontSize: "clamp(0.6rem, 0.9vw, 0.95rem)",
+                          whiteSpace: "nowrap",
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                        }}
+                      >
                         {optionLabels[value] || value}
                       </div>
                     </label>

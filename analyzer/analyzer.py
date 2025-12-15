@@ -13,7 +13,7 @@ The analyzer is designed to work with CSV exports from DynamoDB. Two formats are
      - item_type, pk, sk, participant_id, mode, study_label, study, study_id
      - answers (pre/post-study)
      - aiAnswers or ai_answers (post-study VLM only)
-     - ai_responses, participant_findings, cross_clip_responses (in-study clip annotations)
+     - ai_responses, participant_findings, cross_clip_responses, cross_clip_manual_privacy (in-study clip annotations)
 
 Scores are treated as numeric. Seven-point Likert items are -3..3.
 Post-study NASA-TLX items are 1..21; they are retained in the long table but filtered out
@@ -149,6 +149,11 @@ IN_CROSS_KEYS = {
     "cross_privacy_threat_score": "cross_privacy_threat_score",
     "cross_more_severe_score": "cross_more_severe_score",
     "cross_ai_memory_comfort_score": "cross_ai_memory_comfort_score",
+}
+IN_CROSS_MANUAL_KEYS = {
+    "cross_privacy_threat_score": "cross_manual_privacy_threat_score",
+    "cross_more_severe_score": "cross_manual_more_severe_score",
+    "cross_ai_memory_comfort_score": "cross_manual_ai_memory_comfort_score",
 }
 
 
@@ -339,6 +344,38 @@ def normalize_to_long(df):
                                 privacy_type=t,
                             )
 
+        # Cross-clip manual privacy (human annotations inferred across clips)
+        cross_manual = parse_maybe_json(
+            _get(row, "cross_clip_manual_privacy")
+            or _get(row, "crossClipManualPrivacy")
+            or _get(row, "cross_clip_manual")
+        )
+        if isinstance(cross_manual, dict):
+            findings = cross_manual.get("findings") or []
+            if isinstance(findings, dict):
+                findings = [findings]
+            if isinstance(findings, list):
+                for f in findings:
+                    if not isinstance(f, dict):
+                        continue
+                    fid = f.get("finding_id") or f.get("findingId") or f.get("id")
+                    cats = f.get("categories") or []
+                    if isinstance(cats, str):
+                        cats = [cats]
+                    cats = [str(c).strip() for c in cats if c is not None and str(c).strip()]
+                    if not cats:
+                        cats = [None]
+                    for raw_key, qid in IN_CROSS_MANUAL_KEYS.items():
+                        if raw_key in f:
+                            for cat in cats:
+                                add_record(
+                                    qid,
+                                    f.get(raw_key),
+                                    source="cross_manual",
+                                    item_id=str(fid) if fid else None,
+                                    privacy_type=cat,
+                                )
+
     out = pd.DataFrame.from_records(records)
     if out.empty:
         return out
@@ -351,7 +388,7 @@ def summarize_in_study_types(
     long_df,
     scale: Tuple[int, int] = (-3, 3),
     group_cols: Sequence[str] = ("mode", "study_label"),
-    sources: Sequence[str] = ("manual", "ai", "cross"),
+    sources: Sequence[str] = ("manual", "ai", "cross", "cross_manual"),
     drop_none: bool = True,
 ):
     """

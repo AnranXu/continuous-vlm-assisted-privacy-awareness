@@ -341,17 +341,21 @@ export default function TaskView({
   const displayDetections = hintMode && isVlmMode ? hintSingleDetections : visibleDetections;
 
   const groupedDetections = useMemo(() => {
-    const groups = {};
+    const groups = new Map();
+    const seenDetIds = new Set();
+
     displayDetections.forEach((d) => {
-      const types = Array.isArray(d.information_types) && d.information_types.length
-        ? d.information_types
-        : ["Other"];
-      types.forEach((t) => {
-        if (!groups[t]) groups[t] = [];
-        groups[t].push(d);
-      });
+      if (!d?.det_id) return;
+      if (seenDetIds.has(d.det_id)) return;
+      seenDetIds.add(d.det_id);
+
+      const types = Array.isArray(d.information_types) && d.information_types.length ? d.information_types : ["Other"];
+      const primaryType = types[0] || "Other";
+      if (!groups.has(primaryType)) groups.set(primaryType, []);
+      groups.get(primaryType).push(d);
     });
-    return Object.entries(groups).map(([infoType, list]) => ({ infoType, list }));
+
+    return Array.from(groups.entries()).map(([infoType, list]) => ({ infoType, list }));
   }, [displayDetections]);
 
   const seenClipIndices = useMemo(() => {
@@ -730,7 +734,7 @@ export default function TaskView({
           </label>
         ))}
         <span style={{ color: "#475569", fontSize: "0.85rem" }}>
-          Strongly disagree (-3) / neutral (0) / strongly agree (3)
+          strongly disagree (-3) / neutral (0) / strongly agree (3)
         </span>
       </div>
       {helper && (
@@ -846,9 +850,6 @@ export default function TaskView({
     const seenSet = new Set(activeSeenDetectionsByClip[currentClipIndex] || []);
     const firstNew = visibleDetections.find((d) => !seenSet.has(d.det_id));
     if (!firstNew) return;
-
-    const triggerTime = firstNew.time_sec != null ? firstNew.time_sec : currentTime;
-    if (triggerTime < 10 && currentTime < 10) return;
 
     seenSet.add(firstNew.det_id);
     setActiveSeenDetectionsByClip((prev) => ({
@@ -1023,6 +1024,12 @@ export default function TaskView({
 
   return (
     <>
+      <style>{`
+        @keyframes taskViewSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       {shouldShowHintInstructionPrompt && (
         <div
           style={{
@@ -1226,6 +1233,7 @@ export default function TaskView({
               type="button"
               onClick={handleNextButton}
               disabled={nextButtonDisabled}
+              aria-busy={loading}
               style={{
                 padding: "10px 14px",
                 borderRadius: "10px",
@@ -1240,7 +1248,25 @@ export default function TaskView({
                 marginLeft: "12px",
               }}
             >
-              Next clip
+              {loading ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "999px",
+                      border: "2px solid rgba(71,85,105,0.25)",
+                      borderTopColor: "#475569",
+                      animation: "taskViewSpin 0.8s linear infinite",
+                      flexShrink: 0,
+                    }}
+                  />
+                  Loading…
+                </span>
+              ) : (
+                "Next clip"
+              )}
             </button>
             <span style={{ fontSize: "0.9rem", color: "#475569", fontWeight: 600 }}>
               {clipProgressLabel}
@@ -1737,7 +1763,12 @@ export default function TaskView({
                                 <div style={{ fontWeight: 700 }}>Questions:</div>
                                 <LikertScale
                                   name={`ai-${d.det_id}-match`}
-                                  label="To what extent do you agree that this AI detection result successfully matches the real visual contents in the video clip?"
+                                  label={
+                                    <span>
+                                      To what extent do you agree that this AI detection result{" "}
+                                      <strong>successfully matches</strong> the real visual contents in the video clip?
+                                    </span>
+                                  }
                                   value={currentAiAnswers[d.det_id]?.visual_match_score}
                                   onChange={(v) => updateAiAnswer(d.det_id, "visual_match_score", v)}
                                 />
@@ -1897,8 +1928,8 @@ export default function TaskView({
                       </div>
                       {threat.why_amplified_across_clips && (
                         <div style={{ fontSize: "0.95rem", color: "#334155", marginTop: "4px" }}>
-                          <strong>Rationale:</strong>{" "}
-                          {threat.why_amplified_across_clips}
+                          <div style={{ fontWeight: 700 }}>Rationale:</div>
+                          <div>{threat.why_amplified_across_clips}</div>
                         </div>
                       )}
                       <div style={{ fontSize: "0.9rem", color: "#475569", marginTop: "6px" }}>
@@ -1910,15 +1941,20 @@ export default function TaskView({
                         </div>
                       )}
 
-                      {expanded && (
-                        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <LikertScale
-                            name={`cross-${threat.threat_id || idx}-match`}
-                            label="To what extent do you agree that this AI detection result successfully matches the real visual contents across the video clips?"
-                            value={ans.cross_visual_match_score}
-                            onChange={(v) =>
-                              updateCrossAnswer(threatKey, "cross_visual_match_score", v)
-                            }
+                        {expanded && (
+                          <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <LikertScale
+                              name={`cross-${threat.threat_id || idx}-match`}
+                              label={
+                                <span>
+                                  To what extent do you agree that this AI detection result{" "}
+                                  <strong>successfully matches</strong> the real visual contents across the video clips?
+                                </span>
+                              }
+                              value={ans.cross_visual_match_score}
+                              onChange={(v) =>
+                                updateCrossAnswer(threatKey, "cross_visual_match_score", v)
+                              }
                           />
                           <LikertScale
                             name={`cross-${threat.threat_id || idx}-threat`}
@@ -2005,7 +2041,7 @@ export default function TaskView({
           </div>
         )}
         {showHintBoxes && hintStepKey === "finish" && (
-          <div style={hintBoxStyle}>
+          <div style={{ ...hintBoxStyle, marginBottom: "10px" }}>
             <strong>Ready for the real annotation task</strong>
             <p style={{ margin: "6px 0" }}>
               You can return to this hint page anytime using “View annotation hint.” Click below when you’re ready to

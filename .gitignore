@@ -38,3 +38,6 @@ dist-ssr
 *.m4v
 *.vob
 *.ogv
+
+*.pyc
+__pycache__/
