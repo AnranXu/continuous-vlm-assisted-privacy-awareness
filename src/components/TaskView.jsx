@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const LIKERT_OPTIONS = [-3, -2, -1, 0, 1, 2, 3];
+const MIN_MANUAL_DESC_WORDS = 10;
 
 const CATEGORY_OPTIONS = [
   {
@@ -476,7 +477,7 @@ export default function TaskView({
       isLikertScore(f.privacy_threat_score) &&
       isLikertScore(f.share_willingness_score) &&
       isLikertScore(f.ai_memory_comfort_score) &&
-      desc.length > 0 &&
+      countWords(desc) >= MIN_MANUAL_DESC_WORDS &&
       otherTextOk
     );
   }
@@ -500,7 +501,7 @@ export default function TaskView({
     const otherOk = !needsOther || (f.other_text || "").trim().length > 0;
     return (
       cats.length > 0 &&
-      desc.length > 0 &&
+      countWords(desc) >= MIN_MANUAL_DESC_WORDS &&
       clips.length > 0 &&
       isLikertScore(f.cross_privacy_threat_score) &&
       isLikertScore(f.cross_more_severe_score) &&
@@ -2289,6 +2290,18 @@ export default function TaskView({
                                   Minimum 30 words required. Current: {descWordCount}.
                                 </div>
                               )}
+                              {opt.value !== "none" && (
+                                <div
+                                  style={{
+                                    marginTop: "6px",
+                                    fontSize: "0.85rem",
+                                    color: descWordCount >= MIN_MANUAL_DESC_WORDS ? "#065f46" : "#b45309",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Minimum {MIN_MANUAL_DESC_WORDS} words required. Current: {descWordCount}.
+                                </div>
+                              )}
                             </label>
                           )}
                           {opt.value === "other" && (
@@ -2810,6 +2823,20 @@ export default function TaskView({
                             <span style={{ fontWeight: 700 }}>
                               Please briefly describe what this content is and what information it reveals.
                             </span>
+                            {(() => {
+                              const descWordCount = countWords(finding.description);
+                              return (
+                                <div
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    color: descWordCount >= MIN_MANUAL_DESC_WORDS ? "#065f46" : "#b45309",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Minimum {MIN_MANUAL_DESC_WORDS} words required. Current: {descWordCount}.
+                                </div>
+                              );
+                            })()}
                             <textarea
                               rows={3}
                               value={finding.description || ""}
