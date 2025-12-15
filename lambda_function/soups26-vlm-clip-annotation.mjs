@@ -47,6 +47,13 @@ function stringList(raw) {
     .filter((v) => v.length > 0);
 }
 
+function numberList(raw, min = 1, max = 999) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => Number(v))
+    .filter((n) => Number.isFinite(n) && n >= min && n <= max);
+}
+
 function normalizeAiResponse(raw) {
   if (!raw || !raw.det_id) return null;
 
@@ -174,6 +181,59 @@ function normalizeCrossResponse(raw, idx) {
   return { M: out };
 }
 
+function normalizeCrossClipManualFinding(raw, idx) {
+  if (!raw) return null;
+  const findingId = raw.finding_id || raw.id || `cross_manual_${idx + 1}`;
+  const out = {
+    finding_id: { S: String(findingId) }
+  };
+
+  const categories = stringList(raw.categories);
+  if (categories.length > 0) out.categories = { L: categories.map((c) => ({ S: c })) };
+
+  const other = String(raw.other_text || "").trim();
+  if (other.length > 0) out.other_text = { S: other };
+
+  const desc = String(raw.description || "").trim();
+  if (desc.length > 0) out.description = { S: desc };
+
+  const clips = numberList(raw.clip_numbers, 1, 999);
+  if (clips.length > 0) out.clip_numbers = { L: clips.map((n) => ({ N: `${n}` })) };
+
+  const match = normalizeLikert(raw.cross_visual_match_score);
+  if (match != null) out.cross_visual_match_score = { N: `${match}` };
+
+  const threat = normalizeLikert(raw.cross_privacy_threat_score);
+  if (threat != null) out.cross_privacy_threat_score = { N: `${threat}` };
+
+  const moreSevere = normalizeLikert(raw.cross_more_severe_score);
+  if (moreSevere != null) out.cross_more_severe_score = { N: `${moreSevere}` };
+
+  const comfort = normalizeLikert(raw.cross_ai_memory_comfort_score);
+  if (comfort != null) out.cross_ai_memory_comfort_score = { N: `${comfort}` };
+
+  return { M: out };
+}
+
+function normalizeCrossClipManualPrivacy(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const out = {};
+
+  if (typeof raw.has_privacy === "boolean") {
+    out.has_privacy = { BOOL: raw.has_privacy };
+  }
+
+  const noDesc = String(raw.no_description || "").trim();
+  if (noDesc.length > 0) out.no_description = { S: noDesc };
+
+  const findingsRaw = Array.isArray(raw.findings) ? raw.findings : [];
+  const findings = findingsRaw.map((f, idx) => normalizeCrossClipManualFinding(f, idx)).filter(Boolean);
+  if (findings.length > 0) out.findings = { L: findings };
+
+  if (Object.keys(out).length === 0) return null;
+  return { M: out };
+}
+
 export const handler = async (event) => {
   try {
     const cfg = await getStudyConfig();
@@ -190,6 +250,7 @@ export const handler = async (event) => {
     const participantFindingsRaw = Array.isArray(body.participantFindings) ? body.participantFindings : [];
     const videoWatched = Boolean(body.videoWatched);
     const crossClipRaw = Array.isArray(body.crossClipResponses) ? body.crossClipResponses : [];
+    const crossClipManualPrivacyRaw = body.crossClipManualPrivacy || null;
 
     if (!participantId) {
       return respond(400, { error: "participantId is required" });
@@ -204,8 +265,14 @@ export const handler = async (event) => {
     const aiResponses = aiResponsesRaw.map((r) => normalizeAiResponse(r)).filter(Boolean);
     const participantFindings = participantFindingsRaw.map((r) => normalizeFinding(r)).filter(Boolean);
     const crossClipResponses = crossClipRaw.map((r, idx) => normalizeCrossResponse(r, idx)).filter(Boolean);
+    const crossClipManualPrivacy = normalizeCrossClipManualPrivacy(crossClipManualPrivacyRaw);
 
-    if (aiResponses.length === 0 && participantFindings.length === 0 && crossClipResponses.length === 0) {
+    if (
+      aiResponses.length === 0 &&
+      participantFindings.length === 0 &&
+      crossClipResponses.length === 0 &&
+      !crossClipManualPrivacy
+    ) {
       return respond(400, { error: "At least one response is required to store clip annotation" });
     }
 
@@ -229,6 +296,7 @@ export const handler = async (event) => {
     if (aiResponses.length > 0) item.ai_responses = { L: aiResponses };
     if (participantFindings.length > 0) item.participant_findings = { L: participantFindings };
     if (crossClipResponses.length > 0) item.cross_clip_responses = { L: crossClipResponses };
+    if (crossClipManualPrivacy) item.cross_clip_manual_privacy = crossClipManualPrivacy;
 
     await ddb.send(
       new PutItemCommand({

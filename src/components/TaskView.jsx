@@ -34,6 +34,8 @@ const CATEGORY_OPTIONS = [
   },
 ];
 
+const CROSS_CLIP_CATEGORY_OPTIONS = CATEGORY_OPTIONS.filter((opt) => opt.value !== "none");
+
 function createEmptyFinding() {
   return {
     finding_id: `manual_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
@@ -44,6 +46,19 @@ function createEmptyFinding() {
     privacy_threat_score: null,
     share_willingness_score: null,
     ai_memory_comfort_score: null,
+  };
+}
+
+function createEmptyCrossClipFinding() {
+  return {
+    finding_id: `cross_manual_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+    categories: [],
+    other_text: "",
+    description: "",
+    clip_numbers: [],
+    cross_privacy_threat_score: null,
+    cross_more_severe_score: null,
+    cross_ai_memory_comfort_score: null,
   };
 }
 
@@ -93,12 +108,24 @@ export default function TaskView({
   const [newDetectionPrompt, setNewDetectionPrompt] = useState(null);
   const [crossThreatAnswers, setCrossThreatAnswers] = useState({});
   const [collapsedCrossThreatIds, setCollapsedCrossThreatIds] = useState({});
+  const [crossClipManualPrivacy, setCrossClipManualPrivacy] = useState({
+    has_privacy: null,
+    no_description: "",
+    findings: [],
+    expanded_finding_id: null,
+  });
   const [hintAiAnswersByClip, setHintAiAnswersByClip] = useState({});
   const [hintOpenDetectionByClip, setHintOpenDetectionByClip] = useState({});
   const [hintManualFindingsByClip, setHintManualFindingsByClip] = useState({});
   const [hintExpandedManualId, setHintExpandedManualId] = useState(null);
   const [hintCrossThreatAnswers, setHintCrossThreatAnswers] = useState({});
   const [hintSeenDetectionsByClip, setHintSeenDetectionsByClip] = useState({});
+  const [hintCrossClipManualPrivacy, setHintCrossClipManualPrivacy] = useState({
+    has_privacy: null,
+    no_description: "",
+    findings: [],
+    expanded_finding_id: null,
+  });
   const [hintClipCount, setHintClipCount] = useState(1);
   const [hintStepIndex, setHintStepIndex] = useState(0);
   const [showHintInstructionPrompt, setShowHintInstructionPrompt] = useState(hintMode);
@@ -106,6 +133,7 @@ export default function TaskView({
   const hintNavRef = useRef(null);
   const hintAiRef = useRef(null);
   const hintCrossRef = useRef(null);
+  const hintCrossManualRef = useRef(null);
   const hintManualRef = useRef(null);
   const prevHintModeRef = useRef(hintMode);
   const totalClips = storyConfig?.clips?.length || 1;
@@ -116,15 +144,19 @@ export default function TaskView({
   const noneCategoryLabel = isVlmMode
     ? "I do not see any other privacy-related content in this video clip that the AI have not detected"
     : "I do not see any privacy-related content in this video clip";
+  const crossClipNoneLabel = isVlmMode
+    ? "I do not see any other privacy-related content in multiple video clips that the AI have not detected"
+    : "No, there is not privacy-related information across multiple clips";
   const hintSteps = isVlmMode
-    ? ["ai-intro", "ai-expand", "next-clip", "cross", "manual", "finish"]
-    : ["next-clip", "manual", "finish"];
+    ? ["ai-intro", "ai-expand", "cross", "manual", "multi-clip", "next-clip", "finish"]
+    : ["manual", "multi-clip", "next-clip", "finish"];
   const hintStepKey = hintSteps[Math.min(hintStepIndex, hintSteps.length - 1)];
   const focusMap = {
     "ai-intro": "ai",
     "ai-expand": "ai",
     "next-clip": "nav",
     cross: "ai",
+    "multi-clip": "manual",
     manual: "manual",
     finish: "manual",
   };
@@ -158,6 +190,7 @@ export default function TaskView({
       "ai-expand": hintAiRef,
       "next-clip": hintNavRef,
       cross: hintCrossRef,
+      "multi-clip": hintCrossManualRef,
       manual: hintManualRef,
       finish: hintManualRef,
     };
@@ -199,6 +232,12 @@ export default function TaskView({
     setHintExpandedManualId(null);
     setHintCrossThreatAnswers({});
     setHintSeenDetectionsByClip({});
+    setHintCrossClipManualPrivacy({
+      has_privacy: null,
+      no_description: "",
+      findings: [],
+      expanded_finding_id: null,
+    });
   }, [hintMode, currentClipIndex, resolvedMode, totalClips]);
 
   const currentClipMeta = useMemo(() => {
@@ -224,6 +263,7 @@ export default function TaskView({
   const activeManualFindingsByClip = hintMode ? hintManualFindingsByClip : manualFindingsByClip;
   const activeCrossThreatAnswers = hintMode ? hintCrossThreatAnswers : crossThreatAnswers;
   const activeSeenDetectionsByClip = hintMode ? hintSeenDetectionsByClip : seenDetectionsByClip;
+  const activeCrossClipManualPrivacy = hintMode ? hintCrossClipManualPrivacy : crossClipManualPrivacy;
   const activeExpandedManualId = hintMode ? hintExpandedManualId : expandedManualId;
   const setActiveExpandedManualId = hintMode ? setHintExpandedManualId : setExpandedManualId;
   const setActiveAiAnswersByClip = hintMode ? setHintAiAnswersByClip : setAiAnswersByClip;
@@ -231,6 +271,7 @@ export default function TaskView({
   const setActiveManualFindingsByClip = hintMode ? setHintManualFindingsByClip : setManualFindingsByClip;
   const setActiveCrossThreatAnswers = hintMode ? setHintCrossThreatAnswers : setCrossThreatAnswers;
   const setActiveSeenDetectionsByClip = hintMode ? setHintSeenDetectionsByClip : setSeenDetectionsByClip;
+  const setActiveCrossClipManualPrivacy = hintMode ? setHintCrossClipManualPrivacy : setCrossClipManualPrivacy;
   const displayNewDetectionPrompt = hintMode ? null : newDetectionPrompt;
   const setDisplayNewDetectionPrompt = hintMode ? () => {} : setNewDetectionPrompt;
 
@@ -442,6 +483,37 @@ export default function TaskView({
     );
   }
 
+  function isCrossClipManualFindingComplete(f) {
+    if (!f) return false;
+    const desc = (f.description || "").trim();
+    const clips = Array.isArray(f.clip_numbers) ? f.clip_numbers : [];
+    const cats = Array.isArray(f.categories) ? f.categories : [];
+    const needsOther = cats.includes("other") || cats.includes("other type of sensitive content");
+    const otherOk = !needsOther || (f.other_text || "").trim().length > 0;
+    return (
+      cats.length > 0 &&
+      desc.length > 0 &&
+      clips.length > 0 &&
+      isLikertScore(f.cross_privacy_threat_score) &&
+      isLikertScore(f.cross_more_severe_score) &&
+      isLikertScore(f.cross_ai_memory_comfort_score) &&
+      otherOk
+    );
+  }
+
+  function isCrossClipManualPrivacyComplete(entry) {
+    if (!entry) return false;
+    if (entry.has_privacy === false) {
+      return (entry.no_description || "").trim().length > 0;
+    }
+    if (entry.has_privacy === true) {
+      const findings = Array.isArray(entry.findings) ? entry.findings : [];
+      if (findings.length === 0) return false;
+      return findings.every((f) => isCrossClipManualFindingComplete(f));
+    }
+    return false;
+  }
+
   const aiRequiredCount = isVlmMode ? displayDetections.length : 0;
   const aiCompletedCount =
     isVlmMode
@@ -458,11 +530,15 @@ export default function TaskView({
   ).length;
   const allCrossComplete = crossRequiredCount === 0 || crossCompletedCount === crossRequiredCount;
 
+  const crossClipManualRequired = !hintMode && isLastClip;
+  const crossClipManualComplete = hintMode ? true : isCrossClipManualPrivacyComplete(activeCrossClipManualPrivacy);
+
   const canSaveClip =
     hintMode ||
     (allManualComplete &&
       (!isVlmMode || aiCompletedCount === aiRequiredCount) &&
       allCrossComplete &&
+      (!crossClipManualRequired || crossClipManualComplete) &&
       (isTestMode || clipWatched));
 
   const nextButtonDisabled =
@@ -708,6 +784,40 @@ export default function TaskView({
       .filter((entry) => isCrossResponseComplete(entry));
   }
 
+  function buildCrossClipManualPrivacyPayload() {
+    if (hintMode) return null;
+    const entry = activeCrossClipManualPrivacy || {};
+    const hasPrivacy = entry.has_privacy;
+    const hasAnyData =
+      hasPrivacy != null ||
+      (entry.no_description || "").trim().length > 0 ||
+      (Array.isArray(entry.findings) && entry.findings.length > 0);
+    if (!hasAnyData) return null;
+
+    return {
+      has_privacy: hasPrivacy == null ? null : Boolean(hasPrivacy),
+      no_description: (entry.no_description || "").trim(),
+      findings: (Array.isArray(entry.findings) ? entry.findings : []).map((f) => ({
+        finding_id: f.finding_id,
+        categories: Array.isArray(f.categories) ? f.categories : [],
+        other_text: (f.other_text || "").trim(),
+        description: (f.description || "").trim(),
+        clip_numbers: Array.isArray(f.clip_numbers)
+          ? Array.from(
+              new Set(
+                f.clip_numbers
+                  .map((n) => Number(n))
+                  .filter((n) => Number.isFinite(n) && n >= 1 && n <= totalClips)
+              )
+            ).sort((a, b) => a - b)
+          : [],
+        cross_privacy_threat_score: f.cross_privacy_threat_score,
+        cross_more_severe_score: f.cross_more_severe_score,
+        cross_ai_memory_comfort_score: f.cross_ai_memory_comfort_score,
+      })),
+    };
+  }
+
   useEffect(() => {
     if (hintMode || !visibleDetections.length) return;
     const seenSet = new Set(activeSeenDetectionsByClip[currentClipIndex] || []);
@@ -761,6 +871,8 @@ export default function TaskView({
         alert("Please answer all AI detection questions before finishing.");
       } else if (!allCrossComplete) {
         alert("Please answer all multi-scenario questions before finishing.");
+      } else if (crossClipManualRequired && !crossClipManualComplete) {
+        alert("Please complete the cross-clip manual annotation section before finishing.");
       } else {
         alert("Please answer all required questions for this scenario before saving.");
       }
@@ -773,6 +885,7 @@ export default function TaskView({
       aiResponses: buildAiPayload(),
       participantFindings: buildManualPayload(),
       crossClipResponses: buildCrossPayload(),
+      crossClipManualPrivacy: buildCrossClipManualPrivacyPayload(),
       videoWatched: clipWatched,
     });
     return res !== false;
@@ -961,7 +1074,7 @@ export default function TaskView({
             </>
           ) : (
             <>
-              Now Viewing Scenario{" "}
+              Now Viewing Clip{" "}
               <span style={{ color: "#1d4ed8" }}>{currentClipIndex + 1}</span>{" "}
               of{" "}
               <span style={{ color: "#0ea5e9" }}>{totalClips}</span>
@@ -1395,7 +1508,7 @@ export default function TaskView({
                     Video paused
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
                   <button type="button" style={hintActionStyle} onClick={advanceHint}>
                     Next hint
                   </button>
@@ -1677,7 +1790,7 @@ export default function TaskView({
               >
                 {crossRequiredCount > 0
                   ? `Answered ${crossCompletedCount} / ${crossRequiredCount}`
-                  : "No multi-scenario detections"}
+                  : "No multi-clip detections"}
               </span>
             </div>
             <div ref={hintCrossRef} />
@@ -1697,7 +1810,7 @@ export default function TaskView({
             )}
             {crossThreatsForUi.length === 0 ? (
               <p style={{ marginTop: "8px", color: "#475569" }}>
-                No multi-scenario AI suggestions available for this story yet.
+                No multi-clip AI suggestions available for this story yet.
               </p>
             ) : (
               <ul style={{ listStyle: "none", paddingLeft: 0, margin: "10px 0 0 0" }}>
@@ -1728,7 +1841,7 @@ export default function TaskView({
                           {threat.title || "Cross-clip threat"}
                         </strong>
                         <span style={{ fontSize: "0.85rem", color: "#475569" }}>
-                          Scenarios {Array.isArray(threat.clips_involved) ? threat.clips_involved.join(", ") : "n/a"}
+                          Clips {Array.isArray(threat.clips_involved) ? threat.clips_involved.join(", ") : "n/a"}
                         </span>
                         <button
                           type="button"
@@ -1799,7 +1912,13 @@ export default function TaskView({
                           />
                           <LikertScale
                             name={`cross-${threat.threat_id || idx}-severity`}
-                            label="To what extent do you agree that this detection across multiple video clips has more severe privacy threats than detection in single clips?"
+                            label={
+                              <span>
+                                To what extent do you agree that this detection across multiple video clips has{" "}
+                                <strong>more severe</strong>{" "}
+                                privacy threats than detection in single clips?
+                              </span>
+                            }
                             value={ans.cross_more_severe_score}
                             onChange={(v) =>
                               updateCrossAnswer(threatKey, "cross_more_severe_score", v)
@@ -1846,8 +1965,14 @@ export default function TaskView({
           <div style={hintBoxStyle}>
             <strong>Create your own annotations</strong>
             <p style={{ margin: "6px 0" }}>
-              You are also required to add privacy-related content that <strong>the AI did not detect</strong>. Use these cards to capture anything else
-              you notice.
+              {isVlmMode ? (
+                <>
+                  You are also required to add privacy-related content that <strong>the AI did not detect</strong>. Use these cards to capture anything else
+                  you notice.
+                </>
+              ) : (
+                <>You are also required to add privacy-related content that you notice. Use these cards to capture anything sensitive you find.</>
+              )}
             </p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <button type="button" style={hintActionStyle} onClick={advanceHint}>
@@ -1870,10 +1995,19 @@ export default function TaskView({
             </div>
           </div>
         )}
-        <h3 style={{ fontSize: "1.15rem", marginBottom: "6px" }}>
+        <div
+          style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            padding: "12px",
+            background: "#fff",
+            marginBottom: "12px",
+          }}
+        >
+        <h3 style={{ fontSize: "1.15rem", marginBottom: "6px", marginTop: 0 }}>
           {isVlmMode
-            ? "Do you see anything else (not included in the AI detections) that could reveal privacy-related information?"
-            : "Do you see anything in this video that could reveal privacy-related information?"}
+            ? "Do you see anything else (not included in the AI detections) that could reveal privacy-related information in this clip?"
+            : "Do you see anything else that could reveal privacy-related information in this clip?"}
         </h3>
         <p style={{ fontSize: "0.95rem", marginBottom: "10px", color: "#334155" }}>
           Select all that apply. If nothing seems sensitive, choose “{noneCategoryLabel}”.
@@ -2071,7 +2205,7 @@ export default function TaskView({
                               <span style={{ fontWeight: 700 }}>
                                 {opt.value === "none"
                                   ? "Please tell us why you do not see any privacy-related content."
-                                  : "Please briefly describe what this content is."}
+                                  : "Please briefly describe what this content is and what information it reveals."}
                               </span>
                               <textarea
                                 rows={3}
@@ -2264,6 +2398,493 @@ export default function TaskView({
               </div>
             );
           })}
+        </div>
+        </div>
+        <div ref={hintCrossManualRef} />
+        <div
+          style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            padding: "12px",
+            background: "#fff",
+            marginTop: "12px",
+          }}
+        >
+          {showHintBoxes && hintStepKey === "multi-clip" && (
+            <div style={hintBoxStyle}>
+              <strong>Cross-clip manual annotations</strong>
+              <p style={{ margin: "6px 0" }}>
+                Some privacy-related information is only revealed when you consider multiple clips together (e.g., repeated identities, locations, relationships, or routines).
+                Use this box to report privacy-related information inferred <strong>across multiple clips</strong>. If you select “Yes”, describe it, select the relevant clip numbers, and answer the follow-up questions.
+              </p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button type="button" style={hintActionStyle} onClick={advanceHint}>
+                  Next hint
+                </button>
+              </div>
+            </div>
+          )}
+          <h3 style={{ fontSize: "1.15rem", marginBottom: "6px", marginTop: 0 }}>
+            {isVlmMode
+              ? "Do you see anything else (not included in the AI detections) that could reveal privacy-related information across multiple clips?"
+              : "Do you see anything else that could reveal privacy-related information across multiple clips?"}
+          </h3>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              alignItems: "stretch",
+              marginBottom: "10px",
+            }}
+          >
+            <div
+              style={{
+                padding: "10px",
+                border: "1px solid",
+                borderColor: activeCrossClipManualPrivacy.has_privacy === true ? "#1d4ed8" : "#e2e8f0",
+                borderRadius: "12px",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <div style={{ flex: 1, fontWeight: 500, color: "#0f172a", textAlign: "left" }}>
+                Yes, there is privacy-related information across multiple clips
+              </div>
+              <span
+                style={{
+                  minWidth: "28px",
+                  textAlign: "center",
+                  padding: "4px 8px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  background: "#f8fafc",
+                  fontWeight: 700,
+                }}
+              >
+                {Array.isArray(activeCrossClipManualPrivacy.findings) ? activeCrossClipManualPrivacy.findings.length : 0}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const newFinding = createEmptyCrossClipFinding();
+                  setActiveCrossClipManualPrivacy((prev) => ({
+                    ...prev,
+                    has_privacy: true,
+                    no_description: "",
+                    findings: [...(Array.isArray(prev.findings) ? prev.findings : []), newFinding],
+                    expanded_finding_id: newFinding.finding_id,
+                  }));
+                }}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: "12px",
+                  border: "1px solid #1d4ed8",
+                  background: "#1d4ed8",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                  minWidth: "42px",
+                }}
+              >
+                +
+              </button>
+            </div>
+
+            <div
+              style={{
+                padding: "10px",
+                border: "1px solid",
+                borderColor: activeCrossClipManualPrivacy.has_privacy === false ? "#1d4ed8" : "#e2e8f0",
+                borderRadius: "12px",
+                background: "#fff",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ flex: 1, fontWeight: 500, color: "#0f172a", textAlign: "left" }}>
+                  {crossClipNoneLabel}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveCrossClipManualPrivacy((prev) => ({
+                      ...prev,
+                      has_privacy: false,
+                      findings: [],
+                      expanded_finding_id: null,
+                      no_description: "",
+                    }))
+                  }
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "999px",
+                    border: "1px solid #1d4ed8",
+                    background: "#1d4ed8",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                  }}
+                >
+                  Yes
+                </button>
+              </div>
+              {activeCrossClipManualPrivacy.has_privacy === false && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const msg = isVlmMode
+                      ? "Confirmed no additional privacy-related information across multiple clips beyond the AI detections."
+                      : "Confirmed no additional privacy-related information across multiple clips.";
+                    setActiveCrossClipManualPrivacy((prev) => ({
+                      ...prev,
+                      no_description: (prev.no_description || "").trim().length > 0 ? prev.no_description : msg,
+                    }));
+                  }}
+                  disabled={(activeCrossClipManualPrivacy.no_description || "").trim().length > 0}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "10px",
+                    border: "1px solid #1d4ed8",
+                    background: (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "#94a3b8" : "#1d4ed8",
+                    color: "#fff",
+                    cursor: (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "default" : "pointer",
+                    fontWeight: 700,
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {(activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "Confirmed" : "Confirm"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {activeCrossClipManualPrivacy.has_privacy === true &&
+            (Array.isArray(activeCrossClipManualPrivacy.findings) ? activeCrossClipManualPrivacy.findings : []).length >
+              0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                {(activeCrossClipManualPrivacy.findings || []).map((finding, idx) => {
+                  const expanded = activeCrossClipManualPrivacy.expanded_finding_id === finding.finding_id;
+                  const complete = isCrossClipManualFindingComplete(finding);
+                  const toggleExpand = () =>
+                    setActiveCrossClipManualPrivacy((prev) => ({
+                      ...prev,
+                      expanded_finding_id:
+                        prev.expanded_finding_id === finding.finding_id ? null : finding.finding_id,
+                    }));
+
+                  return (
+                    <div
+                      key={finding.finding_id || idx}
+                      style={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "10px",
+                        background: "#fff",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                        <strong style={{ color: "#0f172a" }}>Cross-clip privacy item #{idx + 1}</strong>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "999px",
+                            background: complete ? "#dcfce7" : "#fee2e2",
+                            color: complete ? "#166534" : "#b91c1c",
+                            fontSize: "0.85rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {complete ? "Complete" : "Needs answers"}
+                        </span>
+                        <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={toggleExpand}
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #cbd5e1",
+                              background: "#fff",
+                              color: "#0f172a",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {expanded ? "Collapse" : "Expand"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActiveCrossClipManualPrivacy((prev) => {
+                                const nextFindings = (Array.isArray(prev.findings) ? prev.findings : []).filter(
+                                  (f) => f.finding_id !== finding.finding_id
+                                );
+                                return {
+                                  ...prev,
+                                  findings: nextFindings,
+                                  expanded_finding_id:
+                                    prev.expanded_finding_id === finding.finding_id ? null : prev.expanded_finding_id,
+                                };
+                              })
+                            }
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #e11d48",
+                              background: "#fff",
+                              color: "#e11d48",
+                              cursor: "pointer",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      {!expanded && (
+                        <div style={{ color: "#475569", fontSize: "0.9rem", marginTop: "6px" }}>
+                          {finding.description || "No description yet."}
+                        </div>
+                      )}
+
+                      {expanded && (
+                        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                          <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <span style={{ fontWeight: 700 }}>
+                              Please briefly describe what this content is and what information it reveals.
+                            </span>
+                            <textarea
+                              rows={3}
+                              value={finding.description || ""}
+                              onChange={(e) =>
+                                setActiveCrossClipManualPrivacy((prev) => ({
+                                  ...prev,
+                                  findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) =>
+                                    f.finding_id === finding.finding_id ? { ...f, description: e.target.value } : f
+                                  ),
+                                }))
+                              }
+                              style={{
+                                width: "100%",
+                                padding: "8px",
+                                borderRadius: "8px",
+                                border: "1px solid #cbd5e1",
+                                background: "#fff",
+                              }}
+                            />
+                          </label>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <span style={{ fontWeight: 700 }}>
+                              Which privacy category(ies) does this content reveal?
+                            </span>
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "8px",
+                              }}
+                            >
+                              {CROSS_CLIP_CATEGORY_OPTIONS.map((opt) => {
+                                const checked = (finding.categories || []).includes(opt.value);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={opt.value}
+                                    onClick={() =>
+                                      setActiveCrossClipManualPrivacy((prev) => ({
+                                        ...prev,
+                                        findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) => {
+                                          if (f.finding_id !== finding.finding_id) return f;
+                                          const current = Array.isArray(f.categories) ? f.categories : [];
+                                          const set = new Set(current);
+                                          if (set.has(opt.value)) set.delete(opt.value);
+                                          else set.add(opt.value);
+                                          return { ...f, categories: Array.from(set) };
+                                        }),
+                                      }))
+                                    }
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "flex-start",
+                                      justifyContent: "flex-start",
+                                      gap: "10px",
+                                      padding: "10px 10px",
+                                      borderRadius: "10px",
+                                      border: "1px solid",
+                                      borderColor: checked ? "#1d4ed8" : "#e2e8f0",
+                                      background: checked ? "#eff6ff" : "#fff",
+                                      cursor: "pointer",
+                                      textAlign: "left",
+                                    }}
+                                    aria-pressed={checked}
+                                  >
+                                    <span
+                                      style={{
+                                        width: "18px",
+                                        height: "18px",
+                                        borderRadius: "4px",
+                                        border: "2px solid #64748b",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontWeight: 900,
+                                        color: "#1d4ed8",
+                                        flexShrink: 0,
+                                        marginTop: "2px",
+                                        background: checked ? "#fff" : "transparent",
+                                      }}
+                                      aria-hidden="true"
+                                    >
+                                      {checked ? "✓" : ""}
+                                    </span>
+                                    <span style={{ lineHeight: 1.25, color: "#0f172a" }}>{opt.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {((finding.categories || []).includes("other") ||
+                              (finding.categories || []).includes("other type of sensitive content")) && (
+                              <label style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+                                <span style={{ fontWeight: 700 }}>Other (please specify)</span>
+                                <input
+                                  type="text"
+                                  value={finding.other_text || ""}
+                                  onChange={(e) =>
+                                    setActiveCrossClipManualPrivacy((prev) => ({
+                                      ...prev,
+                                      findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) =>
+                                        f.finding_id === finding.finding_id ? { ...f, other_text: e.target.value } : f
+                                      ),
+                                    }))
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    padding: "8px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #cbd5e1",
+                                    background: "#fff",
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            <span style={{ fontWeight: 700 }}>
+                              Please provide clip numbers that includes the information.
+                            </span>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "flex-start" }}>
+                              {Array.from({ length: totalClips }, (_, clipIdx) => {
+                                const clipNumber = clipIdx + 1;
+                                const checked = (finding.clip_numbers || []).includes(clipNumber);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={clipNumber}
+                                    onClick={() =>
+                                      setActiveCrossClipManualPrivacy((prev) => ({
+                                        ...prev,
+                                        findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) => {
+                                          if (f.finding_id !== finding.finding_id) return f;
+                                          const current = Array.isArray(f.clip_numbers) ? f.clip_numbers : [];
+                                          const set = new Set(current);
+                                          if (set.has(clipNumber)) set.delete(clipNumber);
+                                          else set.add(clipNumber);
+                                          return { ...f, clip_numbers: Array.from(set).sort((a, b) => a - b) };
+                                        }),
+                                      }))
+                                    }
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: "999px",
+                                      border: "1px solid",
+                                      borderColor: checked ? "#1d4ed8" : "#e2e8f0",
+                                      background: checked ? "#eff6ff" : "#fff",
+                                      cursor: "pointer",
+                                      fontWeight: 800,
+                                      color: "#0f172a",
+                                      textAlign: "left",
+                                    }}
+                                    aria-pressed={checked}
+                                  >
+                                    Clip {clipNumber}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <LikertScale
+                            name={`${hintMode ? "hint-" : ""}cross-manual-${finding.finding_id}-threat`}
+                            label={
+                              <span>
+                                To what extent do you agree that this content is{" "}
+                                <strong>privacy-threatening</strong> for you?
+                              </span>
+                            }
+                            value={finding.cross_privacy_threat_score}
+                            onChange={(v) =>
+                              setActiveCrossClipManualPrivacy((prev) => ({
+                                ...prev,
+                                findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) =>
+                                  f.finding_id === finding.finding_id ? { ...f, cross_privacy_threat_score: v } : f
+                                ),
+                              }))
+                            }
+                          />
+                          <LikertScale
+                            name={`${hintMode ? "hint-" : ""}cross-manual-${finding.finding_id}-severity`}
+                            label={
+                              <span>
+                                To what extent do you agree that this information inferred across multiple clips has{" "}
+                                <strong>more severe</strong>{" "}
+                                privacy threats than information inferred from a single clip?
+                              </span>
+                            }
+                            value={finding.cross_more_severe_score}
+                            onChange={(v) =>
+                              setActiveCrossClipManualPrivacy((prev) => ({
+                                ...prev,
+                                findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) =>
+                                  f.finding_id === finding.finding_id ? { ...f, cross_more_severe_score: v } : f
+                                ),
+                              }))
+                            }
+                          />
+                          <LikertScale
+                            name={`${hintMode ? "hint-" : ""}cross-manual-${finding.finding_id}-ai-memory`}
+                            label={
+                              <span>
+                                Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
+                                <strong>this content</strong> about you over its long-term usage?
+                              </span>
+                            }
+                            value={finding.cross_ai_memory_comfort_score}
+                            onChange={(v) =>
+                              setActiveCrossClipManualPrivacy((prev) => ({
+                                ...prev,
+                                findings: (Array.isArray(prev.findings) ? prev.findings : []).map((f) =>
+                                  f.finding_id === finding.finding_id
+                                    ? { ...f, cross_ai_memory_comfort_score: v }
+                                    : f
+                                ),
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
         </div>
       </div>
 

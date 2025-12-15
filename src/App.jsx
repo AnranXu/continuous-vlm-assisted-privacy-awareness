@@ -283,6 +283,7 @@ function App() {
          aiResponses: payload?.aiResponses || [],
          participantFindings: payload?.participantFindings || [],
          crossClipResponses: payload?.crossClipResponses || [],
+         crossClipManualPrivacy: payload?.crossClipManualPrivacy ?? null,
          videoWatched: payload?.videoWatched ?? Boolean(clipCompletion[currentClipIndex]?.watched),
        });
       setStatus("Responses saved for this scenario.");
