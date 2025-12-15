@@ -113,6 +113,7 @@ export default function TaskView({
     no_description: "",
     findings: [],
     expanded_finding_id: null,
+    show_no_confirm: false,
   });
   const [hintAiAnswersByClip, setHintAiAnswersByClip] = useState({});
   const [hintOpenDetectionByClip, setHintOpenDetectionByClip] = useState({});
@@ -125,6 +126,7 @@ export default function TaskView({
     no_description: "",
     findings: [],
     expanded_finding_id: null,
+    show_no_confirm: false,
   });
   const [hintClipCount, setHintClipCount] = useState(1);
   const [hintStepIndex, setHintStepIndex] = useState(0);
@@ -135,6 +137,7 @@ export default function TaskView({
   const hintCrossRef = useRef(null);
   const hintCrossManualRef = useRef(null);
   const hintManualRef = useRef(null);
+  const didInitCrossClipManualPrivacyRef = useRef(false);
   const prevHintModeRef = useRef(hintMode);
   const totalClips = storyConfig?.clips?.length || 1;
   const isLastClip = Boolean(storyConfig?.clips?.length) && currentClipIndex === storyConfig.clips.length - 1;
@@ -237,6 +240,7 @@ export default function TaskView({
       no_description: "",
       findings: [],
       expanded_finding_id: null,
+      show_no_confirm: false,
     });
   }, [hintMode, currentClipIndex, resolvedMode, totalClips]);
 
@@ -504,7 +508,8 @@ export default function TaskView({
   function isCrossClipManualPrivacyComplete(entry) {
     if (!entry) return false;
     if (entry.has_privacy === false) {
-      return (entry.no_description || "").trim().length > 0;
+      if (isVlmMode) return (entry.no_description || "").trim().length > 0;
+      return countWords(entry.no_description) >= 30;
     }
     if (entry.has_privacy === true) {
       const findings = Array.isArray(entry.findings) ? entry.findings : [];
@@ -531,6 +536,14 @@ export default function TaskView({
   const allCrossComplete = crossRequiredCount === 0 || crossCompletedCount === crossRequiredCount;
 
   const crossClipManualRequired = !hintMode && isLastClip;
+  const crossClipNoDescription = (activeCrossClipManualPrivacy?.no_description || "").trim();
+  const crossClipNoWordCount = countWords(crossClipNoDescription);
+  const crossClipNoComplete =
+    activeCrossClipManualPrivacy?.has_privacy === false
+      ? isVlmMode
+        ? crossClipNoDescription.length > 0
+        : crossClipNoWordCount >= 30
+      : false;
   const crossClipManualComplete = hintMode ? true : isCrossClipManualPrivacyComplete(activeCrossClipManualPrivacy);
 
   const canSaveClip =
@@ -589,6 +602,16 @@ export default function TaskView({
       return { ...prev, [idx]: { watched: entry.watched || false, saved: false } };
     });
   }
+
+  useEffect(() => {
+    if (hintMode) return;
+    if (!totalClips) return;
+    if (!didInitCrossClipManualPrivacyRef.current) {
+      didInitCrossClipManualPrivacyRef.current = true;
+      return;
+    }
+    markClipDirty(totalClips - 1);
+  }, [crossClipManualPrivacy, hintMode, totalClips]);
 
   function updateAiAnswer(detId, key, value) {
     setActiveAiAnswersByClip((prev) => {
@@ -885,7 +908,7 @@ export default function TaskView({
       aiResponses: buildAiPayload(),
       participantFindings: buildManualPayload(),
       crossClipResponses: buildCrossPayload(),
-      crossClipManualPrivacy: buildCrossClipManualPrivacyPayload(),
+      crossClipManualPrivacy: crossClipManualRequired ? buildCrossClipManualPrivacyPayload() : null,
       videoWatched: clipWatched,
     });
     return res !== false;
@@ -1238,7 +1261,7 @@ export default function TaskView({
                   alert("Finish and save this scenario to continue.");
                   return;
                 }
-                if (!isTestMode && !clipIsSaved) {
+                if (!isTestMode && (!clipIsSaved || crossClipManualRequired)) {
                   const saved = await handleSaveClip();
                   if (!saved) return;
                 }
@@ -2100,8 +2123,8 @@ export default function TaskView({
 
                 {cardsForCategory.map((f, cardIdx) => {
                   const complete = isFindingComplete(f);
-                  const isNoneVlmFinding = isVlmMode && opt.value === "none";
-                  const expanded = isNoneVlmFinding ? true : expandedManualId === f.finding_id;
+                  const isNoneFinding = opt.value === "none";
+                  const expanded = isNoneFinding ? true : expandedManualId === f.finding_id;
                   const label = categoryLabelMap[opt.value] || "Privacy threat";
                   const timeParts = timePartsFromSeconds(f.time_sec);
                   const descWordCount = countWords(f.description);
@@ -2132,7 +2155,7 @@ export default function TaskView({
                           {complete ? "Complete" : "Needs answers"}
                         </span>
                         <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-                          {!isNoneVlmFinding && (
+                          {!isNoneFinding && (
                             <button
                               type="button"
                               onClick={() => toggleManualExpand(f.finding_id)}
@@ -2474,6 +2497,7 @@ export default function TaskView({
                     ...prev,
                     has_privacy: true,
                     no_description: "",
+                    show_no_confirm: false,
                     findings: [...(Array.isArray(prev.findings) ? prev.findings : []), newFinding],
                     expanded_finding_id: newFinding.finding_id,
                   }));
@@ -2517,7 +2541,8 @@ export default function TaskView({
                       has_privacy: false,
                       findings: [],
                       expanded_finding_id: null,
-                      no_description: "",
+                      show_no_confirm: true,
+                      no_description: prev.has_privacy === false ? prev.no_description : "",
                     }))
                   }
                   style={{
@@ -2534,31 +2559,121 @@ export default function TaskView({
                 </button>
               </div>
               {activeCrossClipManualPrivacy.has_privacy === false && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const msg = isVlmMode
-                      ? "Confirmed no additional privacy-related information across multiple clips beyond the AI detections."
-                      : "Confirmed no additional privacy-related information across multiple clips.";
-                    setActiveCrossClipManualPrivacy((prev) => ({
-                      ...prev,
-                      no_description: (prev.no_description || "").trim().length > 0 ? prev.no_description : msg,
-                    }));
-                  }}
-                  disabled={(activeCrossClipManualPrivacy.no_description || "").trim().length > 0}
+                <div
                   style={{
-                    padding: "8px 12px",
+                    padding: "10px",
+                    border: "1px solid #e2e8f0",
                     borderRadius: "10px",
-                    border: "1px solid #1d4ed8",
-                    background: (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "#94a3b8" : "#1d4ed8",
-                    color: "#fff",
-                    cursor: (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "default" : "pointer",
-                    fontWeight: 700,
-                    alignSelf: "flex-start",
+                    background: "#f8fafc",
                   }}
                 >
-                  {(activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "Confirmed" : "Confirm"}
-                </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <strong style={{ color: "#0f172a" }}>{crossClipNoneLabel}</strong>
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "999px",
+                        background: crossClipNoComplete ? "#dcfce7" : "#fee2e2",
+                        color: crossClipNoComplete ? "#166534" : "#b91c1c",
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {crossClipNoComplete ? "Complete" : "Needs answers"}
+                    </span>
+                    <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveCrossClipManualPrivacy((prev) => ({
+                            ...prev,
+                            has_privacy: null,
+                            no_description: "",
+                            findings: [],
+                            expanded_finding_id: null,
+                            show_no_confirm: false,
+                          }))
+                        }
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "8px",
+                          border: "1px solid #e11d48",
+                          background: "#fff",
+                          color: "#e11d48",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {isVlmMode ? (
+                    activeCrossClipManualPrivacy.show_no_confirm ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const msg = "Confirmed.";
+                          setActiveCrossClipManualPrivacy((prev) => ({
+                            ...prev,
+                            no_description: (prev.no_description || "").trim().length > 0 ? prev.no_description : msg,
+                            show_no_confirm: false,
+                          }));
+                        }}
+                        disabled={(activeCrossClipManualPrivacy.no_description || "").trim().length > 0}
+                        style={{
+                          marginTop: "10px",
+                          padding: "8px 12px",
+                          borderRadius: "10px",
+                          border: "1px solid #1d4ed8",
+                          background:
+                            (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "#94a3b8" : "#1d4ed8",
+                          color: "#fff",
+                          cursor:
+                            (activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "default" : "pointer",
+                          fontWeight: 700,
+                          alignSelf: "flex-start",
+                        }}
+                      >
+                        {(activeCrossClipManualPrivacy.no_description || "").trim().length > 0 ? "Confirmed" : "Confirm"}
+                      </button>
+                    ) : null
+                  ) : (
+                    <label style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "10px" }}>
+                      <span style={{ fontWeight: 600 }}>
+                        Please tell us why you do not see any privacy-related content across multiple clips.
+                      </span>
+                      <textarea
+                        rows={3}
+                        value={activeCrossClipManualPrivacy.no_description || ""}
+                        onChange={(e) =>
+                          setActiveCrossClipManualPrivacy((prev) => ({
+                            ...prev,
+                            no_description: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "8px",
+                          borderRadius: "8px",
+                          border: "1px solid #cbd5e1",
+                          background: "#fff",
+                        }}
+                      />
+                      <div
+                        style={{
+                          marginTop: "6px",
+                          fontSize: "0.85rem",
+                          color: crossClipNoWordCount >= 30 ? "#065f46" : "#b45309",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Minimum 30 words required. Current: {crossClipNoWordCount}.
+                      </div>
+                    </label>
+                  )}
+                </div>
               )}
             </div>
           </div>

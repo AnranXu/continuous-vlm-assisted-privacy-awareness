@@ -353,7 +353,7 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(7, minmax(70px, 1fr))",
+                        gridTemplateColumns: "repeat(7, minmax(110px, 1fr))",
                         gap: "8px",
                         width: "100%",
                         overflowX: "auto",
@@ -385,7 +385,9 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                               onChange={() => handleChoice(q.id, value, true)}
                               style={{ display: "none" }}
                             />
-                            <div style={{ fontSize: "0.95rem" }}>{aiOptionLabels[value] || value}</div>
+                            <div style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>
+                              {aiOptionLabels[value] || value}
+                            </div>
                           </label>
                         );
                       })}

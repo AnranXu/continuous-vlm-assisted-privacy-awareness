@@ -165,7 +165,7 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(7, minmax(70px, 1fr))",
+                    gridTemplateColumns: "repeat(7, minmax(110px, 1fr))",
                     gap: "6px",
                     width: "100%",
                     overflowX: "auto",
@@ -193,7 +193,9 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
                         onChange={() => handleChoice(q.id, value)}
                         style={{ display: "none" }}
                       />
-                      <div style={{ fontSize: "0.95rem" }}>{optionLabels[value] || value}</div>
+                      <div style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>
+                        {optionLabels[value] || value}
+                      </div>
                     </label>
                   ))}
                 </div>
