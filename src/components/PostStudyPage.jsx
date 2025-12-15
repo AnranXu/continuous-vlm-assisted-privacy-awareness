@@ -10,9 +10,9 @@ const tickLabels = {
 
 const AI_LIKERT_OPTIONS = [-3, -2, -1, 0, 1, 2, 3];
 const aiOptionLabels = {
-  "-3": "Strongly disagree",
-  "0": "Neutral",
-  "3": "Strongly agree",
+  "-3": "Strongly disagree (-3)",
+  "0": "neutral (0)",
+  "3": "strongly agree (3)",
 };
 
 const QUESTION_DEFS = [
@@ -399,8 +399,9 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                     color: "#475569",
                   }}
                 >
-                  <span>-3 = Strongly disagree</span>
-                  <span>3 = Strongly agree</span>
+                  <span>Strongly disagree (-3)</span>
+                  <span>neutral (0)</span>
+                  <span>strongly agree (3)</span>
                 </div>
                   </div>
                 ))}

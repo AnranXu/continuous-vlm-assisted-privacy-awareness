@@ -3,9 +3,9 @@ import React, { useMemo, useState } from "react";
 
 const likertOptions = [-3, -2, -1, 0, 1, 2, 3];
 const optionLabels = {
-  "-3": "Strongly disagree",
-  "0": "Neutral",
-  "3": "Strongly agree",
+  "-3": "Strongly disagree (-3)",
+  "0": "neutral (0)",
+  "3": "strongly agree (3)",
 };
 
 const QUESTION_DEFS = [
@@ -120,11 +120,13 @@ export default function PreStudyPage({ onSubmit, saving = false, feedback = null
               }}
             >
               <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
-                -3 = Strongly disagree
+                Strongly disagree (-3)
               </span>
-              <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>0 = Neutral</span>
               <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
-                3 = Strongly agree
+                neutral (0)
+              </span>
+              <span style={{ padding: "4px 8px", background: "#f1f5f9", borderRadius: "6px" }}>
+                strongly agree (3)
               </span>
             </div>
           </div>

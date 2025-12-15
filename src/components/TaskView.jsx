@@ -707,7 +707,7 @@ export default function TaskView({
           </label>
         ))}
         <span style={{ color: "#475569", fontSize: "0.85rem" }}>
-          -3 = Strongly disagree / 3 = Strongly agree
+          Strongly disagree (-3) / neutral (0) / strongly agree (3)
         </span>
       </div>
       {helper && (
@@ -2777,7 +2777,7 @@ export default function TaskView({
                           </div>
 
                           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                            <span style={{ fontWeight: 700 }}>
+                            <span style={{ fontWeight: 500 }}>
                               Please provide clip numbers that includes the information.
                             </span>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "flex-start" }}>
