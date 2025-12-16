@@ -1,6 +1,7 @@
 import {
   DynamoDBClient,
-  GetItemCommand
+  GetItemCommand,
+  QueryCommand
 } from "@aws-sdk/client-dynamodb";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
@@ -72,6 +73,56 @@ export const handler = async (event) => {
     const finished = pItem.finished?.BOOL || false;
     const storyId = pItem.story_id?.S || null;
     const mode = pItem.mode?.S || null;
+    const curClip = pItem.cur_clip?.N != null ? Number(pItem.cur_clip.N) : null;
+
+    let clipAnnotations = [];
+    let resumeClipIndex = null; // 1-based
+    if (storyId) {
+      try {
+        const prefix = `${STUDY_ID}#participant_${participantId}#story_${storyId}#clip_`;
+        const queryRes = await ddb.send(
+          new QueryCommand({
+            TableName: TABLE,
+            KeyConditionExpression: "pk = :pk AND begins_with(#sk, :prefix)",
+            ExpressionAttributeNames: {
+              "#sk": "sk"
+            },
+            ExpressionAttributeValues: {
+              ":pk": { S: "soups26_vlm_assignment_participant" },
+              ":prefix": { S: prefix }
+            },
+            ProjectionExpression: "#sk, clip_index, video_watched, updated_at"
+          })
+        );
+
+        clipAnnotations = (queryRes.Items || [])
+          .map((it) => {
+            const clipIndexVal =
+              it.clip_index?.N != null
+                ? Number(it.clip_index.N)
+                : it.sk?.S
+                ? Number(String(it.sk.S).split("#clip_").pop())
+                : NaN;
+            if (!Number.isFinite(clipIndexVal) || clipIndexVal < 1) return null;
+            return {
+              clipIndex: clipIndexVal,
+              videoWatched: Boolean(it.video_watched?.BOOL),
+              updatedAt: it.updated_at?.S || null
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.clipIndex - b.clipIndex);
+
+        if (clipAnnotations.length > 0) {
+          const savedSet = new Set(clipAnnotations.map((c) => c.clipIndex));
+          let next = 1;
+          while (savedSet.has(next)) next += 1;
+          resumeClipIndex = next;
+        }
+      } catch (err) {
+        console.warn("Failed to query clip annotations for status:", err);
+      }
+    }
 
     return respond(200, {
       participantId,
@@ -83,6 +134,9 @@ export const handler = async (event) => {
       mode,
       prestudyExists: Boolean(prestudyRes.Item),
       poststudyExists: Boolean(poststudyRes.Item),
+      clipAnnotations,
+      resumeClipIndex,
+      curClip,
       createdAt: pItem.created_at?.S || null,
       updatedAt: pItem.updated_at?.S || null
     });

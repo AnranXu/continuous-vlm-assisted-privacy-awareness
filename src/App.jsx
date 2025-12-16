@@ -52,6 +52,14 @@ const TEST_STORY_INDEX = (() => {
 // Optional participant injected via URL in test mode
 const TEST_PARTICIPANT_FROM_URL = params.get("participant") || null;
 
+// Optional resume target clip (1-based), useful if a participant reports their last clip number.
+const RESUME_CLIP_FROM_URL = (() => {
+  const raw = params.get("clip") || params.get("resumeClip") || null;
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+})();
+
 function App() {
   const [prolificId, setProlificId] = useState("");
   const [assignment, setAssignment] = useState(null);
@@ -155,6 +163,7 @@ function App() {
       }
     }
     await loadClipByIndex(0, cfg);
+    return cfg;
   }
 
   // ---------- Start button ----------
@@ -206,8 +215,8 @@ function App() {
 
       setAssignment(assignRes);
       setParticipantStage(assignRes.stage ?? 0);
-      await loadStoryConfig(assignRes.storyId, assignRes.mode);
-      await maybeMarkPreStudyComplete(assignRes, pid);
+      const cfg = await loadStoryConfig(assignRes.storyId, assignRes.mode);
+      await maybeMarkPreStudyComplete(assignRes, pid, cfg);
     } catch (err) {
       console.error(err);
       setError(err.message || "Unknown error during assignment.");
@@ -381,7 +390,7 @@ function App() {
     }
   }
 
-  async function maybeMarkPreStudyComplete(assignRes, pid) {
+  async function maybeMarkPreStudyComplete(assignRes, pid, storyCfg) {
     try {
       const statusRes = await fetchStudyStatus(pid, ACTIVE_STUDY);
       if (statusRes?.stage != null) {
@@ -394,10 +403,65 @@ function App() {
       }
       if (statusRes?.prestudyExists || stageVal >= 1) {
         setPreStudyComplete(true);
+        let didResume = false;
+
+        // Restore saved/watched clip state so participants don't get stuck when navigating.
+        const clipAnnotations = Array.isArray(statusRes?.clipAnnotations) ? statusRes.clipAnnotations : [];
+        if (clipAnnotations.length > 0) {
+          const restored = {};
+          clipAnnotations.forEach((c) => {
+            const clipIdx0 = Number(c?.clipIndex) - 1;
+            if (!Number.isFinite(clipIdx0) || clipIdx0 < 0) return;
+            // If a clip annotation exists in DynamoDB, treat the clip as watched so navigation works after refresh.
+            restored[clipIdx0] = { watched: true, saved: true };
+          });
+          setClipCompletion((prev) => ({ ...prev, ...restored }));
+        } else {
+          // Fallback: if backend stores a current clip pointer, assume prior clips are saved.
+          const curClip = Number(statusRes?.curClip);
+          if (Number.isFinite(curClip) && curClip > 1 && storyCfg?.clips?.length) {
+            const restored = {};
+            const upto = Math.min(curClip - 1, storyCfg.clips.length);
+            for (let idx = 0; idx < upto; idx += 1) {
+              restored[idx] = { watched: true, saved: true };
+            }
+            setClipCompletion((prev) => ({ ...prev, ...restored }));
+          }
+        }
+
+        // Resume to the next unsaved clip (or to an explicit URL override).
+        if (stageVal < 2 && storyCfg?.clips?.length) {
+          const total = storyCfg.clips.length;
+          const statusResume = Number(statusRes?.resumeClipIndex);
+          const curClip = Number(statusRes?.curClip);
+          const fallbackResume =
+            clipAnnotations.length > 0
+              ? Math.max(...clipAnnotations.map((c) => Number(c?.clipIndex)).filter((n) => Number.isFinite(n))) + 1
+              : null;
+          const desired1Based =
+            RESUME_CLIP_FROM_URL ||
+            (Number.isFinite(statusResume) ? statusResume : null) ||
+            (Number.isFinite(curClip) ? curClip : null) ||
+            (Number.isFinite(fallbackResume) ? fallbackResume : null);
+
+          if (desired1Based != null) {
+            const target0 = Math.min(Math.max(desired1Based - 1, 0), total - 1);
+            if (target0 !== currentClipIndex) {
+              try {
+                await loadClipByIndex(target0, storyCfg);
+                setStatus(`Resumed at clip ${target0 + 1}.`);
+                didResume = true;
+              } catch (err) {
+                console.warn("Failed to resume clip; falling back to clip 1:", err);
+              }
+            }
+          }
+        }
+
         if (stageVal >= 2) {
           setShowPostStudyPage(true);
           setStatus("Annotation already completed. Please finish the post-study questions.");
-        } else {
+        } else if (!didResume) {
           setStatus("Pre-study already completed. You can start annotating the clips.");
         }
         if ((assignRes.mode || assignRes.assigned_mode) === "vlm" && stageVal < 2) {

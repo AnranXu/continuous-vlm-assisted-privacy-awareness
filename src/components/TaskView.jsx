@@ -565,7 +565,7 @@ export default function TaskView({
       : !storyConfig ||
         currentClipIndex >= totalClips - 1 ||
         loading ||
-        (!isTestMode && !clipWatched);
+        (!isTestMode && !clipWatched && !clipIsSaved);
 
   function formatTime(sec) {
     if (sec == null || Number.isNaN(sec)) return "";
@@ -964,6 +964,32 @@ export default function TaskView({
     ro.observe(videoWrapRef.current);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (hintMode) return undefined;
+    if (!videoRef?.current) return undefined;
+    if (typeof IntersectionObserver === "undefined") return undefined;
+
+    const videoEl = videoRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        // Pause only when the player is completely out of view.
+        if (!entry.isIntersecting || entry.intersectionRatio === 0) {
+          try {
+            videoEl.pause();
+          } catch (err) {
+            // ignore pause failures
+          }
+        }
+      },
+      { threshold: [0] }
+    );
+
+    observer.observe(videoEl);
+    return () => observer.disconnect();
+  }, [videoRef, hintMode]);
 
   useEffect(() => {
     if (!videoRef?.current) return undefined;

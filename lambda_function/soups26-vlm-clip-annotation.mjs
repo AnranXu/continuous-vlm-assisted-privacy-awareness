@@ -1,6 +1,7 @@
 import {
   DynamoDBClient,
-  PutItemCommand
+  PutItemCommand,
+  UpdateItemCommand
 } from "@aws-sdk/client-dynamodb";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
@@ -304,6 +305,32 @@ export const handler = async (event) => {
         Item: item
       })
     );
+
+    // Best-effort: persist participant progress so refresh can resume at the next clip.
+    // Store `cur_clip` as the next clip index (1-based).
+    try {
+      const nextClip = clipIndex + 1;
+      const participantKey = {
+        pk: { S: "soups26_vlm_assignment_participant" },
+        sk: { S: `${STUDY_ID}#participant_${participantId}` }
+      };
+      await ddb.send(
+        new UpdateItemCommand({
+          TableName: TABLE,
+          Key: participantKey,
+          ConditionExpression: "attribute_not_exists(cur_clip) OR cur_clip < :next",
+          UpdateExpression: "SET cur_clip = :next, updated_at = :ts",
+          ExpressionAttributeValues: {
+            ":next": { N: `${nextClip}` },
+            ":ts": { S: now }
+          }
+        })
+      );
+    } catch (err) {
+      if (err?.name !== "ConditionalCheckFailedException") {
+        console.warn("clip-annotation: failed to update cur_clip:", err);
+      }
+    }
 
     return respond(200, {
       participantId,
