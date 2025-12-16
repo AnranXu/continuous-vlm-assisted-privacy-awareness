@@ -7,6 +7,7 @@ The analyzer is designed to work with CSV exports from DynamoDB. Two formats are
 
 1) Long format (already normalized):
    Required columns: participant_id, mode, study_label (or study/study_id), phase, question_id, score
+   (study_label is typically "pilot" or a formal label like "formal_1".)
 
 2) DynamoDB item export (one row per item):
    Expected columns (any subset is ok):
@@ -96,14 +97,50 @@ def count_words(text: str) -> int:
 
 
 def derive_study_label(row: Mapping[str, Any]) -> str:
-    for key in ("study_label", "study"):
+    """
+    Return the *specific* study label used by the system (e.g. "pilot", "formal_1").
+
+    Notes:
+      - Lambdas in this repo use `studyLabel` like "pilot" or DEFAULT_FORMAL_STUDY (e.g. "formal_1").
+      - Older exports may only have generic "formal"; we preserve it if that's all we can infer.
+    """
+
+    def _clean(v: str) -> str:
+        return v.strip().lower()
+
+    # 1) Prefer explicit columns if present (keeps "formal_1" vs "pilot").
+    for key in ("study_label", "study", "studylabel"):
         val = row.get(key)
         if isinstance(val, str) and val.strip():
-            v = val.strip().lower()
-            return "pilot" if v == "pilot" else "formal"
-    study_id = str(row.get("study_id") or row.get("studyId") or "")
-    if "pilot" in study_id.lower():
-        return "pilot"
+            return _clean(val)
+
+    # 2) Parse study_id formats like "soups26_vlma_01:formal_1" or "soups26_vlma_01:pilot".
+    study_id = str(row.get("study_id") or row.get("studyId") or row.get("studyid") or "").strip()
+    if study_id:
+        lowered = study_id.lower()
+        if ":" in lowered:
+            suffix = lowered.rsplit(":", 1)[-1]
+            suffix = suffix.split("#", 1)[0].strip()
+            if suffix:
+                return suffix
+        if "pilot" in lowered:
+            return "pilot"
+        m = re.search(r"\bformal_[a-z0-9]+\b", lowered)
+        if m:
+            return m.group(0)
+        if "formal" in lowered:
+            return "formal"
+
+    # 3) As a last resort, infer from DynamoDB sk prefix when it looks like "<studyLabel>#..."
+    sk = str(row.get("sk") or "").strip()
+    if sk:
+        prefix = sk.split("#", 1)[0].strip().lower()
+        if ":" in prefix:
+            prefix = prefix.rsplit(":", 1)[-1].strip()
+        if prefix in {"pilot", "formal"} or prefix.startswith("formal_"):
+            return prefix
+
+    # Backward-compatible default.
     return "formal"
 
 
