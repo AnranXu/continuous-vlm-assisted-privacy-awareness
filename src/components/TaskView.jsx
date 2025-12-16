@@ -1826,7 +1826,7 @@ export default function TaskView({
                                   label={
                                     <span>
                                       To what extent do you agree that you would be <strong>comfortable</strong> if an AI assistant <strong>detected</strong> and <strong>remembered</strong>{" "}
-                                      <strong>this content</strong> about you over time?
+                                      <strong>this content</strong> about you over its long-term usage?
                                     </span>
                                   }
                                   value={currentAiAnswers[d.det_id]?.ai_memory_comfort_score}
@@ -2480,7 +2480,7 @@ export default function TaskView({
                                 label={
                                   <span>
                                     Imagine you use an AI assistant that continuously analyzes your daily life. To what extent do you agree that you would be comfortable if this AI detected, stored, and remembered{" "}
-                                    <strong>this content</strong> about you over time?
+                                    <strong>this content</strong> about you over its long-term usage?
                                   </span>
                                 }
                                 value={f.ai_memory_comfort_score}

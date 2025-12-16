@@ -321,7 +321,7 @@ export default function PostStudyPage({ onSubmit, saving = false, feedback = nul
                 Your thoughts on AI detection of privacy risks in egocentric videos
               </div>
               <div style={{ color: "#334155", marginBottom: "10px", lineHeight: 1.5 }}>
-                Please answer these questions (1 = strongly disagree, 7 = strongly agree).
+                Please answer these questions (-3 = strongly disagree, 0 = neutral, 3 = strongly agree).
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {AI_QUESTION_DEFS.map((q, idx) => (
