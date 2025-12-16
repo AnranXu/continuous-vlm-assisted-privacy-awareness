@@ -351,6 +351,15 @@ def normalize_to_long(df):
             or _get(row, "cross_clip_manual")
         )
         if isinstance(cross_manual, dict):
+            # Record the top-level Yes/No choice so "No" responses are visible in analysis output.
+            if isinstance(cross_manual.get("has_privacy"), bool):
+                add_record(
+                    "cross_manual_has_privacy",
+                    1 if cross_manual.get("has_privacy") else 0,
+                    source="cross_manual",
+                    item_id=None,
+                    privacy_type=None,
+                )
             findings = cross_manual.get("findings") or []
             if isinstance(findings, dict):
                 findings = [findings]
@@ -382,6 +391,335 @@ def normalize_to_long(df):
     out["score"] = pd.to_numeric(out["score"], errors="coerce")
     out = out.dropna(subset=["score"])
     return out
+
+
+def extract_free_text(df):
+    """
+    Extract free-text responses (e.g., post-study open response) from a DynamoDB export.
+
+    Returns a DataFrame with:
+      participant_id, mode, study_label, phase, item_type, story_id, free_text, word_count, char_count
+    """
+    pd = _require("pandas")
+
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=[
+                "participant_id",
+                "mode",
+                "study_label",
+                "phase",
+                "item_type",
+                "story_id",
+                "free_text",
+                "word_count",
+                "char_count",
+            ]
+        )
+
+    colmap = {c.lower(): c for c in df.columns}
+
+    def _get(row, key, default=None):
+        c = colmap.get(key)
+        return row.get(c, default) if c else default
+
+    records: List[Dict[str, Any]] = []
+    for _, row in df.iterrows():
+        row_dict = {k.lower(): row[v] for k, v in colmap.items()}
+        participant_id = str(_get(row, "participant_id") or _get(row, "participantId") or "").strip() or None
+        if not participant_id:
+            continue
+
+        phase = derive_phase(row_dict) or "unknown"
+        item_type = str(_get(row, "item_type") or _get(row, "itemType") or "").strip() or None
+        mode = derive_mode(row_dict)
+        study_label = derive_study_label(row_dict)
+        story_id = str(_get(row, "story_id") or _get(row, "storyId") or "").strip() or None
+
+        free_text = _get(row, "free_text")
+        if free_text is None:
+            free_text = _get(row, "freeText")
+        if free_text is None or (isinstance(free_text, float) and pd.isna(free_text)):
+            continue
+
+        text = str(free_text or "").strip()
+        if not text:
+            continue
+
+        records.append(
+            {
+                "participant_id": participant_id,
+                "mode": mode,
+                "study_label": study_label,
+                "phase": phase,
+                "item_type": item_type,
+                "story_id": story_id,
+                "free_text": text,
+                "word_count": count_words(text),
+                "char_count": len(text),
+            }
+        )
+
+    return pd.DataFrame.from_records(records)
+
+
+def summarize_free_text(
+    free_text_df,
+    group_cols: Sequence[str] = ("mode", "study_label", "phase"),
+):
+    """
+    Summarize free-text responses by group.
+
+    Returns a DataFrame with:
+      group_cols + n + mean_word_count + median_word_count + mean_char_count + median_char_count
+    """
+    pd = _require("pandas")
+    if free_text_df is None or free_text_df.empty:
+        return pd.DataFrame()
+
+    df = free_text_df.copy()
+    for col in ("word_count", "char_count"):
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df = df.dropna(subset=["word_count", "char_count"])
+    if df.empty:
+        return pd.DataFrame()
+
+    agg = (
+        df.groupby(list(group_cols))
+        .agg(
+            n=("free_text", "count"),
+            mean_word_count=("word_count", "mean"),
+            median_word_count=("word_count", "median"),
+            mean_char_count=("char_count", "mean"),
+            median_char_count=("char_count", "median"),
+        )
+        .reset_index()
+    )
+    return agg
+
+
+def _extract_clip_index_from_row(row: Mapping[str, Any]) -> Optional[int]:
+    """
+    Attempt to derive 1-based clip index from a DynamoDB export row.
+    """
+    raw = row.get("clip_index") if isinstance(row, dict) else None
+    try:
+        if raw is not None and str(raw).strip() != "":
+            n = int(float(raw))
+            return n if n >= 1 else None
+    except Exception:
+        pass
+    sk = str(row.get("sk") or "")
+    if "#clip_" in sk:
+        try:
+            tail = sk.split("#clip_")[-1]
+            n = int(re.split(r"\D", tail, maxsplit=1)[0])
+            return n if n >= 1 else None
+        except Exception:
+            return None
+    return None
+
+
+def extract_manual_text(df):
+    """
+    Extract participants' manual text inputs from in-study annotations:
+      - single-clip manual findings (participant_findings)
+      - cross-clip manual privacy (cross_clip_manual_privacy)
+
+    Returns a DataFrame with:
+      participant_id, mode, study_label, phase, story_id, clip_index,
+      source, kind, categories, description, other_text, clip_numbers,
+      word_count, char_count
+    """
+    pd = _require("pandas")
+
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=[
+                "participant_id",
+                "mode",
+                "study_label",
+                "phase",
+                "story_id",
+                "clip_index",
+                "source",
+                "kind",
+                "categories",
+                "description",
+                "other_text",
+                "clip_numbers",
+                "word_count",
+                "char_count",
+            ]
+        )
+
+    colmap = {c.lower(): c for c in df.columns}
+
+    def _get(row, key, default=None):
+        c = colmap.get(key)
+        return row.get(c, default) if c else default
+
+    records: List[Dict[str, Any]] = []
+    for _, row in df.iterrows():
+        row_dict = {k.lower(): row[v] for k, v in colmap.items()}
+        participant_id = str(_get(row, "participant_id") or _get(row, "participantId") or "").strip() or None
+        if not participant_id:
+            continue
+        mode = derive_mode(row_dict)
+        study_label = derive_study_label(row_dict)
+        phase = derive_phase(row_dict) or "unknown"
+        if phase != "in":
+            continue
+
+        story_id = str(_get(row, "story_id") or _get(row, "storyId") or "").strip() or None
+        clip_index = _extract_clip_index_from_row(row_dict)
+
+        # Single-clip manual findings
+        findings = parse_maybe_json(
+            _get(row, "participant_findings") or _get(row, "participantFindings")
+        )
+        if isinstance(findings, list):
+            for f in findings:
+                if not isinstance(f, dict):
+                    continue
+                cats = f.get("categories") or []
+                if isinstance(cats, str):
+                    cats = [cats]
+                cats = [str(c).strip() for c in cats if c is not None and str(c).strip()]
+                cats_norm = ",".join(cats) if cats else ""
+
+                desc = str(f.get("description") or "").strip()
+                other_text = str(f.get("other_text") or "").strip()
+                if not desc and not other_text:
+                    continue
+
+                kind = "no_privacy" if any(c.lower() == "none" for c in cats) else "finding"
+                text_for_counts = desc if desc else other_text
+                records.append(
+                    {
+                        "participant_id": participant_id,
+                        "mode": mode,
+                        "study_label": study_label,
+                        "phase": phase,
+                        "story_id": story_id,
+                        "clip_index": clip_index,
+                        "source": "manual_single",
+                        "kind": kind,
+                        "categories": cats_norm,
+                        "description": desc,
+                        "other_text": other_text,
+                        "clip_numbers": "",
+                        "word_count": count_words(text_for_counts),
+                        "char_count": len(text_for_counts),
+                    }
+                )
+
+        # Cross-clip manual privacy (human annotations inferred across clips)
+        cross_manual = parse_maybe_json(
+            _get(row, "cross_clip_manual_privacy")
+            or _get(row, "crossClipManualPrivacy")
+            or _get(row, "cross_clip_manual")
+        )
+        if isinstance(cross_manual, dict):
+            has_privacy = cross_manual.get("has_privacy")
+            no_desc = str(cross_manual.get("no_description") or "").strip()
+            if has_privacy is False and no_desc:
+                records.append(
+                    {
+                        "participant_id": participant_id,
+                        "mode": mode,
+                        "study_label": study_label,
+                        "phase": phase,
+                        "story_id": story_id,
+                        "clip_index": clip_index,
+                        "source": "manual_cross",
+                        "kind": "no_privacy",
+                        "categories": "",
+                        "description": no_desc,
+                        "other_text": "",
+                        "clip_numbers": "",
+                        "word_count": count_words(no_desc),
+                        "char_count": len(no_desc),
+                    }
+                )
+
+            findings = cross_manual.get("findings") or []
+            if isinstance(findings, dict):
+                findings = [findings]
+            if isinstance(findings, list):
+                for f in findings:
+                    if not isinstance(f, dict):
+                        continue
+                    desc = str(f.get("description") or "").strip()
+                    other_text = str(f.get("other_text") or "").strip()
+                    cats = f.get("categories") or []
+                    if isinstance(cats, str):
+                        cats = [cats]
+                    cats = [str(c).strip() for c in cats if c is not None and str(c).strip()]
+                    cats_norm = ",".join(cats) if cats else ""
+                    clip_nums = f.get("clip_numbers") or []
+                    if isinstance(clip_nums, (int, float, str)):
+                        clip_nums = [clip_nums]
+                    clip_nums_norm = ",".join(
+                        [str(int(float(n))) for n in clip_nums if str(n).strip() != ""]
+                    )
+
+                    if not desc and not other_text:
+                        continue
+                    text_for_counts = desc if desc else other_text
+                    records.append(
+                        {
+                            "participant_id": participant_id,
+                            "mode": mode,
+                            "study_label": study_label,
+                            "phase": phase,
+                            "story_id": story_id,
+                            "clip_index": clip_index,
+                            "source": "manual_cross",
+                            "kind": "finding",
+                            "categories": cats_norm,
+                            "description": desc,
+                            "other_text": other_text,
+                            "clip_numbers": clip_nums_norm,
+                            "word_count": count_words(text_for_counts),
+                            "char_count": len(text_for_counts),
+                        }
+                    )
+
+    return pd.DataFrame.from_records(records)
+
+
+def summarize_manual_text(
+    manual_text_df,
+    group_cols: Sequence[str] = ("mode", "study_label", "phase", "source", "kind"),
+):
+    """
+    Summarize extracted manual text by group.
+    """
+    pd = _require("pandas")
+    if manual_text_df is None or manual_text_df.empty:
+        return pd.DataFrame()
+
+    df = manual_text_df.copy()
+    df["word_count"] = pd.to_numeric(df.get("word_count"), errors="coerce")
+    df["char_count"] = pd.to_numeric(df.get("char_count"), errors="coerce")
+    df = df.dropna(subset=["word_count", "char_count"])
+    if df.empty:
+        return pd.DataFrame()
+
+    agg = (
+        df.groupby(list(group_cols))
+        .agg(
+            n=("description", "count"),
+            participants=("participant_id", "nunique"),
+            mean_word_count=("word_count", "mean"),
+            median_word_count=("word_count", "median"),
+            mean_char_count=("char_count", "mean"),
+            median_char_count=("char_count", "median"),
+        )
+        .reset_index()
+    )
+    return agg
 
 
 def summarize_in_study_types(
@@ -654,6 +992,10 @@ def analyze_csv(
     except ImportError:
         compare_df = pd.DataFrame()
     in_type_summary_df = summarize_in_study_types(long_df)
+    free_text_df = extract_free_text(df)
+    free_text_summary_df = summarize_free_text(free_text_df)
+    manual_text_df = extract_manual_text(df)
+    manual_text_summary_df = summarize_manual_text(manual_text_df)
 
     plot_paths = []
     if out_dir is not None:
@@ -662,7 +1004,17 @@ def analyze_csv(
         except ImportError:
             plot_paths = []
 
-    return long_df, summary_df, compare_df, in_type_summary_df, plot_paths
+    return (
+        long_df,
+        summary_df,
+        compare_df,
+        in_type_summary_df,
+        free_text_df,
+        free_text_summary_df,
+        manual_text_df,
+        manual_text_summary_df,
+        plot_paths,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -675,9 +1027,23 @@ if __name__ == "__main__":  # pragma: no cover
     ap.add_argument("--compare-csv", help="Write group comparison table to CSV")
     ap.add_argument("--in-types-csv", help="Write in-study type summary to CSV")
     ap.add_argument("--long-csv", help="Write normalized long table to CSV")
+    ap.add_argument("--free-text-csv", help="Write extracted free-text responses to CSV")
+    ap.add_argument("--free-text-summary-csv", help="Write free-text summary stats to CSV")
+    ap.add_argument("--manual-text-csv", help="Write extracted manual text inputs to CSV")
+    ap.add_argument("--manual-text-summary-csv", help="Write manual text summary stats to CSV")
     args = ap.parse_args()
 
-    long_df, summary_df, compare_df, in_type_summary_df, plots = analyze_csv(
+    (
+        long_df,
+        summary_df,
+        compare_df,
+        in_type_summary_df,
+        free_text_df,
+        free_text_summary_df,
+        manual_text_df,
+        manual_text_summary_df,
+        plots,
+    ) = analyze_csv(
         args.csv, out_dir=args.out_dir
     )
 
@@ -689,11 +1055,23 @@ if __name__ == "__main__":  # pragma: no cover
         compare_df.to_csv(args.compare_csv, index=False)
     if args.in_types_csv:
         in_type_summary_df.to_csv(args.in_types_csv, index=False)
+    if args.free_text_csv:
+        free_text_df.to_csv(args.free_text_csv, index=False)
+    if args.free_text_summary_csv:
+        free_text_summary_df.to_csv(args.free_text_summary_csv, index=False)
+    if args.manual_text_csv:
+        manual_text_df.to_csv(args.manual_text_csv, index=False)
+    if args.manual_text_summary_csv:
+        manual_text_summary_df.to_csv(args.manual_text_summary_csv, index=False)
 
     print(f"Rows normalized: {len(long_df)}")
     print(f"Summary rows: {len(summary_df)}")
     print(f"Comparison rows: {len(compare_df)}")
     print(f"In-study type summary rows: {len(in_type_summary_df)}")
+    print(f"Free-text rows: {len(free_text_df)}")
+    print(f"Free-text summary rows: {len(free_text_summary_df)}")
+    print(f"Manual-text rows: {len(manual_text_df)}")
+    print(f"Manual-text summary rows: {len(manual_text_summary_df)}")
     if plots:
         print("Plots saved:")
         for p in plots:

@@ -41,3 +41,7 @@ dist-ssr
 
 *.pyc
 __pycache__/
+
+*.csv
+# Analyzer outputs (CSVs are generated locally)
+analyzer/*.csv

@@ -2509,11 +2509,10 @@ export default function TaskView({
           }}
         >
           {showHintBoxes && hintStepKey === "multi-clip" && (
-            <div style={hintBoxStyle}>
+            <div style={{ ...hintBoxStyle, marginBottom: "10px" }}>
               <strong>Cross-clip manual annotations</strong>
               <p style={{ margin: "6px 0" }}>
-                Some privacy-related information is only revealed when you consider multiple clips together (e.g., repeated identities, locations, relationships, or routines).
-                Use this box to report privacy-related information inferred <strong>across multiple clips</strong>. If you select “Yes”, describe it, select the relevant clip numbers, and answer the follow-up questions.
+                Some privacy-related information is only revealed when you consider multiple clips together (e.g., repeated identities, locations, relationships, or routines). Use this box to report privacy-related information inferred across multiple clips. If you select “Yes”, describe it, select the relevant clip numbers, and answer the follow-up questions.
               </p>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <button type="button" style={hintActionStyle} onClick={advanceHint}>

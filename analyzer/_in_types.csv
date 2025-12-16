@@ -1,7 +1,60 @@
-mode,study_label,source,privacy_type,question_id,n,mean,std,count_0,count_1
-human,formal,manual,individual preferences/pastimes,manual_ai_memory_comfort_score,2,1.0,0.0,0.0,2.0
-human,formal,manual,individual preferences/pastimes,manual_privacy_threat_score,2,0.5,0.7071067811865476,1.0,1.0
-human,formal,manual,individual preferences/pastimes,manual_share_willingness_score,2,1.0,0.0,0.0,2.0
-human,formal,manual,personal information,manual_ai_memory_comfort_score,1,1.0,,0.0,1.0
-human,formal,manual,personal information,manual_privacy_threat_score,1,0.0,,1.0,0.0
-human,formal,manual,personal information,manual_share_willingness_score,1,1.0,,0.0,1.0
+mode,study_label,source,privacy_type,question_id,n,mean,std,count_-3,count_-2,count_-1,count_0,count_1,count_2,count_3
+human,formal,cross_manual,individual preferences/pastimes,cross_manual_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+human,formal,cross_manual,individual preferences/pastimes,cross_manual_more_severe_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,cross_manual,individual preferences/pastimes,cross_manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+human,formal,cross_manual,personal information,cross_manual_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+human,formal,cross_manual,personal information,cross_manual_more_severe_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,cross_manual,personal information,cross_manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+human,formal,manual,individual preferences/pastimes,manual_ai_memory_comfort_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,manual,individual preferences/pastimes,manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+human,formal,manual,individual preferences/pastimes,manual_share_willingness_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,manual,other type of sensitive content,manual_ai_memory_comfort_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+human,formal,manual,other type of sensitive content,manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+human,formal,manual,other type of sensitive content,manual_share_willingness_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+human,formal,manual,others_private_or_confidential_information,manual_ai_memory_comfort_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,manual,others_private_or_confidential_information,manual_privacy_threat_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+human,formal,manual,others_private_or_confidential_information,manual_share_willingness_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+human,formal,manual,personal information,manual_ai_memory_comfort_score,3,1.3333333333333333,0.5773502691896257,0.0,0.0,0.0,0.0,2.0,1.0,0.0
+human,formal,manual,personal information,manual_privacy_threat_score,3,-1.3333333333333333,0.5773502691896258,0.0,1.0,2.0,0.0,0.0,0.0,0.0
+human,formal,manual,personal information,manual_share_willingness_score,3,1.0,0.0,0.0,0.0,0.0,0.0,3.0,0.0,0.0
+human,formal,manual,social circle or relationships,manual_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+human,formal,manual,social circle or relationships,manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+human,formal,manual,social circle or relationships,manual_share_willingness_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,ai,assets/property,ai_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,ai,assets/property,ai_privacy_threat_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,ai,assets/property,ai_share_willingness_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,ai,assets/property,ai_trust_ai_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,ai,individual preferences/pastimes,ai_ai_memory_comfort_score,7,-0.2857142857142857,0.7559289460184545,0.0,0.0,3.0,3.0,1.0,0.0,0.0
+vlm,formal,ai,individual preferences/pastimes,ai_privacy_threat_score,7,-0.5714285714285714,0.5345224838248488,0.0,0.0,4.0,3.0,0.0,0.0,0.0
+vlm,formal,ai,individual preferences/pastimes,ai_share_willingness_score,7,0.42857142857142855,0.7867957924694431,0.0,0.0,1.0,2.0,4.0,0.0,0.0
+vlm,formal,ai,individual preferences/pastimes,ai_trust_ai_score,7,-0.14285714285714285,1.0690449676496976,0.0,1.0,1.0,3.0,2.0,0.0,0.0
+vlm,formal,ai,location of shooting,ai_ai_memory_comfort_score,14,-0.5714285714285714,1.0894095588038442,0.0,4.0,2.0,6.0,2.0,0.0,0.0
+vlm,formal,ai,location of shooting,ai_privacy_threat_score,14,-0.5,0.7595545253127499,0.0,1.0,6.0,6.0,1.0,0.0,0.0
+vlm,formal,ai,location of shooting,ai_share_willingness_score,14,-0.07142857142857142,0.9972489631508746,0.0,1.0,3.0,7.0,2.0,1.0,0.0
+vlm,formal,ai,location of shooting,ai_trust_ai_score,14,-0.5,1.1602387022306428,1.0,2.0,2.0,7.0,2.0,0.0,0.0
+vlm,formal,ai,others’ private/confidential,ai_ai_memory_comfort_score,2,-1.0,1.4142135623730951,0.0,1.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,ai,others’ private/confidential,ai_privacy_threat_score,2,-0.5,0.7071067811865476,0.0,0.0,1.0,1.0,0.0,0.0,0.0
+vlm,formal,ai,others’ private/confidential,ai_share_willingness_score,2,-0.5,0.7071067811865476,0.0,0.0,1.0,1.0,0.0,0.0,0.0
+vlm,formal,ai,others’ private/confidential,ai_trust_ai_score,2,0.5,0.7071067811865476,0.0,0.0,0.0,1.0,1.0,0.0,0.0
+vlm,formal,ai,personal information,ai_ai_memory_comfort_score,4,0.75,1.707825127659933,0.0,0.0,1.0,1.0,1.0,0.0,1.0
+vlm,formal,ai,personal information,ai_privacy_threat_score,4,0.25,1.8929694486000912,0.0,0.0,2.0,1.0,0.0,0.0,1.0
+vlm,formal,ai,personal information,ai_share_willingness_score,4,0.75,1.707825127659933,0.0,0.0,1.0,1.0,1.0,0.0,1.0
+vlm,formal,ai,personal information,ai_trust_ai_score,4,0.0,2.160246899469287,0.0,1.0,1.0,1.0,0.0,0.0,1.0
+vlm,formal,cross,assets/property,cross_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,cross,assets/property,cross_more_severe_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,cross,assets/property,cross_privacy_threat_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,cross,individual preferences/pastimes,cross_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,cross,individual preferences/pastimes,cross_more_severe_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,cross,individual preferences/pastimes,cross_privacy_threat_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,cross,location of shooting,cross_ai_memory_comfort_score,2,1.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0
+vlm,formal,cross,location of shooting,cross_more_severe_score,2,-2.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,cross,location of shooting,cross_privacy_threat_score,2,1.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0
+vlm,formal,cross,personal information,cross_ai_memory_comfort_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+vlm,formal,cross,personal information,cross_more_severe_score,1,2.0,,0.0,0.0,0.0,0.0,0.0,1.0,0.0
+vlm,formal,cross,personal information,cross_privacy_threat_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,manual,other type of sensitive content,manual_ai_memory_comfort_score,1,0.0,,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+vlm,formal,manual,other type of sensitive content,manual_privacy_threat_score,1,-2.0,,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+vlm,formal,manual,other type of sensitive content,manual_share_willingness_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,manual,personal information,manual_ai_memory_comfort_score,1,1.0,,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+vlm,formal,manual,personal information,manual_privacy_threat_score,1,-1.0,,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+vlm,formal,manual,personal information,manual_share_willingness_score,1,2.0,,0.0,0.0,0.0,0.0,0.0,1.0,0.0
