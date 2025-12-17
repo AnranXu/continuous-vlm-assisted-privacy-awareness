@@ -45,7 +45,7 @@ export default function InstructionsPage() {
 
   return (
     <div className="container">
-      <h1>Privacy Perception in Continuous Vision-language Model Interactions (30-45 minutes)</h1>
+      <h1>Privacy Perception in Continuous Vision-language Model Interactions (40-45 minutes)</h1>
 
       <div className="card">
         <p>
