@@ -331,13 +331,20 @@ function App() {
     setError("");
     setStatus("");
     try {
+      const preStudyAnswers = Array.isArray(responses) ? responses : responses?.answers;
+      const genAiUsage = Array.isArray(responses) ? null : responses?.genAiUsage;
+      if (!Array.isArray(preStudyAnswers) || !preStudyAnswers.length) {
+        setError("Please answer the pre-study questions before continuing.");
+        return;
+      }
       await submitPreStudy({
         participantId: pid,
         studyId: assignment.studyId,
         storyId: assignment.storyId,
         mode: assignment.mode || assignment.assigned_mode,
         study: ACTIVE_STUDY,
-        answers: responses,
+        answers: preStudyAnswers,
+        ...(genAiUsage ? { genAiUsage } : {}),
       });
       setPreStudyComplete(true);
       setParticipantStage((prev) => Math.max(prev, 1));

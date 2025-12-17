@@ -13,6 +13,7 @@ The analyzer is designed to work with CSV exports from DynamoDB. Two formats are
    Expected columns (any subset is ok):
      - item_type, pk, sk, participant_id, mode, study_label, study, study_id
      - answers (pre/post-study)
+     - genai_usage (pre-study generative AI tool usage)
      - aiAnswers or ai_answers (post-study VLM only)
      - ai_responses, participant_findings, cross_clip_responses, cross_clip_manual_privacy (in-study clip annotations)
 
@@ -535,6 +536,128 @@ def summarize_free_text(
     return agg
 
 
+def extract_genai_usage(df):
+    """
+    Extract generative-AI usage responses from a DynamoDB export.
+
+    Returns a DataFrame with:
+      participant_id, mode, study_label, phase, genai_tools, genai_frequency, genai_other_text, genai_used_any
+    """
+    pd = _require("pandas")
+
+    if df is None or df.empty:
+        return pd.DataFrame(
+            columns=[
+                "participant_id",
+                "mode",
+                "study_label",
+                "phase",
+                "genai_tools",
+                "genai_frequency",
+                "genai_other_text",
+                "genai_used_any",
+            ]
+        )
+
+    colmap = {c.lower(): c for c in df.columns}
+
+    def _get(row, key, default=None):
+        c = colmap.get(key)
+        return row.get(c, default) if c else default
+
+    records: List[Dict[str, Any]] = []
+    for _, row in df.iterrows():
+        row_dict = {k.lower(): row[v] for k, v in colmap.items()}
+        participant_id = str(_get(row, "participant_id") or _get(row, "participantId") or "").strip() or None
+        if not participant_id:
+            continue
+
+        raw = (
+            _get(row, "genai_usage")
+            or _get(row, "genAiUsage")
+            or _get(row, "genaiUsage")
+            or _get(row, "gen_ai_usage")
+        )
+        parsed = parse_maybe_json(raw)
+        if not isinstance(parsed, dict):
+            continue
+
+        tools = parsed.get("tools") or []
+        if isinstance(tools, str):
+            tools = [tools]
+        if not isinstance(tools, list):
+            tools = []
+        tools = [str(t).strip() for t in tools if t is not None and str(t).strip()]
+
+        frequency = parsed.get("frequency")
+        frequency = str(frequency).strip() if frequency is not None else ""
+
+        other_text = parsed.get("other_text") if "other_text" in parsed else parsed.get("otherText")
+        other_text = str(other_text).strip() if other_text is not None else ""
+
+        used_any = parsed.get("used_any") if "used_any" in parsed else parsed.get("usedAny")
+        if not isinstance(used_any, bool):
+            used_any = None
+
+        if not tools and not frequency and not other_text and used_any is None:
+            continue
+
+        records.append(
+            {
+                "participant_id": participant_id,
+                "mode": derive_mode(row_dict),
+                "study_label": derive_study_label(row_dict),
+                "phase": derive_phase(row_dict) or "unknown",
+                "genai_tools": tools,
+                "genai_frequency": frequency or None,
+                "genai_other_text": other_text or None,
+                "genai_used_any": used_any,
+            }
+        )
+
+    return pd.DataFrame.from_records(records)
+
+
+def summarize_genai_usage(genai_df):
+    """
+    Basic counts for generative-AI usage:
+      - participants by frequency bucket
+      - tool selection counts (tools exploded)
+    """
+    pd = _require("pandas")
+
+    if genai_df is None or genai_df.empty:
+        return pd.DataFrame(columns=["metric", "value", "count"])
+
+    df = genai_df.copy()
+    df = df[df["participant_id"].notna()]
+
+    out: List[Dict[str, Any]] = []
+
+    if "genai_frequency" in df.columns:
+        freq_counts = (
+            df.dropna(subset=["genai_frequency"])
+            .groupby("genai_frequency")["participant_id"]
+            .nunique()
+            .reset_index(name="count")
+        )
+        for _, r in freq_counts.iterrows():
+            out.append({"metric": "frequency", "value": r["genai_frequency"], "count": int(r["count"])})
+
+    if "genai_tools" in df.columns:
+        tools_series = df["genai_tools"].apply(
+            lambda v: v if isinstance(v, list) else ([v] if isinstance(v, str) else [])
+        )
+        tools_df = df.assign(_tool=tools_series).explode("_tool")
+        tools_df["_tool"] = tools_df["_tool"].astype(str).str.strip()
+        tools_df = tools_df[(tools_df["_tool"].notna()) & (tools_df["_tool"] != "") & (tools_df["_tool"] != "nan")]
+        tool_counts = tools_df.groupby("_tool")["participant_id"].nunique().reset_index(name="count")
+        for _, r in tool_counts.iterrows():
+            out.append({"metric": "tool", "value": r["_tool"], "count": int(r["count"])})
+
+    return pd.DataFrame(out)
+
+
 def _extract_clip_index_from_row(row: Mapping[str, Any]) -> Optional[int]:
     """
     Attempt to derive 1-based clip index from a DynamoDB export row.
@@ -1033,6 +1156,8 @@ def analyze_csv(
     free_text_summary_df = summarize_free_text(free_text_df)
     manual_text_df = extract_manual_text(df)
     manual_text_summary_df = summarize_manual_text(manual_text_df)
+    genai_usage_df = extract_genai_usage(df)
+    genai_usage_summary_df = summarize_genai_usage(genai_usage_df)
 
     plot_paths = []
     if out_dir is not None:
@@ -1050,6 +1175,8 @@ def analyze_csv(
         free_text_summary_df,
         manual_text_df,
         manual_text_summary_df,
+        genai_usage_df,
+        genai_usage_summary_df,
         plot_paths,
     )
 
@@ -1068,6 +1195,8 @@ if __name__ == "__main__":  # pragma: no cover
     ap.add_argument("--free-text-summary-csv", help="Write free-text summary stats to CSV")
     ap.add_argument("--manual-text-csv", help="Write extracted manual text inputs to CSV")
     ap.add_argument("--manual-text-summary-csv", help="Write manual text summary stats to CSV")
+    ap.add_argument("--genai-usage-csv", help="Write extracted GenAI usage responses to CSV")
+    ap.add_argument("--genai-usage-summary-csv", help="Write GenAI usage summary counts to CSV")
     args = ap.parse_args()
 
     (
@@ -1079,6 +1208,8 @@ if __name__ == "__main__":  # pragma: no cover
         free_text_summary_df,
         manual_text_df,
         manual_text_summary_df,
+        genai_usage_df,
+        genai_usage_summary_df,
         plots,
     ) = analyze_csv(
         args.csv, out_dir=args.out_dir
@@ -1100,6 +1231,10 @@ if __name__ == "__main__":  # pragma: no cover
         manual_text_df.to_csv(args.manual_text_csv, index=False)
     if args.manual_text_summary_csv:
         manual_text_summary_df.to_csv(args.manual_text_summary_csv, index=False)
+    if args.genai_usage_csv:
+        genai_usage_df.to_csv(args.genai_usage_csv, index=False)
+    if args.genai_usage_summary_csv:
+        genai_usage_summary_df.to_csv(args.genai_usage_summary_csv, index=False)
 
     print(f"Rows normalized: {len(long_df)}")
     print(f"Summary rows: {len(summary_df)}")
@@ -1109,6 +1244,8 @@ if __name__ == "__main__":  # pragma: no cover
     print(f"Free-text summary rows: {len(free_text_summary_df)}")
     print(f"Manual-text rows: {len(manual_text_df)}")
     print(f"Manual-text summary rows: {len(manual_text_summary_df)}")
+    print(f"GenAI usage rows: {len(genai_usage_df)}")
+    print(f"GenAI usage summary rows: {len(genai_usage_summary_df)}")
     if plots:
         print("Plots saved:")
         for p in plots:

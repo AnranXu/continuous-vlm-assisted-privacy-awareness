@@ -51,6 +51,43 @@ function normalizeAnswer(raw, idx) {
   };
 }
 
+function normalizeGenAiUsage(raw) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const rawTools = Array.isArray(raw.tools) ? raw.tools : [];
+  const tools = Array.from(
+    new Set(
+      rawTools
+        .filter((t) => typeof t === "string")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0 && t.length <= 80)
+    )
+  ).slice(0, 30);
+
+  const frequency =
+    typeof raw.frequency === "string" ? raw.frequency.trim().slice(0, 80) : "";
+
+  const otherText =
+    typeof raw.otherText === "string" ? raw.otherText.trim().slice(0, 300) : "";
+
+  if (!tools.length || !frequency) return null;
+
+  // Enforce that "none" is mutually exclusive with other tool selections.
+  const cleanedTools = tools.includes("none") ? ["none"] : tools;
+  const usedAny = cleanedTools.length > 0 && !cleanedTools.includes("none");
+
+  const m = {
+    tools: { L: cleanedTools.map((t) => ({ S: t })) },
+    frequency: { S: frequency },
+    used_any: { BOOL: usedAny }
+  };
+  if (cleanedTools.includes("other") && otherText) {
+    m.other_text = { S: otherText };
+  }
+
+  return { M: m };
+}
+
 export const handler = async (event) => {
   try {
     const cfg = await getStudyConfig();
@@ -62,6 +99,7 @@ export const handler = async (event) => {
     const answers = Array.isArray(body.answers) ? body.answers : [];
     const storyId = body.storyId || null;
     const mode = body.mode || null;
+    const genAiUsage = normalizeGenAiUsage(body.genAiUsage);
 
     if (!participantId) {
       return respond(400, { error: "participantId is required" });
@@ -93,6 +131,7 @@ export const handler = async (event) => {
 
     if (storyId) item.story_id = { S: String(storyId) };
     if (mode) item.mode = { S: String(mode) };
+    if (genAiUsage) item.genai_usage = genAiUsage;
 
     await ddb.send(
       new PutItemCommand({
