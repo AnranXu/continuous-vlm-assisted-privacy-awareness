@@ -23,6 +23,16 @@ const PROLIFIC_COMPLETION_URL =
 
 // ---------- URL PARAMS (parsed once at module load) ----------
 const params = new URLSearchParams(window.location.search);
+const readUrlParam = (...keys) => {
+  for (const key of keys) {
+    const value = params.get(key);
+    if (value != null) {
+      const trimmed = String(value).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return null;
+};
 
 const urlMode = (params.get("mode") || "").toLowerCase(); // "test" or ""
 const IS_TEST_MODE = urlMode === "test";
@@ -49,6 +59,17 @@ const TEST_STORY_INDEX = (() => {
   return Number.isFinite(n) && n > 0 ? n : 1;
 })();
 
+// Prolific URL params (auto-populate when present)
+const PROLIFIC_PID_FROM_URL = readUrlParam("PROLIFIC_PID", "prolific_pid", "prolificPid");
+const PROLIFIC_STUDY_ID_FROM_URL = readUrlParam("STUDY_ID", "study_id", "prolificStudyId");
+const PROLIFIC_SESSION_ID_FROM_URL = readUrlParam("SESSION_ID", "session_id", "prolificSessionId");
+const PROLIFIC_URL_INFO = {
+  prolificPid: PROLIFIC_PID_FROM_URL,
+  prolificStudyId: PROLIFIC_STUDY_ID_FROM_URL,
+  prolificSessionId: PROLIFIC_SESSION_ID_FROM_URL,
+};
+const HAS_PROLIFIC_URL_INFO = Object.values(PROLIFIC_URL_INFO).some(Boolean);
+
 // Optional participant injected via URL in test mode
 const TEST_PARTICIPANT_FROM_URL = params.get("participant") || null;
 
@@ -61,7 +82,7 @@ const RESUME_CLIP_FROM_URL = (() => {
 })();
 
 function App() {
-  const [prolificId, setProlificId] = useState("");
+  const [prolificId, setProlificId] = useState(PROLIFIC_PID_FROM_URL || "");
   const [assignment, setAssignment] = useState(null);
   const [storyConfig, setStoryConfig] = useState(null);
 
@@ -196,6 +217,12 @@ function App() {
     setLoading(true);
     try {
       let assignRes;
+      const prolificInfo = HAS_PROLIFIC_URL_INFO
+        ? {
+            ...PROLIFIC_URL_INFO,
+            prolificPid: PROLIFIC_PID_FROM_URL || pid,
+          }
+        : null;
 
       if (IS_TEST_MODE && TEST_STUDY_MODE) {
         // ---------- TEST MODE ----------
@@ -207,10 +234,11 @@ function App() {
           storyIndex: TEST_STORY_INDEX,
           mode: TEST_STUDY_MODE, // "human" or "vlm"
           study: ACTIVE_STUDY,
+          prolificInfo,
         });
       } else {
         // ---------- NORMAL STUDY MODE ----------
-        assignRes = await assignParticipant(pid, ACTIVE_STUDY);
+        assignRes = await assignParticipant(pid, ACTIVE_STUDY, prolificInfo);
       }
 
       setAssignment(assignRes);

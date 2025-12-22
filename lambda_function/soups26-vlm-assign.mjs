@@ -41,6 +41,32 @@ export const handler = async (event) => {
     const cfg = await getStudyConfig();
     const body = event.body ? JSON.parse(event.body) : {};
     const participantId = (body.participantId || "").trim();
+    const prolific = body.prolific && typeof body.prolific === "object" ? body.prolific : {};
+    const prolificPid = (
+      body.prolificPid ||
+      body.prolific_pid ||
+      prolific.prolificPid ||
+      prolific.prolific_pid ||
+      prolific.pid ||
+      ""
+    ).trim();
+    const prolificStudyId = (
+      body.prolificStudyId ||
+      body.prolific_study_id ||
+      prolific.prolificStudyId ||
+      prolific.studyId ||
+      prolific.study_id ||
+      ""
+    ).trim();
+    const prolificSessionId = (
+      body.prolificSessionId ||
+      body.prolific_session_id ||
+      prolific.prolificSessionId ||
+      prolific.sessionId ||
+      prolific.session_id ||
+      ""
+    ).trim();
+    const hasProlificInfo = Boolean(prolificPid || prolificStudyId || prolificSessionId);
     const requestedStudy = (body.study || "").trim().toLowerCase();
     const studyLabel = requestedStudy === "pilot" ? "pilot" : DEFAULT_FORMAL_STUDY;
     const STUDY_ID = `${cfg.studyId}:${studyLabel}`;
@@ -69,6 +95,38 @@ export const handler = async (event) => {
       const existingStoryId = existing.Item.story_id?.S;
       const existingMode = existing.Item.mode?.S;
       if (existingStoryId && existingMode) {
+        if (hasProlificInfo) {
+          const updates = [];
+          const values = {};
+          if (prolificPid && prolificPid !== existing.Item.prolific_pid?.S) {
+            updates.push("prolific_pid = :ppid");
+            values[":ppid"] = { S: prolificPid };
+          }
+          if (prolificStudyId && prolificStudyId !== existing.Item.prolific_study_id?.S) {
+            updates.push("prolific_study_id = :psid");
+            values[":psid"] = { S: prolificStudyId };
+          }
+          if (prolificSessionId && prolificSessionId !== existing.Item.prolific_session_id?.S) {
+            updates.push("prolific_session_id = :psess");
+            values[":psess"] = { S: prolificSessionId };
+          }
+          if (updates.length > 0) {
+            updates.push("updated_at = :ts");
+            values[":ts"] = { S: new Date().toISOString() };
+            try {
+              await ddb.send(
+                new UpdateItemCommand({
+                  TableName: TABLE,
+                  Key: participantKey,
+                  UpdateExpression: `SET ${updates.join(", ")}`,
+                  ExpressionAttributeValues: values
+                })
+              );
+            } catch (err) {
+              console.warn("assign: failed to update prolific info for existing participant", err);
+            }
+          }
+        }
         return respond(200, {
           participantId,
           studyId: STUDY_ID,
@@ -205,22 +263,27 @@ export const handler = async (event) => {
         })
       );
 
+      const participantItem = {
+        pk: { S: "soups26_vlm_assignment_participant" },
+        sk: { S: `${STUDY_ID}#participant_${participantId}` },
+        item_type: { S: "participant_assignment" },
+        study_id: { S: STUDY_ID },
+        study_label: { S: studyLabel },
+        participant_id: { S: participantId },
+        story_id: { S: chosen.storyId },
+        mode: { S: chosen.mode },
+        finished: { BOOL: false },
+        stage: { N: "0" },
+        created_at: { S: new Date().toISOString() }
+      };
+      if (prolificPid) participantItem.prolific_pid = { S: prolificPid };
+      if (prolificStudyId) participantItem.prolific_study_id = { S: prolificStudyId };
+      if (prolificSessionId) participantItem.prolific_session_id = { S: prolificSessionId };
+
       await ddb.send(
         new PutItemCommand({
           TableName: TABLE,
-          Item: {
-            pk: { S: "soups26_vlm_assignment_participant" },
-            sk: { S: `${STUDY_ID}#participant_${participantId}` },
-            item_type: { S: "participant_assignment" },
-            study_id: { S: STUDY_ID },
-            study_label: { S: studyLabel },
-            participant_id: { S: participantId },
-            story_id: { S: chosen.storyId },
-            mode: { S: chosen.mode },
-            finished: { BOOL: false },
-            stage: { N: "0" },
-            created_at: { S: new Date().toISOString() }
-          },
+          Item: participantItem,
           ConditionExpression: "attribute_not_exists(sk)"
         })
       );

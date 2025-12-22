@@ -10,11 +10,17 @@ function buildUrl(path) {
   return `${API_BASE}${path}`;
 }
 
-export async function assignParticipant(participantId, study) {
+export async function assignParticipant(participantId, study, prolificInfo = null) {
+  const payload = { participantId, study };
+  if (prolificInfo && typeof prolificInfo === "object") {
+    if (prolificInfo.prolificPid) payload.prolificPid = prolificInfo.prolificPid;
+    if (prolificInfo.prolificStudyId) payload.prolificStudyId = prolificInfo.prolificStudyId;
+    if (prolificInfo.prolificSessionId) payload.prolificSessionId = prolificInfo.prolificSessionId;
+  }
   const res = await fetch(buildUrl("/assign"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId, study }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     throw new Error(`Assign failed: ${res.status}`);
@@ -22,11 +28,17 @@ export async function assignParticipant(participantId, study) {
   return res.json();
 }
 
-export async function assignTestParticipant({ participantId, storyIndex, mode, study }) {
+export async function assignTestParticipant({ participantId, storyIndex, mode, study, prolificInfo = null }) {
+  const payload = { participantId, storyIndex, mode, study };
+  if (prolificInfo && typeof prolificInfo === "object") {
+    if (prolificInfo.prolificPid) payload.prolificPid = prolificInfo.prolificPid;
+    if (prolificInfo.prolificStudyId) payload.prolificStudyId = prolificInfo.prolificStudyId;
+    if (prolificInfo.prolificSessionId) payload.prolificSessionId = prolificInfo.prolificSessionId;
+  }
   const res = await fetch(buildUrl("/assignTest"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ participantId, storyIndex, mode, study }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     throw new Error(`AssignTest failed: ${res.status}`);
